@@ -1,0 +1,70 @@
+/* Wider content column — the flow diagrams and comparison tables need room. */
+.md-grid {
+  max-width: 68rem;
+}
+
+/* Tables carry the side-by-side comparisons, so tighten them up. Zensical emits
+   a bare <table> with no scroll wrapper, so the table is its own scroll
+   container — that way a long row never gets clipped. */
+.md-typeset table:not([class]) {
+  display: block;
+  overflow-x: auto;
+  font-size: 0.72rem;
+}
+
+/* Identifiers, endpoints and headers stay on one line — a member name or a URL
+   path split mid-token is easy to misread. Anything too wide to fit scrolls via
+   the rule above rather than being clipped. */
+.md-typeset table:not([class]) td code,
+.md-typeset table:not([class]) th {
+  white-space: nowrap;
+}
+
+.md-typeset table:not([class]) td {
+  vertical-align: top;
+}
+
+/* Mermaid diagrams sit better with a little air around them. */
+.md-typeset .mermaid {
+  margin: 1.2em 0;
+}
+
+/* --- SDK colour key -------------------------------------------------------
+   Swatches must stay in sync with the classDef strokes in the flow diagrams:
+   OAuth #8b5cf6, Access #3b82f6, Config #f59e0b, failure #ef4444.          */
+
+.md-typeset .sdk-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.4rem;
+  margin: 0.9em 0 1.4em;
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.md-typeset .sdk-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+.md-typeset .sdk-key span::before {
+  content: "";
+  width: 1.1rem;
+  height: 0.72rem;
+  border: 2px solid var(--md-default-fg-color--light);
+  border-radius: 0.12rem;
+  background: var(--md-code-bg-color);
+}
+
+.md-typeset .sdk-key .k-oauth::before  { border-color: #8b5cf6; }
+.md-typeset .sdk-key .k-access::before { border-color: #3b82f6; }
+.md-typeset .sdk-key .k-config::before { border-color: #f59e0b; }
+.md-typeset .sdk-key .k-fail::before {
+  border-color: #ef4444;
+  border-style: dashed;
+}
+.md-typeset .sdk-key .k-flow::before {
+  border-radius: 0.36rem;
+}
