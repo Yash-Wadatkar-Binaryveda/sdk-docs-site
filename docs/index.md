@@ -1,15 +1,15 @@
 # SDK &amp; Backend Calls
 
-Every Spintly SDK member and backend endpoint the app touches — what calls it,
+Every Spintly SDK member and backend endpoint the app touches: what calls it,
 when it fires, and what it is for.
 
 ## What this reference is
 
 The app depends on three separate Spintly SDKs, each shipped as a prebuilt
-binary — an `.xcframework` on iOS, an `.aar` on Android. Because they are
+binary, an `.xcframework` on iOS and an `.aar` on Android. Because they are
 closed binaries, the only reliable record of **what the app actually calls** is
-the app's own source. This site is that record, written down once so the iOS
-and Android sides can point at the same place instead of each keeping notes.
+the app's own source. This site is that record, kept in one place so the iOS and
+Android sides do not each hold their own notes.
 
 Read it to:
 
@@ -18,41 +18,40 @@ Read it to:
 - find where the two platforms diverge, and how
 - tell which flows reach Spintly's servers and which never leave Keycloak
 
-It is a **reference**, not a tutorial: it describes the integration as it
-stands today rather than prescribing how to build a new one.
+This is a **reference** to the integration as it stands today. It does not
+prescribe how to build a new one.
 
 ## The three SDKs
 
-Three separate Spintly SDKs ship inside the app. They version independently and
-share nothing with each other except one thing: the **session token** the OAuth
-SDK produces. Everything on this site is tagged with which of the three it
-belongs to.
+The three SDKs version independently and share nothing except the **session
+token** the OAuth SDK produces. Everything on this site is tagged with the SDK
+it belongs to.
 
-### OAuth SDK — the gatekeeper
+### OAuth SDK: the session token
 
-Exchanges the Keycloak token our own login issues for a Spintly **session
-token**. Nothing else in the app can talk to Spintly until this succeeds, which
-makes it the first SDK to do real work and the single point of failure for
-everything downstream.
+Exchanges the Keycloak token from our own login for a Spintly **session token**.
+Nothing else in the app can talk to Spintly until this succeeds, so it runs
+first and everything downstream depends on it.
 
-The exchange is a callback conversation, not one call: the app asks for a
+The exchange runs over callbacks rather than a single call. The app asks for a
 session, the SDK asks the app how to authenticate, the app hands back a
 token-exchange request, and the SDK returns the session.
 
-### Access SDK — the credential
+### Access SDK: the credential
 
 Holds the logged-in credential and the user's lock permissions. `logIn` seats
-the Spintly token inside the SDK; `pollData` pulls down which doors the user is
-allowed to open. It also calls back into the app when it needs a fresh token or
-when the login state changes, so the app registers handlers for both at launch.
+the Spintly token inside the SDK, and `pollData` pulls down which doors the user
+is allowed to open. It also calls back into the app when it needs a fresh token
+or when the login state changes, so the app registers handlers for both at
+launch.
 
-### Config SDK — the hardware
+### Config SDK: the lock hardware
 
-The only SDK that talks to the **lock hardware**, over BLE — passcodes, lock
-onboarding, wifi, firmware. It needs the same session token the Access SDK gets,
-handed to it through `setAuthToken`, before it can write anything.
+The only SDK that talks to the **lock hardware** over BLE, covering passcodes,
+lock onboarding, wifi, and firmware. It needs the same session token the Access
+SDK gets, handed to it through `setAuthToken`, before it can write anything.
 
-Of everything it can do, this app uses one member:
+The app uses one member of it:
 [writing a user's passcode to a lock](lock-share-invites.md#writing-the-passcode-to-the-lock).
 
 ### Versions shipped
@@ -82,20 +81,20 @@ flowchart TD
     class C sdkConfig
 ```
 
-**OAuth** produces the token → handed to **Access** (`logIn`) and **Config**
-(`setAuthToken`) → only then can Config write to a lock.
+**OAuth** produces the token, which goes to **Access** through `logIn` and to
+**Config** through `setAuthToken`. Only then can Config write to a lock.
 
 !!! note "Also at app launch"
 
     All three must be constructed and pointed at an environment at app launch,
-    before any of the above can happen. That start-up work is
+    before any of the above can happen. That work is
     [step 1 of User Onboarding](user-onboarding.md#1-app-launch).
 
 ## How to read these pages
 
 Each flow page walks through the SDK work as a series of **moments in the app's
-life** — app launch, login starts, after login, and so on — with one diagram
-per moment.
+life**, such as app launch, a login starting, and the work that follows a login,
+with one diagram per moment.
 
 <p class="sdk-key">
   <span class="k-oauth">OAuth SDK</span>
@@ -107,11 +106,11 @@ per moment.
 
 - **A box's outline colour** says which SDK the member belongs to, per the key
   above.
-- **The number** is a reading order within that diagram, not a guarantee about
+- **The number** is a reading order within that diagram. It says nothing about
   thread scheduling.
-- **A dashed edge or box** marks a conditional path — an optional step, a
+- **A dashed edge or box** marks a conditional path: an optional step, a
   shortcut, or a failure.
-- **iOS / Android tabs** are linked across the whole page — pick your platform
+- **iOS / Android tabs** are linked across the whole page. Pick your platform
   once at the top and every diagram below follows.
 
 !!! info "Accessor"
