@@ -1,5 +1,5 @@
 [project]
-site_url = "https://www.example.com/"
+# site_url — not set: this site is not published to a public URL
 site_name = "SDK & Backend Calls"
 site_description = "Spintly SDK members and backend endpoints used by the app on iOS and Android"
 

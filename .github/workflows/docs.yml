@@ -1,29 +1,41 @@
 name: Documentation
+
+# This site is an internal reference and is deliberately NOT published.
+# GitHub Pages serves publicly even from a private repository, so instead of
+# deploying, this workflow builds the site and attaches it as an artifact you
+# can download from the run's summary page.
+#
+# --strict fails the build on warnings, which includes broken internal links
+# and missing heading anchors — so a bad cross-reference cannot reach main.
+
 on:
   push:
     branches:
-      - master
       - main
+  pull_request:
+  workflow_dispatch:
+
 permissions:
   contents: read
-  pages: write
-  id-token: write
+
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/configure-pages@v6
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+
       - run: pip install zensical
-      - run: zensical build --clean
-      - uses: actions/upload-pages-artifact@v5
+
+      - name: Build the site (fails on broken links)
+        run: zensical build --clean --strict
+
+      - name: Attach the built site
+        uses: actions/upload-artifact@v4
         with:
+          name: sdk-docs-site
           path: site
-      - uses: actions/deploy-pages@v5
-        id: deployment
+          retention-days: 30

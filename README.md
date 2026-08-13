@@ -43,8 +43,36 @@ If `.venv/` ever goes missing, recreate it:
 .\.venv\Scripts\python -m pip install zensical
 ```
 
-## Publishing
+## Not published — on purpose
 
-`.github/workflows/docs.yml` builds the site and deploys it to GitHub Pages on
-push. It only runs once this folder is a git repo with a GitHub remote — set
-`site_url` in `zensical.toml` to the real Pages URL before relying on it.
+This is an internal reference, so there is no public site. GitHub Pages serves
+publicly **even from a private repository** (private Pages needs GitHub
+Enterprise Cloud), so publishing it there would put the app's auth architecture
+and Spintly's endpoints on the open internet.
+
+`site_url` in `zensical.toml` is therefore left unset, and
+`.github/workflows/docs.yml` does not deploy anywhere. On every push and pull
+request it instead:
+
+1. builds the site with `--strict`, which **fails on warnings** — including
+   broken internal links and missing heading anchors, so a bad cross-reference
+   cannot reach `main`;
+2. attaches the built site as an artifact named `sdk-docs-site`.
+
+### Reading it without installing anything
+
+Open the latest run under the repo's **Actions** tab, download the
+`sdk-docs-site` artifact, unzip it, and open `index.html`. Artifacts are kept
+for 30 days.
+
+### Reading it with live reload
+
+Clone the repo and follow **Working on it** above — `zensical serve` gives the
+full experience, including search.
+
+### If it ever does need real hosting
+
+Options that keep it behind a login: Cloudflare Pages or Azure Static Web Apps
+with access control, or GitHub Pages on a GitHub Enterprise Cloud plan. Whatever
+you pick, set `site_url` to the real URL so canonical links and the sitemap come
+out right.
