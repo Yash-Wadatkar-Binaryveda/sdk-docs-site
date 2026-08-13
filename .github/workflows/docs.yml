@@ -1,12 +1,13 @@
 name: Documentation
 
-# This site is an internal reference and is deliberately NOT published.
-# GitHub Pages serves publicly even from a private repository, so instead of
-# deploying, this workflow builds the site and attaches it as an artifact you
-# can download from the run's summary page.
+# Builds the site and publishes it to GitHub Pages.
 #
-# --strict fails the build on warnings, which includes broken internal links
-# and missing heading anchors — so a bad cross-reference cannot reach main.
+# NOTE: a GitHub Pages site is readable by ANYONE with the URL, even when the
+# repository itself is private. Search engines can index it. Keep that in mind
+# before adding anything to docs/ that should not be public.
+#
+# --strict fails the build on warnings, which includes broken internal links and
+# missing heading anchors, so a bad cross-reference cannot reach production.
 
 on:
   push:
@@ -17,12 +18,21 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
+
+# Let a running deploy finish rather than cancelling it half-published.
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/configure-pages@v5
 
       - uses: actions/setup-python@v5
         with:
@@ -33,9 +43,18 @@ jobs:
       - name: Build the site (fails on broken links)
         run: zensical build --clean --strict
 
-      - name: Attach the built site
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-pages-artifact@v3
         with:
-          name: sdk-docs-site
           path: site
-          retention-days: 30
+
+  # Pull requests build above but stop here — only main gets published.
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
