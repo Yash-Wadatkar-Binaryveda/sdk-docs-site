@@ -9,6 +9,7 @@ nav = [
   { "Overview" = "index.md" },
   { "1. User Onboarding" = "user-onboarding.md" },
   { "2. Lock Share Invites" = "lock-share-invites.md" },
+  { "3. Lock Onboarding" = "lock-onboarding.md" },
 ]
 
 extra_css = ["stylesheets/extra.css"]
