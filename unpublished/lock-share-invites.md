@@ -80,12 +80,14 @@ flowchart TD
 
 !!! note "No token cache"
 
-    Step 1 is re-fetched before **each** of the calls below it. There is no
-    token cache anywhere in this flow.
+    The token at the top of the diagram is re-fetched before **each** of the
+    three calls under it. Nothing in Binaryveda's services caches a Spintly
+    token.
 
-Steps 2 and 3 are alternatives. Either a new person is created, or an existing
-accessor is registered into the inviter's organisation. Step 4 runs afterwards
-in both cases.
+Creating the accessor and adding an existing accessor to the organisation are
+alternatives. Either a new person is created inside Spintly, or someone who is
+already an accessor is registered into the inviter's organisation. The
+permission update runs afterwards either way.
 
 The three IDs that come back, `organisationId`, `accessorId`, and
 `accessPointId`, are Spintly's, and the app passes them straight into the Config
@@ -96,7 +98,7 @@ backend.
 
 One Config SDK member does the hardware write, with the same arguments on both
 platforms. It needs a valid Spintly token first, from the OAuth exchange in
-[User Onboarding](user-onboarding.md#3-after-login-trading-the-keycloak-token),
+[User Onboarding](user-onboarding.md#4-trading-the-keycloak-token-for-a-spintly-session),
 which both platforms re-run just before the write.
 
 <p class="sdk-key">

@@ -4,6 +4,7 @@ A [Zensical](https://zensical.org) site for the Spintly SDK and backend call
 reference. Kept separate from the iOS and Android app repos.
 
 Source content lives in `docs/`, and the built site lands in `site/`.
+`unpublished/` holds pages that are kept but not built into the site.
 
 ## Pages
 
@@ -11,8 +12,9 @@ Source content lives in `docs/`, and the built site lands in `site/`.
 |---|---|
 | `docs/index.md` | Overview of the three SDKs and the order they run in |
 | `docs/user-onboarding.md` | 1. User Onboarding: iOS and Android SDK members per phase, plus the differences |
-| `docs/lock-share-invites.md` | 2. Lock Share Invites: the four Spintly REST calls and the Config SDK write |
-| `docs/lock-onboarding.md` | 3. Lock Onboarding: a fresh user's first lock, as sequence diagrams, with the GraphQL and Spintly REST calls on the arrows |
+| `docs/lock-onboarding.md` | 2. Lock Onboarding: a fresh user's first lock, as sequence diagrams, with the GraphQL and Spintly REST calls on the arrows |
+| `docs/home.md` | 3. Home: the lock list, live updates, unlocking over BLE with the internet as fallback, and privacy mode |
+| `docs/notifications.md` | 4. Notifications: push topics and how each one routes, plus the notification centre behind the bell |
 
 Page titles come from the `nav` in `zensical.toml`. Renaming a file changes the
 page's URL, so keep the two in step when a title changes.

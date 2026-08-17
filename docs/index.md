@@ -51,8 +51,8 @@ The only SDK that talks to the **lock hardware** over BLE, covering passcodes,
 lock onboarding, wifi, and firmware. It needs the same session token the Access
 SDK gets, handed to it through `setAuthToken`, before it can write anything.
 
-The app uses one member of it:
-[writing a user's passcode to a lock](lock-share-invites.md#writing-the-passcode-to-the-lock).
+It is used across [Lock Onboarding](lock-onboarding.md), from the BLE scan
+onwards.
 
 ### Versions shipped
 
@@ -84,37 +84,23 @@ flowchart TD
 **OAuth** produces the token, which goes to **Access** through `logIn` and to
 **Config** through `setAuthToken`. Only then can Config write to a lock.
 
-!!! note "Also at app launch"
+!!! note "Before any of that can happen"
 
-    All three must be constructed and pointed at an environment at app launch,
-    before any of the above can happen. That work is
-    [step 1 of User Onboarding](user-onboarding.md#1-app-launch).
+    All three have to be created and pointed at an environment first. When that
+    happens differs by platform, and is covered in
+    [App launch, in User Onboarding](user-onboarding.md#1-app-launch).
 
 ## How to read these pages
 
-Each flow page walks through the SDK work as a series of **moments in the app's
-life**, such as app launch, a login starting, and the work that follows a login,
-with one diagram per moment.
+Each flow page breaks the work into numbered steps, one diagram per step, read
+top to bottom. Every page opens with a table naming the participants and a key
+to the shapes its diagrams use, so you can start on any page.
 
-<p class="sdk-key">
-  <span class="k-oauth">OAuth SDK</span>
-  <span class="k-access">Access SDK</span>
-  <span class="k-config">Config SDK</span>
-  <span class="k-flow">app / platform step</span>
-  <span class="k-fail">failure path</span>
-</p>
-
-- **A box's outline colour** says which SDK the member belongs to, per the key
-  above.
-- **The number** is a reading order within that diagram. It says nothing about
-  thread scheduling.
-- **A dashed edge or box** marks a conditional path: an optional step, a
-  shortcut, or a failure.
-- **iOS / Android tabs** are linked across the whole page. Pick your platform
-  once at the top and every diagram below follows.
+The iOS and Android tabs are linked across the whole site. Pick your platform
+once and every diagram follows.
 
 !!! info "Accessor"
 
     Spintly's word for a person who can open a door is an **accessor**. Their
-    IDs (`accessorId`, `organisationId`, `accessPointId`) show up throughout
-    [Lock Share Invites](lock-share-invites.md).
+    IDs (`accessorId`, `organisationId`, `accessPointId`) run through
+    [Lock Onboarding](lock-onboarding.md).

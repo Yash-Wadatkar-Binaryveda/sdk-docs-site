@@ -8,8 +8,9 @@ copyright = "Godrej Locks &mdash; internal integration reference"
 nav = [
   { "Overview" = "index.md" },
   { "1. User Onboarding" = "user-onboarding.md" },
-  { "2. Lock Share Invites" = "lock-share-invites.md" },
-  { "3. Lock Onboarding" = "lock-onboarding.md" },
+  { "2. Lock Onboarding" = "lock-onboarding.md" },
+  { "3. Home" = "home.md" },
+  { "4. Notifications" = "notifications.md" },
 ]
 
 extra_css = ["stylesheets/extra.css"]

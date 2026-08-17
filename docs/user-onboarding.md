@@ -1,305 +1,576 @@
 # 1. User Onboarding
 
-**What it is.** Login and sign-up: mobile number → mobile OTP → (new users)
-name + email → email OTP → dashboard. Being invited to someone else's lock is a
-separate flow, covered in [Lock Share Invites](lock-share-invites.md).
+**What it is.** Signing in and signing up: mobile number → mobile OTP → (new
+users) name + email → email OTP → Home.
 
 !!! warning "Key point"
 
-    Login makes **no Spintly SDK calls** and **never reaches Spintly's
-    backend**. It runs on Keycloak over plain HTTP (OAuth 2.0 + PKCE). The SDKs
-    are touched only at app launch and after login, to trade the Keycloak token
-    for a Spintly session.
+    Signing in does not touch a Spintly SDK. The mobile number and OTP screens
+    talk to Keycloak, and the name and email screens talk to Binaryveda's
+    backend. Spintly only comes into it once the app holds a Keycloak token.
 
-**Covers three cases**, all on the same code path. The SDK work keys off having
-a valid Keycloak token rather than off how the user got one.
+**Three cases**, all on the same code path.
 
-| Case | Screens | SDK behaviour |
+| Case | Screens | What happens after |
 |---|---|---|
-| New user | number → mobile OTP → name + email → email OTP | Full sequence below |
-| Existing user | number → mobile OTP, then straight in | Same. Keycloak returns the auth code right after the mobile OTP, so the email screens are skipped |
-| Returning user (saved session still valid) | none. The splash screen goes straight to Home | Skips the login-start logout and the entire OAuth exchange. Both platforms check `isLoggedIn` first and go straight to `pollData` |
+| New user | number → mobile OTP → name + email → email OTP | Everything below runs |
+| Existing user | number → mobile OTP | The same, without the name and email screens. Their profile already has both |
+| Returning user, app reopened on a saved session | None, the splash screen goes straight to Home | No sign-in screens and nothing to Keycloak. The app asks the Access SDK whether it is still logged in, and if it is, only `pollData` runs |
 
-## SDK members used
+In all three the Spintly work is identical. It starts once the app has a valid
+Keycloak token and does not care which screens produced it.
 
-The SDK work splits into six moments in the app's life. Each diagram below reads
-top to bottom, and a box's outline colour says which of the three SDKs the
-member belongs to.
+## Who does what
 
-<p class="sdk-key">
-  <span class="k-oauth">OAuth SDK</span>
-  <span class="k-access">Access SDK</span>
-  <span class="k-config">Config SDK</span>
-  <span class="k-flow">app / platform step</span>
-  <span class="k-fail">failure path</span>
-</p>
+Seven participants appear across the diagrams. Each diagram shows only the ones
+it needs.
 
-!!! tip "Tabs are linked"
+| Participant | What it is |
+|---|---|
+| **User** | The person signing in |
+| **App** | The iOS or Android app |
+| **Keycloak** | Godrej's identity server, which the sign-in screens talk to directly over HTTP |
+| **Binaryveda's backend** | Binaryveda's GraphQL API |
+| **OAuth SDK** | Spintly's `oauthManager`, the only thing that can turn a Keycloak token into a Spintly session token |
+| **Access SDK** | Spintly's `serviceProvider`, which holds the session and the user's lock permissions |
+| **Config SDK** | Spintly's `configurationProvider`. Created and pointed at an environment here, but given no token and not used again until a lock flow |
 
-    Pick **iOS** or **Android** in any tab below and every other diagram on this
-    page switches with it.
+!!! tip "Reading the diagrams"
 
-### 1. App launch
+    Each diagram reads top to bottom. Every participant has a vertical line, and
+    every arrow between two lines is one call.
 
-Create the three SDKs, then point each one at an environment. All of it runs
-before the user sees a login screen. The numbering follows that order: create
-first, configure second.
+    | What you see | What it means |
+    |---|---|
+    | **Solid arrow** | A call going out, from whoever it starts at to whoever it points at |
+    | **Dashed arrow** | The answer coming back. Also used when an SDK calls back into the app on its own |
+    | **Arrow that loops back to its own line** | Work the app does by itself. Nothing leaves the app |
+    | **Two lines on an arrow** | The first line is the member or endpoint being called, the second says what it does |
+    | **Grey banner across the whole diagram** | A heading, marking where one part of the flow ends and the next begins |
+    | **Box labelled `opt`** | Something that only sometimes happens. Its condition sits at the top of the box, and when that condition is false everything inside is skipped |
+    | **Box labelled `alt`** | A choice between two paths. A dashed line splits the box into a top half and a bottom half, each with its own condition above it. Exactly one of the two halves happens |
+
+    The iOS and Android tabs are linked across the site. Pick a platform once
+    and every diagram follows.
+
+## The whole flow
+
+Seven steps, each with its own section below. This diagram is the outline, so it
+leaves the branches out. They are drawn into the step they belong to.
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant A as App
+    participant K as Keycloak
+    participant B as Binaryveda's backend
+    participant O as OAuth SDK
+    participant S as Access SDK
+
+    Note over U,S: 1. App launch
+    A->>O: Create the OAuth manager
+    A->>S: Create the Access SDK, point it at the environment, register the handlers
+
+    Note over U,S: 2. Mobile number and OTP
+    U->>A: Country code and mobile number
+    A->>K: Start a session, then post the number
+    K-->>A: OTP sent
+    U->>A: OTP
+    A->>K: Post the OTP, then exchange the code it returns
+    K-->>A: Keycloak token
+    A->>B: getUserProfile
+
+    Note over U,S: 3. Name and email, new users only
+    U->>A: Name and email
+    A->>B: requestEmailOtp
+    U->>A: OTP
+    A->>B: verifyEmailOtp
+
+    Note over U,S: 4. Trading the Keycloak token
+    A->>O: getOrCreateSession
+    O-->>A: Spintly session token
+
+    Note over U,S: 5. Seating the token in the Access SDK
+    A->>S: logIn
+    A->>S: pollData
+    S-->>A: The user's lock permissions
+    A-->>U: Home screen
+
+    Note over U,S: 6. While signed in
+    S-->>A: The SDK asks for a fresh token, and the app runs the token exchange again
+
+    Note over U,S: 7. Sign out
+    U->>A: Sign out
+    A->>S: logOut
+    A->>O: clearSession
+    A->>B: logOut
+```
+
+## 1. App launch
+
+All three SDKs are created and pointed at an environment before anything else
+can run. The two platforms differ in when that work happens.
 
 === "iOS"
 
     ```mermaid
-    %%{init:{"flowchart":{"wrappingWidth":540,"nodeSpacing":24,"rankSpacing":28}}}%%
-    flowchart TD
-        S(["App starts"]) --> N1
-        N1["<b>1 · SpintlyOauthManager(clientId:provider:environment:)</b><br/>Create the OAuth manager"]
-        N1 --> N2["<b>2 · SpintlyACServiceProvider.defaultInstance</b><br/>Get the Access SDK instance"]
-        N2 --> N3["<b>3 · SpintlyConfigurationProvider.defaultInstance</b><br/>Get the Config SDK instance"]
-        N3 --> M(["All three SDKs now exist. Configure them"])
-        M --> N4["<b>4 · environmentManager.setEnvironment(_:)</b><br/>Point the Access SDK at the environment"]
-        N4 --> N5["<b>5 · credentialManager.setRefreshTokenDelegate(_:)</b><br/>Register our token-refresh handler"]
-        N5 --> N6["<b>6 · credentialManager.setLoginStatusDelegate(delegate:)</b><br/>Register our login-status handler"]
-        N6 --> N7["<b>7 · configurationProvider.getVersion()</b><br/>Read the SDK version for logs"]
-        N7 --> N8["<b>8 · configurationProvider.setDebugLogging(enabled:)</b><br/>Turn on SDK logging, debug builds only"]
-        N8 --> N9["<b>9 · configurationProvider.setEnvironment(environment:region:)</b><br/>Point the Config SDK at the environment"]
-        N9 --> E(["Ready, waiting for a Keycloak token"])
+    sequenceDiagram
+        participant A as App
+        participant O as OAuth SDK
+        participant C as Config SDK
+        participant S as Access SDK
 
-        classDef sdkOauth stroke:#8b5cf6,stroke-width:2px
-        classDef sdkAccess stroke:#3b82f6,stroke-width:2px
-        classDef sdkConfig stroke:#f59e0b,stroke-width:2px
-        class N1 sdkOauth
-        class N2,N4,N5,N6 sdkAccess
-        class N3,N7,N8,N9 sdkConfig
+        A->>O: SpintlyOauthManager(clientId:provider:environment:)<br/>Create the OAuth manager
+        A->>C: SpintlyConfigurationProvider.defaultInstance<br/>Get the Config SDK instance
+        opt If this is a debug build
+            A->>C: setDebugLogging(enabled:)<br/>Turn on SDK logging
+        end
+        A->>C: setEnvironment(environment:region:)<br/>Point it at the environment
+        A->>S: SpintlyACServiceProvider.defaultInstance<br/>Get the Access SDK instance
+        A->>S: environmentManager.setEnvironment(_:)<br/>Point it at the environment
+        A->>S: credentialManager.setRefreshTokenDelegate(_:)<br/>Register the token-refresh handler
+        A->>S: credentialManager.setLoginStatusDelegate(delegate:)<br/>Register the login-status handler
+        A->>C: getVersion()<br/>Read the SDK version for the log
+    ```
+
+    **When it runs.** AppDelegate calls `SpintlyHelper.initialise()` on launch,
+    but only when the user is already signed in. On a signed-out launch none of
+    it runs, and the SDKs are built on first use instead, because every
+    `SpintlyHelper` entry point calls `initialise()` before anything else. Each
+    of the three is guarded on its own instance being nil, so later calls do
+    nothing. The OAuth guard tests `configurationProvider` rather than
+    `oauthManager`.
+
+=== "Android"
+
+    ```mermaid
+    sequenceDiagram
+        participant A as App
+        participant O as OAuth SDK
+        participant C as Config SDK
+        participant S as Access SDK
+
+        A->>O: SpintlyOauthManager(context, clientId, providerId, environment)<br/>Create the OAuth manager, environment passed in the constructor
+        A->>S: SpintlyACServiceProvider.getDefaultInstance(context)<br/>Get the Access SDK instance
+        A->>S: environmentManager.environment = …<br/>Point it at the environment
+        A->>C: SpintlyConfigurationProvider.getDefaultInstance(context)<br/>Get the Config SDK instance
+        A->>C: setEnvironment(environment, region)<br/>Point it at the environment
+        A->>S: credentialManager.setTokenRefreshHandler { }<br/>Register the token-refresh handler, from SpintlySDKManager's init block
+    ```
+
+    **When it runs.** Hilt builds all three as singletons the first time
+    anything injects `SpintlySDKManager`. The application class does nothing
+    eagerly, and `SpintlySDKManager` is injected into the user data source, so
+    in practice this happens on the first data-source call.
+
+    The Config SDK environment is set again before every Config SDK call later
+    on. iOS sets it once and leaves it.
+
+## 2. Mobile number and OTP
+
+The user enters a country code and mobile number, Keycloak sends an OTP, and the
+verified OTP comes back with an authorisation code. The app exchanges that code
+for a Keycloak token, then reads the profile it belongs to. That profile is what
+decides whether the name and email screens run.
+
+The OTP is six digits on both platforms, and both submit it as soon as the field
+fills, so nobody taps the button on the way through.
+
+=== "iOS"
+
+    ```mermaid
+    sequenceDiagram
+        actor U as User
+        participant A as App
+        participant K as Keycloak
+        participant B as Binaryveda's backend
+
+        Note over U,B: Ask Keycloak for an OTP
+        U->>A: Country code and mobile number
+        A->>A: PKCEManager()<br/>A new code verifier and challenge for this attempt
+        A->>K: GET auth?<br/>Start a Keycloak session
+        K-->>A: The URL to post the number to
+        A->>K: POST country-code and mobile
+        K-->>A: OTP sent, and the URL to post it to
+
+        Note over U,B: Check the OTP and pick up a token
+        A-->>U: Enter the OTP
+        U->>A: OTP
+        A->>K: POST mobile-otp
+        alt If the OTP is correct
+            K-->>A: The authorisation code, in the Location header
+            A->>K: POST token<br/>Exchange the code, with the code verifier
+            K-->>A: Access token, refresh token and id token
+        else If the OTP is wrong
+            K-->>A: isOTPInvalid, and the same URL again
+            A-->>U: Wrong code, retype it on the same screen
+        end
+
+        Note over U,B: Work out where to send the user next
+        A->>B: getUserProfile<br/>Read the profile this token belongs to
+        B-->>A: Name and email, or blanks for a new user
+        alt If both came back filled in
+            A-->>U: Home screen
+        else If either one is missing
+            A-->>U: Name and email screen
+        end
+    ```
+
+    **A wrong OTP tears nothing down.** The Keycloak session lives in the
+    `formAction` URL that arrives with each response, so the retry posts to the
+    same place.
+
+    **A new code verifier and challenge** are generated every time the number
+    screen opens, so going back and starting over always begins a fresh Keycloak
+    session.
+
+=== "Android"
+
+    ```mermaid
+    sequenceDiagram
+        actor U as User
+        participant A as App
+        participant K as Keycloak
+        participant B as Binaryveda's backend
+        participant O as OAuth SDK
+        participant S as Access SDK
+
+        Note over U,S: Wipe the previous user, then ask Keycloak for an OTP
+        U->>A: Country code and mobile number
+        A->>A: clearUserDataStore()<br/>Drop what the previous user left behind
+        A->>S: credentialManager.logOut()<br/>Clear the previous user's Access SDK session
+        A->>O: oauthManager.clearSession()<br/>Clear the previous user's OAuth session
+        A->>A: Empty the cookie jar, then generate a code verifier, challenge and state
+        A->>K: GET /realms/gdb2c-{env}/protocol/openid-connect/auth<br/>Start a Keycloak session
+        K-->>A: The URL to post the number to
+        A->>K: POST country-code and mobile
+        K-->>A: OTP sent, and the URL to post it to
+
+        Note over U,S: Check the OTP and pick up a token
+        A-->>U: Enter the OTP
+        U->>A: OTP
+        A->>K: POST mobile-otp
+        alt If the OTP is correct
+            K-->>A: The authorisation code, in the Location header
+            A->>K: POST /realms/gdb2c-{env}/protocol/openid-connect/token<br/>Exchange the code, with the code verifier
+            K-->>A: Access token, refresh token and id token
+        else If the OTP is wrong
+            K-->>A: invalidOTP, and the same URL again
+            A-->>U: Wrong code, retype it on the same screen
+        end
+
+        Note over U,S: Work out where to send the user next
+        A->>B: getUserProfile<br/>Read the profile this token belongs to
+        B-->>A: Name and email, or blanks for a new user
+        alt If the email came back
+            A-->>U: Device authentication, then Home
+        else If it is missing
+            A-->>U: Name and email screen
+        end
+    ```
+
+    **The two SDK calls at the top** are the only SDK work anywhere in the
+    sign-in screens. They run on the number screen, before Keycloak is
+    contacted, so a second user signing in on the same phone never inherits the
+    first one's Spintly session. iOS has no equivalent.
+
+    **Keycloak's own error codes** are mapped to messages on the number screen:
+    `err-otp-throttled`, `err-req-country`, `err-req-mobile` and
+    `err-len-mobile`.
+
+## 3. Name and email, new users only
+
+This step runs when the profile read at the end of the mobile OTP step comes back without a
+name or an email. It goes to Binaryveda's backend rather than to Keycloak, and
+touches no SDK. Both platforms send the same two mutations, and neither branches.
+
+=== "iOS"
+
+    ```mermaid
+    sequenceDiagram
+        actor U as User
+        participant A as App
+        participant B as Binaryveda's backend
+
+        U->>A: Name and email
+        A->>B: requestEmailOtp(requestEmailOtpInput:)<br/>Only the email is sent here
+        B-->>A: message and success
+        A-->>U: Enter the OTP
+        U->>A: OTP
+        A->>B: verifyEmailOtp(verifyEmailOtpInput:)<br/>Name, email and OTP together
+        B-->>A: message and success
+        A->>A: Set isLoggedIn, refresh the Firebase notification token
+        A-->>U: Home screen
+    ```
+
+    **This is the path behind the `keyclockEmailAuthUpdate` feature flag.** With
+    the flag off, the same two screens post `full_name` and `email` to
+    Keycloak's `enterProfile` and then the OTP to `verifyProfile`, and the
+    authorisation code arrives at the end of the email step rather than the
+    mobile step.
+
+=== "Android"
+
+    ```mermaid
+    sequenceDiagram
+        actor U as User
+        participant A as App
+        participant B as Binaryveda's backend
+
+        U->>A: Name and email
+        A->>B: requestEmailOtp(requestEmailOtpInput:)<br/>Only the email is sent here
+        B-->>A: message and success
+        A-->>U: Enter the OTP
+        U->>A: OTP
+        A->>B: verifyEmailOtp(verifyEmailOtpInput:)<br/>Name, email and OTP together
+        B-->>A: message and success
+        A->>A: setIsEmailVerified(true)
+        A-->>U: Device authentication, then Home
+    ```
+
+    **The Keycloak versions of both calls** are still written in
+    `KeyCloakClient` but are commented out at the call site, so they never run.
+
+## 4. Trading the Keycloak token for a Spintly session
+
+The app now holds a Keycloak token. The OAuth SDK turns it into a Spintly
+session token through a back and forth rather than a single call: the app asks
+for a session, the SDK asks how to authenticate, the app hands back a
+token-exchange request, and the SDK returns the session.
+
+This runs again on every token refresh, and again before every Config SDK call
+in the lock flows.
+
+=== "iOS"
+
+    ```mermaid
+    sequenceDiagram
+        participant A as App
+        participant K as Keycloak
+        participant O as OAuth SDK
+
+        Note over A,O: Make sure the Keycloak token is usable
+        A->>A: returnKeycloakAccessToken<br/>Read the saved Keycloak token
+        opt If the saved token has expired
+            A->>K: POST token<br/>Refresh it with the refresh token
+            K-->>A: A fresh Keycloak token
+        end
+
+        Note over A,O: Hand it to the OAuth SDK
+        A->>O: getOrCreateSession(delegate:)<br/>Ask the OAuth SDK for a Spintly session
+        O-->>A: AuthorizationDelegate → getAuthenticationDetails(_:)<br/>The SDK asks how to authenticate
+        A->>O: AuthenticationDetails.createWithTokenExchangeGrantType(clientToken:)<br/>Build the request from the Keycloak token
+        A->>O: setAuthenticationDetails(authenticationDetails:), then continueTask()<br/>Hand it back and let the SDK carry on
+
+        Note over A,O: See what came back
+        alt If the exchange succeeds
+            O-->>A: AuthorizationDelegate → didGetSession(_:)<br/>The Spintly session
+            A->>A: session.accessToken.jwtToken<br/>Read the Spintly token out of it
+            A->>A: JWTDecoder.decode(token:find:) on exp<br/>Check how long the token has left
+        else If it fails
+            O-->>A: AuthorizationDelegate → didFailWithError(_:)<br/>No Spintly session
+        end
+        opt If the Spintly token is about to expire
+            A->>O: clearSession()<br/>Throw the session away
+            A->>A: Drop the Access and Config SDK instances, then start again from the top
+        end
+    ```
+
+    **If the refresh token has expired too**, there is no Keycloak token to
+    trade, and the app signs the user out instead of calling the SDK at all.
+
+=== "Android"
+
+    ```mermaid
+    sequenceDiagram
+        participant A as App
+        participant K as Keycloak
+        participant O as OAuth SDK
+
+        Note over A,O: Hand the Keycloak token to the OAuth SDK
+        A->>O: getOrCreateSession(AuthorizationCallback)<br/>Ask the OAuth SDK for a Spintly session
+        O-->>A: AuthorizationCallback → getAuthenticationDetails<br/>The SDK asks how to authenticate
+        A->>K: getAccessTokenOrLogout()<br/>Read the saved Keycloak token, refreshing it if it has expired
+        K-->>A: A usable Keycloak token
+        A->>O: AuthenticationDetails.createWithTokenExchangeGrantType(jwtToken)<br/>Build the request from the Keycloak token
+        A->>O: setAuthenticationDetails(details), then continueTask()<br/>Hand it back and let the SDK carry on
+
+        Note over A,O: See what came back
+        alt If the exchange succeeds
+            O-->>A: AuthorizationCallback → onSuccess(session)<br/>The Spintly session
+            A->>O: session.isValidForThreshold<br/>Ask the SDK how long the session has left
+        else If it fails
+            O-->>A: AuthorizationCallback → onFailure(e)<br/>Reported as SpintlyOauthNotAuthorizedException
+        end
+        opt If the session is about to expire
+            A->>O: clearSession()<br/>Throw the session away
+            A->>O: getOrCreateSession(AuthorizationCallback)<br/>Start again from the top
+        end
+    ```
+
+    **The Keycloak read happens inside the SDK's callback**, and it blocks. If
+    nothing usable comes back it posts a logout event on the event bus rather
+    than returning a token.
+
+Both platforms check how long the session has left, but they ask different
+things. iOS decodes `exp` out of the JWT itself. Android uses the SDK's own
+`isValidForThreshold`.
+
+## 5. Seating the token in the Access SDK
+
+The Spintly token goes into the Access SDK, and the user's lock permissions come
+down. The `opt` box is the shortcut a returning user takes: their SDK is still
+logged in, so only `pollData` runs.
+
+=== "iOS"
+
+    ```mermaid
+    sequenceDiagram
+        participant A as App
+        participant S as Access SDK
+
+        A->>S: credentialManager.isLoggedIn()<br/>A method on iOS
+        A->>S: credentialManager.loginStatus.appLoginState<br/>Read the SDK's own login state
+        opt If the SDK reports it is logged out
+            A->>S: credentialManager.logIn(accessToken:)<br/>Seat the Spintly token
+            S-->>A: completion<br/>Done, or failed with an error
+        end
+        A->>S: cloudSyncManager.pollData<br/>Pull down the user's lock permissions
+        S-->>A: completion<br/>Done, or failed with an error
+    ```
+
+    **When it runs.** `setPermissionsToLock` fires once the lock list arrives on
+    the Home screen, and again before every unlock. Both checks have to agree
+    before `logIn` runs: `isLoggedIn()` false and `appLoginState` `LOGGED_OUT`.
+
+=== "Android"
+
+    ```mermaid
+    sequenceDiagram
+        participant A as App
+        participant O as OAuth SDK
+        participant S as Access SDK
+
+        A->>S: credentialManager.isLoggedIn<br/>A property on Android
+        opt If the SDK is not logged in yet
+            A->>O: The token exchange, as above<br/>Get a Spintly token first
+            O-->>A: Spintly session token
+            A->>S: credentialManager.logIn(token, CompletionCallback)<br/>Seat the Spintly token
+            S-->>A: CompletionCallback → completed or failed
+        end
+        A->>S: cloudSyncManager.pollData(callback)<br/>Pull down the user's lock permissions
+        S-->>A: CompletionCallback → completed or failed
+        A->>S: accessManager.startBleScan()<br/>Start looking for the user's locks nearby
+    ```
+
+    **When it runs.** `HomeViewModel.start()` fires once, when the Home screen
+    opens.
+
+The Config SDK is given no token here on either platform. It gets one
+immediately before each call that needs it, in
+[Lock Onboarding](lock-onboarding.md).
+
+## 6. While signed in: what the SDK asks the app for
+
+These are the calls the app does not start. The Access SDK reaches back into the
+app through the handlers registered at app launch, and the app answers. The two
+notes mark two separate events, not one sequence.
+
+=== "iOS"
+
+    ```mermaid
+    sequenceDiagram
+        participant S as Access SDK
+        participant A as App
+        participant K as Keycloak
+        participant O as OAuth SDK
+
+        Note over S,O: The SDK needs a fresh token
+        S-->>A: TokenRefreshDelegate → refreshAuthentication(completion:)
+        A->>K: returnKeycloakAccessToken<br/>Read the Keycloak token, refreshing it if it has expired
+        alt If a Keycloak token comes back
+            A->>O: getOrCreateSession(delegate:)<br/>Run the token exchange again
+            O-->>A: The new Spintly token, handed back through the completion
+        else If there is none
+            A->>A: triggerSignout()<br/>Sign the user out
+        end
+
+        Note over S,O: The SDK's login state changed
+        S-->>A: LoginStatusDelegate → didUpdateLoginStatus()
+        A->>S: credentialManager.loginStatus<br/>Read the current state
+        S-->>A: appLoginState and error
+        A->>A: Log it, then show the user a toast
+    ```
+
+    **`getOrCreateSession` is called on the line after the Keycloak read**
+    rather than inside its callback. When the Keycloak token is still valid the
+    read returns straight away and this makes no difference. When it has to be
+    refreshed first, the delegate's `clientToken` may not be set by the time the
+    SDK asks for it.
+
+=== "Android"
+
+    ```mermaid
+    sequenceDiagram
+        participant S as Access SDK
+        participant A as App
+        participant K as Keycloak
+        participant O as OAuth SDK
+
+        Note over S,O: The SDK needs a fresh token
+        S-->>A: The handler passed to setTokenRefreshHandler fires
+        A->>O: getOrCreateSession(AuthorizationCallback)<br/>Run the token exchange again
+        A->>K: getAccessTokenOrLogout()<br/>Read the Keycloak token, refreshing it if it has expired
+        alt If a Keycloak token comes back
+            O-->>A: The new Spintly token, handed back through completionCallback.completed
+        else If there is none
+            A->>A: Post a logout event on the event bus
+        end
+    ```
+
+    **There is no login-status handler.** Android has no equivalent of iOS's
+    `LoginStatusDelegate`, so nothing tells the app when the SDK's own login
+    state changes.
+
+## 7. Sign out
+
+Both platforms clear the Access SDK credential first and the OAuth session
+second, and both tell Binaryveda's backend separately. Neither branches. The
+only difference is where the backend call sits.
+
+=== "iOS"
+
+    ```mermaid
+    sequenceDiagram
+        actor U as User
+        participant A as App
+        participant B as Binaryveda's backend
+        participant O as OAuth SDK
+        participant S as Access SDK
+
+        U->>A: Sign out
+        A->>B: logOut<br/>The SignOut mutation, sent from the data source
+        A->>A: Clear the saved tokens and user defaults
+        A->>S: credentialManager.logOut()<br/>Clear the Access SDK session
+        A->>O: oauthManager.clearSession()<br/>Clear the OAuth session
+        A-->>U: Signed out
     ```
 
 === "Android"
 
     ```mermaid
-    %%{init:{"flowchart":{"wrappingWidth":540,"nodeSpacing":24,"rankSpacing":28}}}%%
-    flowchart TD
-        S(["App starts"]) --> N1
-        N1["<b>1 · SpintlyOauthManager(context, clientId, providerId, environment)</b><br/>Create the OAuth manager"]
-        N1 --> N2["<b>2 · SpintlyACServiceProvider.getDefaultInstance(context)</b><br/>Get the Access SDK instance"]
-        N2 --> N3["<b>3 · SpintlyConfigurationProvider.getDefaultInstance(context)</b><br/>Get the Config SDK instance"]
-        N3 --> M(["All three SDKs now exist. Configure them"])
-        M --> N4["<b>4 · environmentManager.environment = …</b><br/>Point the Access SDK at the environment"]
-        N4 --> N5["<b>5 · credentialManager.setTokenRefreshHandler { }</b><br/>Register our token-refresh handler, in the init block"]
-        N5 --> N6["<b>6 · configurationProvider.setEnvironment(environment, region)</b><br/>Point the Config SDK at the environment"]
-        N6 --> E(["Ready, waiting for a Keycloak token"])
-        N6 -.->|"and again, every time"| R["<b>configurationProvider.setEnvironment(environment, region)</b><br/>Re-applied before every Config SDK call. No iOS equivalent"]
+    sequenceDiagram
+        actor U as User
+        participant A as App
+        participant B as Binaryveda's backend
+        participant O as OAuth SDK
+        participant S as Access SDK
 
-        classDef sdkOauth stroke:#8b5cf6,stroke-width:2px
-        classDef sdkAccess stroke:#3b82f6,stroke-width:2px
-        classDef sdkConfig stroke:#f59e0b,stroke-width:2px
-        class N1 sdkOauth
-        class N2,N4,N5 sdkAccess
-        class N3,N6,R sdkConfig
-    ```
-
-### 2. Login starts
-
-The platforms differ here. Android wipes any previous user's SDK state before a
-new login begins, and iOS does not.
-
-=== "iOS"
-
-    Nothing. iOS makes **no SDK calls** when a login starts, neither `logOut()`
-    nor `clearSession()`. Whatever the previous user left in the Access and
-    OAuth SDKs is still there when the next login runs.
-
-=== "Android"
-
-    ```mermaid
-    %%{init:{"flowchart":{"wrappingWidth":540,"nodeSpacing":24,"rankSpacing":28}}}%%
-    flowchart TD
-        S(["User begins a login"]) --> N1
-        N1["<b>1 · credentialManager.logOut()</b><br/>Clear any previous user's session"]
-        N1 --> N2["<b>2 · oauthManager.clearSession()</b><br/>Clear the OAuth session"]
-        N2 --> E(["Nothing left over, hand off to Keycloak"])
-
-        classDef sdkOauth stroke:#8b5cf6,stroke-width:2px
-        classDef sdkAccess stroke:#3b82f6,stroke-width:2px
-        class N2 sdkOauth
-        class N1 sdkAccess
-    ```
-
-### 3. After login: trading the Keycloak token
-
-Keycloak has returned an auth code and the app holds a Keycloak token. The OAuth
-SDK exchange runs from here, as a back and forth between the app and the SDK
-rather than a single call.
-
-=== "iOS"
-
-    ```mermaid
-    %%{init:{"flowchart":{"wrappingWidth":570,"nodeSpacing":24,"rankSpacing":28}}}%%
-    flowchart TD
-        S(["Keycloak token in hand"]) --> N1
-        N1["<b>1 · oauthManager.getOrCreateSession(delegate:)</b><br/>Ask the OAuth SDK for a Spintly session"]
-        N1 --> N2["<b>2 · AuthorizationDelegate → getAuthenticationDetails</b><br/>The SDK calls back, asking us how to authenticate"]
-        N2 --> N3["<b>3 · AuthenticationDetails.createWithTokenExchangeGrantType(clientToken:)</b><br/>Build the token-exchange request from the Keycloak token"]
-        N3 --> N4["<b>4 · AuthenticationContinuation.setAuthenticationDetails(authenticationDetails:)</b><br/>Hand the request back to the SDK"]
-        N4 --> N5["<b>5 · AuthenticationContinuation.continueTask()</b><br/>Let the SDK carry on"]
-        N5 --> D{"Exchange<br/>succeeded?"}
-        D -->|yes| N6["<b>6 · AuthorizationDelegate → didGetSession</b><br/>The SDK hands the session back"]
-        D -->|no| F["<b>AuthorizationDelegate → didFailWithError</b><br/>Exchange failed, no Spintly session"]
-        N6 --> N7["<b>7 · SpintlyOauthSession.accessToken.jwtToken</b><br/>Read the Spintly token out of the session"]
-        N7 --> E(["Spintly token in hand, go to step 4"])
-
-        classDef sdkOauth stroke:#8b5cf6,stroke-width:2px
-        classDef fail stroke:#ef4444,stroke-width:2px,stroke-dasharray:5 3
-        class N1,N2,N3,N4,N5,N6,N7 sdkOauth
-        class F fail
-    ```
-
-=== "Android"
-
-    ```mermaid
-    %%{init:{"flowchart":{"wrappingWidth":570,"nodeSpacing":24,"rankSpacing":28}}}%%
-    flowchart TD
-        S(["Keycloak token in hand"]) --> N1
-        N1["<b>1 · oauthManager.getOrCreateSession(AuthorizationCallback)</b><br/>Ask the OAuth SDK for a Spintly session"]
-        N1 --> N2["<b>2 · AuthorizationCallback → getAuthenticationDetails</b><br/>The SDK calls back, asking us how to authenticate"]
-        N2 --> N3["<b>3 · AuthenticationDetails.createWithTokenExchangeGrantType(jwtToken)</b><br/>Build the token-exchange request from the Keycloak token"]
-        N3 --> N4["<b>4 · AuthenticationContinuation.setAuthenticationDetails(details)</b><br/>Hand the request back to the SDK"]
-        N4 --> N5["<b>5 · AuthenticationContinuation.continueTask()</b><br/>Let the SDK carry on"]
-        N5 --> D{"Exchange<br/>succeeded?"}
-        D -->|yes| N6["<b>6 · AuthorizationCallback → onSuccess</b><br/>The SDK hands the session back"]
-        D -->|no| F["<b>AuthorizationCallback → onFailure</b><br/>Reported as SpintlyOauthNotAuthorizedException"]
-        N6 --> N7["<b>7 · SpintlyOauthSession.isValidForThreshold</b><br/>Check the session isn't about to expire. iOS decodes the JWT's exp instead"]
-        N7 --> D2{"Still<br/>fresh?"}
-        D2 -->|no| N8["<b>8 · oauthManager.clearSession()</b><br/>Throw the stale session away"]
-        D2 -->|yes| N9["<b>9 · SpintlyOauthSession.accessToken.jwtToken</b><br/>Read the Spintly token out of the session"]
-        N9 --> E(["Spintly token in hand, go to step 4"])
-
-        classDef sdkOauth stroke:#8b5cf6,stroke-width:2px
-        classDef fail stroke:#ef4444,stroke-width:2px,stroke-dasharray:5 3
-        class N1,N2,N3,N4,N5,N6,N7,N8,N9 sdkOauth
-        class F fail
-    ```
-
-### 4. After login: seating the token
-
-The Spintly token now goes to the two SDKs that need it, and the user's lock
-permissions come down. A **returning user** with a valid saved session skips
-everything above and rejoins here at `pollData`.
-
-=== "iOS"
-
-    ```mermaid
-    %%{init:{"flowchart":{"wrappingWidth":500,"nodeSpacing":24,"rankSpacing":28}}}%%
-    flowchart TD
-        S(["Spintly token in hand"]) --> N1
-        N1["<b>1 · credentialManager.isLoggedIn()</b><br/>Check before logging in again. A method on iOS"]
-        N1 --> N2["<b>2 · loginStatus.appLoginState</b><br/>Check whether the SDK is logged out"]
-        N2 --> N3["<b>3 · credentialManager.logIn(accessToken:)</b><br/>Log into the Access SDK"]
-        N3 --> N4["<b>4 · configurationProvider.setAuthToken(token:)</b><br/>Give the Config SDK its token"]
-        N4 --> N5["<b>5 · cloudSyncManager.pollData</b><br/>Pull down the user's lock permissions"]
-        N5 --> E(["Home screen"])
-        RU(["Returning user, saved session still valid"]) -.->|"skips steps 1–4"| N5
-
-        classDef sdkAccess stroke:#3b82f6,stroke-width:2px
-        classDef sdkConfig stroke:#f59e0b,stroke-width:2px
-        class N1,N2,N3,N5 sdkAccess
-        class N4 sdkConfig
-    ```
-
-=== "Android"
-
-    ```mermaid
-    %%{init:{"flowchart":{"wrappingWidth":500,"nodeSpacing":24,"rankSpacing":28}}}%%
-    flowchart TD
-        S(["Spintly token in hand"]) --> N1
-        N1["<b>1 · credentialManager.isLoggedIn</b><br/>Check before logging in again. A property on Android"]
-        N1 --> N2["<b>2 · credentialManager.logIn(token, CompletionCallback)</b><br/>Log into the Access SDK"]
-        N2 --> N3["<b>3 · CompletionCallback&lt;Void?&gt; → completed, failed</b><br/>How the Access SDK reports the result back"]
-        N3 --> N4["<b>4 · configurationProvider.setEnvironment(environment, region)</b><br/>Re-applied before the config call"]
-        N4 --> N5["<b>5 · configurationProvider.setAuthToken(authToken)</b><br/>Give the Config SDK its token"]
-        N5 --> N6["<b>6 · cloudSyncManager.pollData(callback)</b><br/>Pull down the user's lock permissions"]
-        N6 --> E(["Home screen"])
-        RU(["Returning user, saved session still valid"]) -.->|"skips steps 1–5"| N6
-
-        classDef sdkAccess stroke:#3b82f6,stroke-width:2px
-        classDef sdkConfig stroke:#f59e0b,stroke-width:2px
-        class N1,N2,N3,N6 sdkAccess
-        class N4,N5 sdkConfig
-    ```
-
-### 5. While logged in: what the SDK asks us for
-
-These are the calls the app does not initiate. The SDK reaches back into the app
-through the handlers registered at step 1, and the app answers.
-
-=== "iOS"
-
-    ```mermaid
-    %%{init:{"flowchart":{"wrappingWidth":330,"nodeSpacing":22,"rankSpacing":28}}}%%
-    flowchart TD
-        S(["The Access SDK needs something"]) --> T1 & L1
-        T1["<b>TokenRefreshDelegate → refreshAuthentication(completion:)</b><br/>The SDK asks us for a fresh token"]
-        T1 -.->|"on token expiry"| X["<b>oauthManager.clearSession()</b><br/>Clear the OAuth session"]
-        L1["<b>LoginStatusDelegate → didUpdateLoginStatus()</b><br/>The SDK tells us the login state changed"]
-        L1 --> L2["<b>credentialManager.loginStatus</b><br/>Read the current login state"]
-        L2 --> L3["<b>loginStatus.appLoginState</b><br/>Check whether the SDK is logged out"]
-        L3 --> L4["<b>loginStatus.error</b><br/>Read the SDK's login error"]
-
-        classDef sdkOauth stroke:#8b5cf6,stroke-width:2px
-        classDef sdkAccess stroke:#3b82f6,stroke-width:2px
-        class X sdkOauth
-        class T1,L1,L2,L3,L4 sdkAccess
-    ```
-
-=== "Android"
-
-    ```mermaid
-    %%{init:{"flowchart":{"wrappingWidth":420,"nodeSpacing":22,"rankSpacing":28}}}%%
-    flowchart TD
-        S(["The Access SDK needs something"]) --> T1
-        T1["<b>credentialManager.setTokenRefreshHandler { }</b><br/>The handler registered at step 1 fires when the SDK wants a fresh token"]
-        T1 -.-> F["<b>SpintlyOauthNotAuthorizedException</b><br/>The SDK's not-authorized error"]
-        S --> NA["<b>No login-status handler</b><br/>Android has no equivalent of iOS's LoginStatusDelegate, so nothing tells the app the SDK's login state changed"]
-
-        classDef sdkAccess stroke:#3b82f6,stroke-width:2px
-        classDef fail stroke:#ef4444,stroke-width:2px,stroke-dasharray:5 3
-        class T1 sdkAccess
-        class F fail
-        class NA fail
-    ```
-
-### 6. Sign out
-
-Both platforms tear the session down in the same order: the Access SDK's
-credential first, then the OAuth session.
-
-=== "iOS"
-
-    ```mermaid
-    %%{init:{"flowchart":{"wrappingWidth":500,"nodeSpacing":24,"rankSpacing":28}}}%%
-    flowchart TD
-        S(["User signs out"]) --> N1
-        N1["<b>1 · credentialManager.logOut()</b><br/>Clear the Access SDK session"]
-        N1 --> N2["<b>2 · oauthManager.clearSession()</b><br/>Clear the OAuth session. Also called on token expiry"]
-        N2 --> E(["Signed out"])
-
-        classDef sdkOauth stroke:#8b5cf6,stroke-width:2px
-        classDef sdkAccess stroke:#3b82f6,stroke-width:2px
-        class N2 sdkOauth
-        class N1 sdkAccess
-    ```
-
-=== "Android"
-
-    ```mermaid
-    %%{init:{"flowchart":{"wrappingWidth":500,"nodeSpacing":24,"rankSpacing":28}}}%%
-    flowchart TD
-        S(["User signs out"]) --> N1
-        N1["<b>1 · credentialManager.logOut()</b><br/>Clear the Access SDK session"]
-        N1 --> N2["<b>2 · oauthManager.clearSession()</b><br/>Clear the OAuth session"]
-        N2 --> E(["Signed out"])
-
-        classDef sdkOauth stroke:#8b5cf6,stroke-width:2px
-        classDef sdkAccess stroke:#3b82f6,stroke-width:2px
-        class N2 sdkOauth
-        class N1 sdkAccess
+        U->>A: Sign out
+        A->>S: credentialManager.logOut()<br/>Clear the Access SDK session
+        A->>O: oauthManager.clearSession()<br/>Clear the OAuth session
+        A->>B: logOut<br/>The LogOut mutation, straight after
+        A-->>U: Signed out
     ```
 
 ## Differences between the two
@@ -310,10 +581,72 @@ handler and login rows are all on `credentialManager`, and the version row is on
 
 | | iOS | Android |
 |---|---|---|
-| Clearing the old SDK session when a new login starts | **Not done** | `logOut()` + `clearSession()` before the session is initiated |
+| When the SDKs are built | At launch if the user is already signed in, otherwise on first use | By Hilt, the first time anything injects `SpintlySDKManager` |
+| Clearing the previous user's SDK session when a sign-in starts | **Not done** | `logOut()` and `clearSession()`, in the mobile OTP request |
 | Token-refresh handler | `setRefreshTokenDelegate(_:)` | `setTokenRefreshHandler { }`, a different name for the same purpose |
 | Login-status handler | `setLoginStatusDelegate(delegate:)` | **No equivalent found** |
+| Reading the Keycloak token for the exchange | Read before `getOrCreateSession`, and passed into the delegate | Read inside `getAuthenticationDetails`, blocking |
 | Session freshness check | Decodes `exp` out of the JWT itself | Uses the SDK's `isValidForThreshold` |
-| Config SDK environment | Set once at app launch | Re-applied before every config call |
-| Logged-in check | `isLoggedIn()`, a method | `isLoggedIn`, a property |
+| A stale session | Clears it, drops the Access and Config instances, restarts login | Clears it and calls `getOrCreateSession` again |
+| Config SDK environment | Set once when the SDK is created | Re-applied before every Config SDK call |
+| Logged-in check | `isLoggedIn()`, a method, plus `loginStatus.appLoginState` | `isLoggedIn`, a property |
+| Where the Access SDK login runs | When the lock list arrives, and before every unlock | Once, when the Home screen opens |
+| BLE scan after `pollData` | Not started here | `accessManager.startBleScan()` |
 | SDK version logging | `getVersion()` | Not read |
+
+## Every SDK member this flow uses
+
+iOS reaches all of these through `SpintlyHelper`, Android through
+`SpintlySDKManager`.
+
+??? note "iOS"
+
+    | SDK | Member | When | What it is for |
+    |---|---|---|---|
+    | OAuth | `SpintlyOauthManager(clientId:provider:environment:)` | App launch | Create the OAuth manager |
+    | OAuth | `getOrCreateSession(delegate:)` | Every token exchange, including refreshes | Ask for a Spintly session |
+    | OAuth | `AuthorizationDelegate` → `getAuthenticationDetails(_:)`, `didGetSession(_:)`, `didFailWithError(_:)` | During the token exchange | How the exchange reports back |
+    | OAuth | `AuthenticationDetails.createWithTokenExchangeGrantType(clientToken:)` | During the token exchange | Build the token-exchange request |
+    | OAuth | `AuthenticationContinuation.setAuthenticationDetails(authenticationDetails:)`, `continueTask()` | During the token exchange | Hand the request back to the SDK |
+    | OAuth | `SpintlyOauthSession.accessToken.jwtToken` | End of the token exchange | The Spintly token itself |
+    | OAuth | `clearSession()` | A session about to expire, and sign out | Clear the OAuth session |
+    | Access | `SpintlyACServiceProvider.defaultInstance` | App launch | Get the Access SDK instance |
+    | Access | `environmentManager.setEnvironment(_:)` | App launch | Point it at the environment |
+    | Access | `credentialManager.setRefreshTokenDelegate(_:)` | App launch | Register the token-refresh handler |
+    | Access | `credentialManager.setLoginStatusDelegate(delegate:)` | App launch | Register the login-status handler |
+    | Access | `credentialManager.isLoggedIn()` | Before the Access SDK login | Check before logging in again |
+    | Access | `credentialManager.loginStatus.appLoginState`, `.error` | Before the Access SDK login, and on every login-status callback | The SDK's login state and last error |
+    | Access | `credentialManager.logIn(accessToken:)` | The Access SDK login | Seat the Spintly token |
+    | Access | `credentialManager.logOut()` | Sign out | Clear the Access SDK session |
+    | Access | `cloudSyncManager.pollData` | Right after the Access SDK login, and before every unlock | Pull down the user's lock permissions |
+    | Access | `TokenRefreshDelegate` → `refreshAuthentication(completion:)` | Whenever the SDK needs a fresh token | The SDK asking the app for one |
+    | Access | `LoginStatusDelegate` → `didUpdateLoginStatus()` | Whenever the SDK's login state changes | The SDK telling the app about it |
+    | Config | `SpintlyConfigurationProvider.defaultInstance` | App launch | Get the Config SDK instance |
+    | Config | `setDebugLogging(enabled:)` | App launch, debug builds only | Turn on SDK logging |
+    | Config | `setEnvironment(environment:region:)` | App launch | Point it at the environment |
+    | Config | `getVersion()` | App launch | Read the SDK version for the log |
+
+??? note "Android"
+
+    | SDK | Member | When | What it is for |
+    |---|---|---|---|
+    | OAuth | `SpintlyOauthManager(context, clientId, providerId, environment)` | App launch | Create the OAuth manager |
+    | OAuth | `getOrCreateSession(AuthorizationCallback)` | Every token exchange, including refreshes | Ask for a Spintly session |
+    | OAuth | `AuthorizationCallback` → `getAuthenticationDetails`, `onSuccess`, `onFailure` | During the token exchange | How the exchange reports back |
+    | OAuth | `AuthenticationDetails.createWithTokenExchangeGrantType(jwtToken)` | During the token exchange | Build the token-exchange request |
+    | OAuth | `AuthenticationContinuation.setAuthenticationDetails(details)`, `continueTask()` | During the token exchange | Hand the request back to the SDK |
+    | OAuth | `SpintlyOauthSession.isValidForThreshold` | End of the token exchange | Check the session is not about to expire |
+    | OAuth | `SpintlyOauthSession.accessToken.jwtToken` | End of the token exchange | The Spintly token itself |
+    | OAuth | `clearSession()` | Requesting the mobile OTP, a session about to expire, and sign out | Clear the OAuth session |
+    | OAuth | `SpintlyOauthNotAuthorizedException` | A failed token exchange | The SDK's not-authorized error |
+    | Access | `SpintlyACServiceProvider.getDefaultInstance(context)` | App launch | Get the Access SDK instance |
+    | Access | `environmentManager.environment` | App launch | Point it at the environment |
+    | Access | `credentialManager.setTokenRefreshHandler { }` | App launch | Register the token-refresh handler |
+    | Access | `credentialManager.isLoggedIn` | Before the Access SDK login | Check before logging in again |
+    | Access | `credentialManager.logIn(token, CompletionCallback<Void?>)` | The Access SDK login | Seat the Spintly token |
+    | Access | `credentialManager.logOut()` | Requesting the mobile OTP, and sign out | Clear the Access SDK session |
+    | Access | `cloudSyncManager.pollData(callback)` | Right after the Access SDK login, and before every unlock | Pull down the user's lock permissions |
+    | Access | `accessManager.startBleScan()` | Once `pollData` succeeds | Start looking for the user's locks nearby |
+    | Access | `CompletionCallback<T>` → `completed`, `failed` | The Access SDK login, and `pollData` | How the Access SDK reports back |
+    | Config | `SpintlyConfigurationProvider.getDefaultInstance(context)` | App launch | Get the Config SDK instance |
+    | Config | `setEnvironment(environment, region)` | App launch, and before every Config SDK call | Point it at the environment |
