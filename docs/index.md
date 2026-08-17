@@ -29,8 +29,8 @@ it belongs to.
 
 ### OAuth SDK: the session token
 
-Exchanges the Keycloak token from our own login for a Spintly **session token**.
-Nothing else in the app can talk to Spintly until this succeeds, so it runs
+Exchanges the Keycloak token from the app's own login for a Spintly **session
+token**. Nothing else in the app can talk to Spintly until this succeeds, so it runs
 first and everything downstream depends on it.
 
 The exchange runs over callbacks rather than a single call. The app asks for a
@@ -67,7 +67,7 @@ The app uses one member of it:
 ```mermaid
 %%{init:{"flowchart":{"wrappingWidth":320,"rankSpacing":34}}}%%
 flowchart TD
-    K(["Keycloak token<br/>from our own login"]) --> O
+    K(["Keycloak token<br/>from the app's own login"]) --> O
     O["<b>OAuth SDK</b><br/>getOrCreateSession<br/><small>trades it for a Spintly session token</small>"]
     O -->|Spintly token| A["<b>Access SDK</b><br/>logIn, then pollData<br/><small>seats the credential, pulls lock permissions</small>"]
     O -->|Spintly token| C["<b>Config SDK</b><br/>setAuthToken<br/><small>authorises hardware writes</small>"]

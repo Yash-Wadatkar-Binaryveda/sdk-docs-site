@@ -20,8 +20,8 @@ Six participants appear in the diagrams, in the same order every time.
 | **App** | The iOS or Android app |
 | **Config SDK** | Spintly's `configurationProvider`, the only SDK this flow uses and the only one that can talk to the lock |
 | **Lock hardware** | The lock itself, over BLE, in configuration mode |
-| **Our backend** | Our GraphQL API, with `lock-service` behind it |
-| **Spintly's servers** | Spintly's REST APIs, which only our backend calls |
+| **Binaryveda's backend** | Binaryveda's GraphQL API, with `lock-service` behind it |
+| **Spintly's servers** | Spintly's REST APIs, which only Binaryveda's backend calls |
 
 !!! tip "Reading the diagrams"
 
@@ -30,8 +30,10 @@ Six participants appear in the diagrams, in the same order every time.
       back.
     - Where an arrow carries an SDK call, the **first line is the member name**
       and the second line says what it does.
-    - `#1` to `#7` on the arrows into Spintly are the numbers used in [the
-      Spintly chain](#the-spintly-chain) below.
+    - Arrows into Binaryveda's backend carry the **GraphQL field** and its
+      arguments. Arrows into Spintly carry the **HTTP method and path**
+      Binaryveda's backend uses. In both cases the second line says what the
+      call does.
     - A **labelled box** groups the arrows inside it. `alt` means only one of
       its halves happens, and the condition is in brackets. `opt` means the
       arrows inside may not happen at all. `loop` means they repeat. `par`
@@ -49,13 +51,13 @@ sequenceDiagram
     participant A as App
     participant C as Config SDK
     participant L as Lock hardware
-    participant B as Our backend
+    participant B as Binaryveda's backend
     participant S as Spintly's servers
 
     Note over U,S: 1. Choose a property
     U->>A: Add a new lock, name the property
-    A->>B: createSite
-    B->>S: Create the account on Spintly's side
+    A->>B: createSite(name:)
+    B->>S: POST /organisations, or POST /organisations/{orgId}/sites
 
     Note over U,S: 2. Put the lock into configuration mode
     U->>L: Long press on the lock
@@ -65,20 +67,23 @@ sequenceDiagram
     C->>L: Look for locks nearby
     L-->>C: Serial number
     C-->>A: The locks it found
+    A->>B: listLockData(lockSerialNumberList:)
 
     Note over U,S: 4. Customise the lock
     U->>A: Name, area and image
-    A->>B: addLock
-    B->>S: Create the lock, the owner and their permissions
-    A->>B: Poll until Spintly returns the ids
+    A->>B: addLock(createLockInput:)
+    B->>S: POST /accessPoints, POST /accessors, PATCH /permissions
+    A->>B: getLock(lockId:), until Spintly returns the ids
 
     Note over U,S: 5. Provisioning
     A->>C: Configure the lock
     C->>L: Provision it over BLE
+    A->>B: updateLockConfigurationStatus(lockId:lockConfigurationStatus:)
 
     Note over U,S: 6. Firmware, only if the lock is behind
     A->>C: Read the installed version
     C->>L: Read it off the lock
+    A->>B: getLockFirmwareUpdate(lockId:platform:)
     A->>C: Push the new firmware
     C->>L: Update it over BLE
 
@@ -86,7 +91,7 @@ sequenceDiagram
     U->>A: Choose a passcode
     A->>C: Replace the factory passcode
     C->>L: Write it over BLE
-    A->>B: Record it
+    A->>B: finalisePasscode(passcode:lockId:accessorId:)
 
     Note over U,S: 8. Fingerprint and RFID, both optional
     U->>A: Add a fingerprint or a card
@@ -105,26 +110,34 @@ to. A new user has none yet and creates one here.
 sequenceDiagram
     actor U as User
     participant A as App
-    participant B as Our backend
+    participant B as Binaryveda's backend
     participant S as Spintly's servers
 
     U->>A: Add a new lock
-    A->>B: Fetch the property list
+    A->>B: listSites(limit:page:)<br/>Fetch the property list
     B-->>A: Empty, this is the first lock on the account
     U->>A: Name the property
-    A->>B: createSite(name:)
-    B->>S: #1 Fetch an OAuth token
-    S-->>B: Token
-    B->>S: #2 Create the organisation
-    Note right of S: One call, three things created:<br/>the organisation, the property inside it,<br/>and that property's network
-    S-->>B: organisationId, siteId, networkId
+    A->>B: createSite(name:)<br/>Create the property
+    alt First lock on the account
+        B->>S: POST /identityManagement/v2/oauth/token<br/>Binaryveda's backend authenticates itself, client id and secret
+        S-->>B: Token
+        B->>S: POST /infrastructureManagement/internal/v1/organisations<br/>Create the organisation
+        Note right of S: One call, three things created.<br/>sites[] and networks[] ride inline in the payload,<br/>so the property and its network come out of it too
+        S-->>B: organisationId, siteId, networkId
+    else Account already has an organisation
+        B->>S: POST /identityManagement/v2/oauth/token<br/>A fresh token again, there is no cache
+        S-->>B: Token
+        B->>S: POST /infrastructureManagement/internal/v1/<br/>organisations/{orgId}/sites<br/>Create the property inside the existing organisation
+        Note right of S: Creates that property's network too
+        S-->>B: siteId, networkId
+    end
     B-->>A: Done
     A-->>U: Property created. Next, put the lock into configuration mode
 ```
 
-The mutation file is `CreateProperty.graphql` and the field it calls is
-`createSite`. No SDK is involved. On an account that already has an organisation
-our backend runs #3 create site instead, and the app cannot tell the difference.
+The query file is `ListProperties.graphql` and the mutation file is
+`CreateProperty.graphql`; the fields they call are `listSites` and `createSite`.
+No SDK is involved. The app cannot tell which of the two Spintly branches ran.
 
 ## 2. Put the lock into configuration mode
 
@@ -135,7 +148,7 @@ configuration mode, which the user triggers with a long press on the lock itself
 
 The app asks the Config SDK to scan, and the SDK reports back any locks
 advertising nearby. Each result carries a serial number, which the app sends to
-our backend to find out which model it is.
+Binaryveda's backend to find out which model it is.
 
 Gateways advertise on the same channel, so both platforms have to keep them out
 of the list. iOS filters them out by name. Android does nothing, because gateways
@@ -149,7 +162,7 @@ have no row in the catalogue and drop out of the lookup on their own.
         participant A as App
         participant C as Config SDK
         participant L as Lock hardware
-        participant B as Our backend
+        participant B as Binaryveda's backend
 
         U->>A: Start the scan
         A->>C: configurableDeviceStopScan()<br/>Clear a scan left running from an earlier attempt
@@ -158,7 +171,7 @@ have no row in the catalogue and drop out of the lookup on their own.
         L-->>C: Serial number and name
         C-->>A: ConfigurableDeviceListener → onDeviceListUpdated<br/>Hands back the devices found so far
         A->>A: Drop anything named Spintly_Gateway
-        A->>B: Look the serial numbers up in the catalogue
+        A->>B: listLockData(lockSerialNumberList:)<br/>Look the serial numbers up in the catalogue
         B-->>A: The model and display details for each one
         alt Locks found
             A-->>U: The list of locks. Pick one
@@ -175,14 +188,14 @@ have no row in the catalogue and drop out of the lookup on their own.
         participant A as App
         participant C as Config SDK
         participant L as Lock hardware
-        participant B as Our backend
+        participant B as Binaryveda's backend
 
         U->>A: Start the scan
         A->>C: configurableDeviceStartScan(ConfigurableDeviceListener)<br/>Start looking for locks nearby
         C->>L: BLE scan, 60 second timeout
         L-->>C: Serial number and name
         C-->>A: ConfigurableDeviceListener → onDeviceListUpdated<br/>Hands back the devices found so far
-        A->>B: Look the serial numbers up in the catalogue
+        A->>B: listLockData(lockSerialNumberList:)<br/>Look the serial numbers up in the catalogue
         B-->>A: Only known models come back, so gateways drop out here
         alt Locks found
             A-->>U: The list of locks. Pick one
@@ -195,11 +208,12 @@ have no row in the catalogue and drop out of the lookup on their own.
 ## 4. Customise the lock
 
 The user names the lock and picks where in the house it sits. `addLock` then
-tells our backend to build it on Spintly's side.
+tells Binaryveda's backend to build it on Spintly's side.
 
-That takes three calls to Spintly and they run in the background, so `addLock`
-returns straight away. The app polls until the ids come back, because every
-Config SDK call after this needs them.
+That takes three operations at Spintly, six HTTP requests once each one's token
+fetch is counted, and they run in the background, so `addLock` returns straight
+away. The app polls until the ids come back, because every Config SDK call after
+this needs them.
 
 === "iOS"
 
@@ -207,31 +221,31 @@ Config SDK call after this needs them.
     sequenceDiagram
         actor U as User
         participant A as App
-        participant B as Our backend
+        participant B as Binaryveda's backend
         participant S as Spintly's servers
 
         U->>A: Pick the lock from the list
-        A->>B: Fetch the areas of the house
+        A->>B: listAreaOfHouse<br/>Fetch the areas of the house
         U->>A: Name it, pick an area, choose an image
         opt Custom image
-            A->>B: Ask for a presigned upload URL
-            A->>B: Upload the image
+            A->>B: getUploadPresignedUrl(fileType:)<br/>Ask for a presigned upload URL
+            A->>A: PUT the image to that URL<br/>Straight to S3, not through Binaryveda's backend
         end
-        A->>B: addLock(createLockInput:)
+        A->>B: addLock(createLockInput:)<br/>Create the lock on Binaryveda's side and on Spintly's
         B-->>A: Accepted
-        par On our backend
-            B->>S: #1 OAuth token
-            B->>S: #4 Create the access point
-            Note right of S: The serial number from the scan lands here
-            B->>S: #1 OAuth token again
-            B->>S: #5 Create the accessor
-            Note right of S: The owner, carrying their Keycloak sub
-            B->>S: #1 OAuth token again
-            B->>S: #7 Update the accessor's permissions
-            Note right of S: Everything at the new lock
+        par On Binaryveda's backend
+            B->>S: POST /identityManagement/v2/oauth/token<br/>A fresh token before each of the three calls below
+            B->>S: POST /infrastructureManagement/internal/v2/<br/>networks/{networkId}/accessPoints<br/>Create the access point, the lock itself
+            Note right of S: The serial number from the scan lands here.<br/>lock-service is on the internal/v2 contract
+            B->>S: POST /identityManagement/v2/oauth/token<br/>Another token, there is no cache
+            B->>S: POST /credentialManagementV3/v1/accessors<br/>Create the accessor, the owner
+            Note right of S: Carries their Keycloak sub and the provider id.<br/>lock-service has no add-accessor-to-organisation call,<br/>so an owner who is an accessor elsewhere still comes through here
+            B->>S: POST /identityManagement/v2/oauth/token<br/>And a third
+            B->>S: PATCH /permissionManagementV3/v1/organisations/{orgId}/<br/>accessors/{accessorId}/permissions<br/>Grant the owner everything at the new lock
+            Note right of S: Mobile, card, fingerprint, passcode and admin
         and In the app, meanwhile
             loop Every 2 seconds
-                A->>B: getLock
+                A->>B: getLock(lockId:)
                 B-->>A: The ids so far
             end
         end
@@ -244,31 +258,31 @@ Config SDK call after this needs them.
     sequenceDiagram
         actor U as User
         participant A as App
-        participant B as Our backend
+        participant B as Binaryveda's backend
         participant S as Spintly's servers
 
         U->>A: Pick the lock from the list
-        A->>B: Fetch the areas of the house
+        A->>B: listAreaOfHouse<br/>Fetch the areas of the house
         U->>A: Name it, pick an area, choose an image
         opt Custom image
-            A->>B: Ask for a presigned upload URL
-            A->>B: Upload the image
+            A->>B: getUploadPresignedUrl(fileType:)<br/>Ask for a presigned upload URL
+            A->>A: PUT the image to that URL<br/>Straight to S3, not through Binaryveda's backend
         end
-        A->>B: addLock(createLockInput:)
+        A->>B: addLock(createLockInput:)<br/>Create the lock on Binaryveda's side and on Spintly's
         B-->>A: Accepted
-        par On our backend
-            B->>S: #1 OAuth token
-            B->>S: #4 Create the access point
-            Note right of S: The serial number from the scan lands here
-            B->>S: #1 OAuth token again
-            B->>S: #5 Create the accessor
-            Note right of S: The owner, carrying their Keycloak sub
-            B->>S: #1 OAuth token again
-            B->>S: #7 Update the accessor's permissions
-            Note right of S: Everything at the new lock
+        par On Binaryveda's backend
+            B->>S: POST /identityManagement/v2/oauth/token<br/>A fresh token before each of the three calls below
+            B->>S: POST /infrastructureManagement/internal/v2/<br/>networks/{networkId}/accessPoints<br/>Create the access point, the lock itself
+            Note right of S: The serial number from the scan lands here.<br/>lock-service is on the internal/v2 contract
+            B->>S: POST /identityManagement/v2/oauth/token<br/>Another token, there is no cache
+            B->>S: POST /credentialManagementV3/v1/accessors<br/>Create the accessor, the owner
+            Note right of S: Carries their Keycloak sub and the provider id.<br/>lock-service has no add-accessor-to-organisation call,<br/>so an owner who is an accessor elsewhere still comes through here
+            B->>S: POST /identityManagement/v2/oauth/token<br/>And a third
+            B->>S: PATCH /permissionManagementV3/v1/organisations/{orgId}/<br/>accessors/{accessorId}/permissions<br/>Grant the owner everything at the new lock
+            Note right of S: Mobile, card, fingerprint, passcode and admin
         and In the app, meanwhile
             loop Every 5 seconds
-                A->>B: getLock
+                A->>B: getLock(lockId:)
                 B-->>A: The status so far
             end
         end
@@ -279,6 +293,9 @@ Three ids come back and the rest of the flow depends on them:
 `organisationId`, `accessorId` and `accessPointId`. iOS waits for all three.
 Android waits for the status to reach `ACCESS_POINT_CREATED`, which walks
 `ACCESS_POINT_CREATE_PENDING` → `ACCESS_POINT_CREATED` → `MESH_CONFIGURED`.
+
+The order of the three Spintly calls is taken from the fields the app polls,
+since the backend source is not available.
 
 ## 5. Provisioning
 
@@ -293,14 +310,14 @@ writes that same setup onto the lock itself, over BLE.
         participant A as App
         participant C as Config SDK
         participant L as Lock hardware
-        participant B as Our backend
+        participant B as Binaryveda's backend
 
         A-->>U: Provisioning screen, please wait
         A->>C: startDeviceMeshConfiguration(_:)<br/>Write the lock's setup onto the lock
         C->>L: Provision the lock over BLE
         L-->>C: Configured
         C-->>A: completion<br/>Done, or failed with an error
-        A->>B: updateLockConfigurationStatus<br/>Record that the lock is provisioned
+        A->>B: updateLockConfigurationStatus(lockId:lockConfigurationStatus:)<br/>Record that the lock is provisioned, status MESH_CONFIGURED
         A-->>U: Provisioned. Next, the firmware check
     ```
 
@@ -316,7 +333,7 @@ writes that same setup onto the lock itself, over BLE.
         participant A as App
         participant C as Config SDK
         participant L as Lock hardware
-        participant B as Our backend
+        participant B as Binaryveda's backend
 
         A-->>U: Provisioning screen, please wait
         A->>C: startDeviceMeshConfiguration(serial, callback)<br/>Write the lock's setup onto the lock
@@ -325,7 +342,7 @@ writes that same setup onto the lock itself, over BLE.
         C-->>A: SpintlyCompletionCallback → completed or failed<br/>How the SDK reports the result
         A->>C: meshConfigurationClose()<br/>Close the session, whether it worked or not
         A->>A: Wait 5 seconds for the lock to settle
-        A->>B: updateLockConfigurationStatus<br/>Record that the lock is provisioned
+        A->>B: updateLockConfigurationStatus(lockId:lockConfigurationStatus:)<br/>Record that the lock is provisioned, status MESH_CONFIGURED
         A-->>U: Provisioned. Next, the firmware check
     ```
 
@@ -334,9 +351,9 @@ writes that same setup onto the lock itself, over BLE.
 
 ## 6. Firmware
 
-The app reads the version off the lock and compares it against the version our
-backend says it should be running. The update screen has no skip button, so
-cancelling there leaves the lock unfinished on Home.
+The app reads the version off the lock and compares it against the version
+Binaryveda's backend says it should be running. The update screen has no skip
+button, so cancelling there leaves the lock unfinished on Home.
 
 === "iOS"
 
@@ -346,20 +363,21 @@ cancelling there leaves the lock unfinished on Home.
         participant A as App
         participant C as Config SDK
         participant L as Lock hardware
-        participant B as Our backend
+        participant B as Binaryveda's backend
 
         Note over A,B: iOS checks after the Spintly calls in step 4 have finished
         A->>C: getListOfFirmwareForSerialNumber(_:)<br/>Ask which firmware the lock is running
         C->>L: Read the installed firmware
         L-->>C: ProdSwVersionsWithBleDeviceInfo
         C-->>A: bleDeviceInfo.prodSwVersion<br/>The version number on the lock
-        A->>B: What should this lock be running?
-        B-->>A: The target version
+        A->>B: getLockFirmwareUpdate(lockId:platform:)<br/>What should this lock be running?
+        B-->>A: updateFirmware.nordicVersion<br/>The target version
         alt Out of date
             A-->>U: Firmware update screen, with no skip
             A->>C: firmwareUpdateToSelectedVersion(_:)<br/>Send the new firmware to the lock
             C->>L: Push the new firmware over BLE
             L-->>C: Updated
+            A->>B: updateLockInformation(currentFirmwareVersion:id:)<br/>or updateLockFirmwareStatus(lockId:firmwareType:), see below
             A->>A: Re-enter the flow and read the version again
         else Up to date
             A-->>U: Next, the master passcode
@@ -374,14 +392,14 @@ cancelling there leaves the lock unfinished on Home.
         participant A as App
         participant C as Config SDK
         participant L as Lock hardware
-        participant B as Our backend
+        participant B as Binaryveda's backend
 
         Note over A,B: Android checks before the Spintly calls in step 4 have finished
         A->>C: getListOfFirmwareForSerialNumber(...)<br/>Ask which firmware the lock is running
         C->>L: Read the installed firmware
         L-->>C: ProdSwVersionsWithBleDeviceInfo
         C-->>A: bleDeviceInfo.prodSwVersion<br/>The version number on the lock
-        A->>B: What should this lock be running?
+        A->>B: getLockFirmwareUpdate(lockId:platform:)<br/>What should this lock be running?
         B-->>A: The target version
         alt Out of date
             A-->>U: Firmware update screen, with no skip
@@ -394,12 +412,18 @@ cancelling there leaves the lock unfinished on Home.
         end
     ```
 
-Nothing here reaches Spintly. The target version comes from our own backend.
+Nothing here reaches Spintly. The target version comes from Binaryveda's
+backend, through `getLockFirmwareUpdate(lockId:platform:)`.
+
+On iOS the version is recorded afterwards as well:
+`updateLockInformation(currentFirmwareVersion:id:)` when the lock has no pending
+actions, and `updateLockFirmwareStatus(lockId:firmwareType:)` when it does. Both
+stop at Binaryveda's backend.
 
 ## 7. Master passcode
 
 The lock ships with a factory passcode and this step replaces it. The Config SDK
-writes the new one onto the lock, and our backend saves it afterwards.
+writes the new one onto the lock, and Binaryveda's backend saves it afterwards.
 
 === "iOS"
 
@@ -409,7 +433,7 @@ writes the new one onto the lock, and our backend saves it afterwards.
         participant A as App
         participant C as Config SDK
         participant L as Lock hardware
-        participant B as Our backend
+        participant B as Binaryveda's backend
 
         U->>A: Choose a new master passcode
         A->>C: updateMasterPasscode(serial, orgId, accessorId, old, new, completion)<br/>Replace the passcode held on the lock
@@ -417,7 +441,7 @@ writes the new one onto the lock, and our backend saves it afterwards.
         C->>L: Write the master passcode over BLE
         L-->>C: Written
         C-->>A: completion<br/>Done, or failed with an error
-        A->>B: finalisePasscode(passcode:lockId:accessorId:)<br/>Save the passcode on our backend
+        A->>B: finalisePasscode(passcode:lockId:accessorId:)<br/>Save the passcode on Binaryveda's backend
         A-->>U: Passcode set. Add a fingerprint or a card, or finish here
     ```
 
@@ -432,7 +456,7 @@ writes the new one onto the lock, and our backend saves it afterwards.
         participant A as App
         participant C as Config SDK
         participant L as Lock hardware
-        participant B as Our backend
+        participant B as Binaryveda's backend
 
         U->>A: Choose a new master passcode
         A->>C: generateMasterPasscode(serial, orgId, accessorId, old, new, callback)<br/>Replace the passcode held on the lock
@@ -440,7 +464,7 @@ writes the new one onto the lock, and our backend saves it afterwards.
         C->>L: Write the master passcode over BLE
         L-->>C: Written
         C-->>A: SpintlyCompletionCallback → completed or failed<br/>How the SDK reports the result
-        A->>B: finalisePasscode(passcode, lockId, accessorId)<br/>Save the passcode on our backend
+        A->>B: finalisePasscode(passcode, lockId, accessorId)<br/>Save the passcode on Binaryveda's backend
         A-->>U: Passcode set. Add a fingerprint or a card, or finish here
     ```
 
@@ -553,7 +577,7 @@ Both are optional and both can be added later from the lock's settings instead.
 
 ### Where each access method ends up
 
-| Access method | On the lock | Saved on our backend |
+| Access method | On the lock | Saved on Binaryveda's backend |
 |---|---|---|
 | Master passcode | Yes | Yes, through `finalisePasscode` |
 | Fingerprint | Yes | No |
@@ -566,36 +590,23 @@ caller, so neither platform ever sends it.
 
 ## Which calls reach Spintly
 
-Two of the app's calls reach Spintly, and both go through our backend on the way.
-Both platforms behave the same.
+Two of the app's calls reach Spintly, and both go through Binaryveda's backend
+on the way. Both platforms behave the same. The endpoints each one triggers are
+on the arrows in [step 1](#1-choose-a-property) and
+[step 4](#4-customise-the-lock).
 
-| Step | Our GraphQL operation | What our backend does at Spintly |
+| Step | Binaryveda's GraphQL operation | What Binaryveda's backend does at Spintly |
 |---|---|---|
-| 1 | `createSite(name:)` | #2 create organisation, or #3 create site |
-| 4 | `addLock(createLockInput:)` | #4 create access point, then #5 create accessor, then #7 permissions |
+| 1 | `createSite(name:)` | Create the organisation, or create the site |
+| 4 | `addLock(createLockInput:)` | Create the access point, then the accessor, then the permissions |
 
-Everything else stops at our own backend: the property list, the catalogue
-lookup, the areas of the house, the image upload URL, the polling in step 4,
-`updateLockConfigurationStatus`, and both firmware calls.
+Every Spintly call is preceded by its own
+`POST /identityManagement/v2/oauth/token`, because there is no token cache. A
+first lock therefore costs two HTTP calls at step 1 and six at step 4.
 
-## The Spintly chain
-
-Seven calls exist. A first lock uses five of them: #1, #2, #4, #5 and #7. On an
-account that already has an organisation, #3 runs in place of #2. Nothing in this
-flow uses #6.
-
-| # | Spintly API | Method | Endpoint | What it does |
-|---|---|---|---|---|
-| 1 | OAuth token | `POST` | `/identityManagement/v2/oauth/token` | Our backend authenticates itself with a client id and secret. Fetched again before every call below, as there is no token cache |
-| 2 | Create organisation | `POST` | `/infrastructureManagement/internal/v1/organisations` | The first lock on the account. The payload carries `sites[]` and `networks[]` inline, so this call also produces the first site and network |
-| 3 | Create site | `POST` | `/infrastructureManagement/internal/v1/organisations/{orgId}/sites` | A new property inside an existing organisation. Creates that property's network too |
-| 4 | Create access point (v2) | `POST` | `/infrastructureManagement/internal/v2/networks/{networkId}/accessPoints` | The lock itself, and where the serial number from the scan lands |
-| 5 | Create accessor | `POST` | `/credentialManagementV3/v1/accessors` | Creates the owner inside Spintly, carrying their Keycloak `sub` and the provider id |
-| 6 | Add accessor to organisation | `POST` | `/credentialManagementV3/v1/organisations/{orgId}/accessors/{accessorId}` | `graphql-gateway`, `user-service` and `notification-service` use this. `lock-service` does not, so an owner who is already an accessor elsewhere still goes through #5 |
-| 7 | Update accessor permissions | `PATCH` | `/permissionManagementV3/v1/organisations/{orgId}/accessors/{accessorId}/permissions` | Grants the owner everything at the new lock: mobile, card, fingerprint, passcode and admin |
-
-The order within the chain is taken from the fields the app polls, since we do
-not have the backend source.
+Everything else stops at Binaryveda's backend: `listSites`, `listLockData`,
+`listAreaOfHouse`, `getUploadPresignedUrl`, the `getLock` polling in step 4,
+`updateLockConfigurationStatus`, `finalisePasscode`, and the firmware calls.
 
 ## Differences between the two
 

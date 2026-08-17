@@ -12,7 +12,7 @@ Source content lives in `docs/`, and the built site lands in `site/`.
 | `docs/index.md` | Overview of the three SDKs and the order they run in |
 | `docs/user-onboarding.md` | 1. User Onboarding: iOS and Android SDK members per phase, plus the differences |
 | `docs/lock-share-invites.md` | 2. Lock Share Invites: the four Spintly REST calls and the Config SDK write |
-| `docs/lock-onboarding.md` | 3. Lock Onboarding: a fresh user's first lock, as sequence diagrams, plus the Spintly chain behind `addLock` |
+| `docs/lock-onboarding.md` | 3. Lock Onboarding: a fresh user's first lock, as sequence diagrams, with the GraphQL and Spintly REST calls on the arrows |
 
 Page titles come from the `nav` in `zensical.toml`. Renaming a file changes the
 page's URL, so keep the two in step when a title changes.
