@@ -10,7 +10,9 @@ nav = [
   { "1. User Onboarding" = "user-onboarding.md" },
   { "2. Lock Onboarding" = "lock-onboarding.md" },
   { "3. Home" = "home.md" },
-  { "4. Notifications" = "notifications.md" },
+  { "4. Lock Control Panel" = "lock-control-panel.md" },
+  { "5. User Management" = "user-management.md" },
+  { "6. Notifications" = "notifications.md" },
 ]
 
 extra_css = ["stylesheets/extra.css"]

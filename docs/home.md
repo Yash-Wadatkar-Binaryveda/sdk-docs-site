@@ -68,6 +68,7 @@ sequenceDiagram
     A->>S: pollData, then bleUnlockAccessPoint
     S->>L: Open over BLE
     A->>S: remoteUnlockAccessPoint, only if BLE failed
+    A->>B: updateLockInformation(lockState:)
 ```
 
 ## 1. Opening Home
@@ -182,7 +183,13 @@ No SDK is involved here. The socket is Binaryveda's, not Spintly's.
 
 The user taps **Unlock**. The app refreshes the lock permissions first, then
 tries Bluetooth. If Bluetooth fails it falls back to the internet, which routes
-through the gateway.
+through the gateway. The same sequence runs from the
+[Lock Control Panel](lock-control-panel.md), call for call.
+
+Whether the tap does anything at all depends on the lock's mode, and that rule
+is the same on both platforms and on both screens: passage mode blocks everyone,
+privacy mode blocks everyone except the owner and primary users. It is set out
+in [Who can unlock, and when](lock-control-panel.md#who-can-unlock-and-when).
 
 === "iOS"
 
@@ -192,29 +199,37 @@ through the gateway.
         participant A as App
         participant S as Access SDK
         participant L as Lock hardware
+        participant B as Binaryveda's backend
 
         U->>A: Tap Unlock
         A->>S: logIn if needed, then cloudSyncManager.pollData<br/>Refresh the permissions before trying
+        opt If Bluetooth or nearby devices are not granted
+            A-->>U: The permissions screen, and the unlock resumes after Continue
+        end
         A->>S: accessManager.bleUnlockAccessPoint(_:delegate:)<br/>Try Bluetooth first
         S->>L: Open the lock over BLE
         alt If Bluetooth worked
             L-->>S: Opened
             S-->>A: UnlockDelegate → didUnlock(readerInfo:customParameter:)
+            A->>B: updateLockInformation(id:lockState:)<br/>Record the new state
             A-->>U: Unlocked, over Bluetooth
         else If Bluetooth failed
             S-->>A: UnlockDelegate → didFail(_:)
             A->>S: accessManager.remoteUnlockAccessPoint(_:delegate:)<br/>Fall back to the internet
             S-->>A: RemoteUnlockDelegate → didUnlock or didFail
+            A->>B: updateLockInformation(id:lockState:)<br/>On success only
             A-->>U: Unlocked over the internet, or an error
         end
+        A->>A: After 5.5 seconds, draw the lock as locked again
     ```
+
+    **The SDK work runs before the permission check**, so the session and the
+    permissions are refreshed even on an attempt that then stops at the
+    permissions screen.
 
     **Dual auth cancels the fallback.** When the lock has dual auth turned on,
     a failed Bluetooth attempt shows the error and stops. Remote unlock is never
     tried.
-
-    **A secondary user cannot unlock a lock in privacy mode.** The app returns
-    before any of the above runs.
 
 === "Android"
 
@@ -224,8 +239,12 @@ through the gateway.
         participant A as App
         participant S as Access SDK
         participant L as Lock hardware
+        participant B as Binaryveda's backend
 
         U->>A: Tap Unlock
+        opt If Bluetooth is off, or Bluetooth or location are not granted
+            A-->>U: The permissions screen, and the unlock is replayed after Continue
+        end
         A->>S: credentialManager.isLoggedIn<br/>Log in first if it says no
         A->>S: accessManager.startBleScan()<br/>Make sure the lock is being listened for
         A->>S: cloudSyncManager.pollData(callback)<br/>Refresh the permissions before trying
@@ -234,22 +253,43 @@ through the gateway.
         alt If Bluetooth worked
             L-->>S: Opened
             S-->>A: UnlockCallback → onSuccess(accessPointId, deviceTag, customParameter)
+            A->>B: updateLockInformation(lockState: UNLOCKED)<br/>Record the new state
             A-->>U: Unlocked, over Bluetooth
         else If Bluetooth failed
             S-->>A: UnlockCallback → onFailure(exception)
             A->>S: cloudSyncManager.pollData(callback)<br/>Refreshed again before the second attempt
             A->>S: accessManager.remoteUnlockAccessPoint(accessPointId, RemoteUnlockCallback)<br/>Fall back to the internet
             S-->>A: RemoteUnlockCallback → onSuccess or onFailure
+            A->>B: updateLockInformation(lockState: UNLOCKED)<br/>On success only
             A-->>U: Unlocked over the internet, or an error
         end
+        A->>A: After 7 seconds, draw the lock as locked again
     ```
+
+    **The permission check runs before any SDK call**, so nothing is refreshed
+    on an attempt that stops at the permissions screen.
 
     **Dual auth cancels the fallback.** The unlock is requested as `BLE` rather
     than `BOTH` when the lock has dual auth turned on, so there is no second
-    attempt.
+    attempt. The successful Bluetooth attempt is also not drawn as an unlock,
+    and no relock timer is started. The card waits for the lock to report the
+    door opening instead.
 
     **`pollData` runs twice on the fallback path**, once before each attempt.
     iOS runs it once, before the Bluetooth attempt only.
+
+### After the unlock
+
+Both platforms tell Binaryveda's backend with `updateLockInformation`, and
+neither waits for it or surfaces a failure. If it does not land, the backend
+holds the older state until the next socket event or the next fetch of the lock
+list corrects it.
+
+Each then redraws the lock as locked on a timer, 5.5 seconds on iOS and 7 on
+Android. Nothing is sent when it fires. It exists so the card does not sit on
+unlocked after the lock has already relocked itself. Android skips that repaint
+when the lock is **Online**, since a gateway backed lock reports its real state
+over the socket.
 
 ## Differences between the two
 
@@ -258,8 +298,12 @@ through the gateway.
 | When the Access SDK login runs | When the lock list arrives, and before every unlock | Once, when the Home screen opens |
 | Logged-in check | `isLoggedIn()`, a method | `isLoggedIn`, a property |
 | `pollData` on the remote fallback | Not repeated | Runs again before the second attempt |
+| The permission check against the SDK calls | After the session refresh and `pollData` | Before any SDK call |
+| Which permissions the check covers | Bluetooth and nearby devices | Bluetooth permission, Bluetooth switched on, and location |
 | The activityTrail socket event | Ignored on Home | Updates the card in place, its locked state, time, who and how |
 | How the unlock result arrives | `UnlockDelegate`, `RemoteUnlockDelegate` | `UnlockCallback`, `RemoteUnlockCallback` |
+| What `updateLockInformation` carries after an unlock | The lock state held before the unlock is applied | `UNLOCKED` |
+| The relock repaint | After 5.5 seconds, always | After 7 seconds, skipped when the lock is Online or dual auth is on |
 
 ## Every SDK member this flow uses
 

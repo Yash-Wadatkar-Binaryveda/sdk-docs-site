@@ -1,4 +1,4 @@
-# 4. Notifications
+# 6. Notifications
 
 **What it is.** Two separate things that share a name: **push notifications**,
 which arrive from Firebase and route the user to a screen, and the

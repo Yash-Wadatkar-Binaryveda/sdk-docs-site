@@ -13,8 +13,10 @@ Source content lives in `docs/`, and the built site lands in `site/`.
 | `docs/index.md` | Overview of the three SDKs and the order they run in |
 | `docs/user-onboarding.md` | 1. User Onboarding: iOS and Android SDK members per phase, plus the differences |
 | `docs/lock-onboarding.md` | 2. Lock Onboarding: a fresh user's first lock, as sequence diagrams, with the GraphQL and Spintly REST calls on the arrows |
-| `docs/home.md` | 3. Home: the lock list, live updates, unlocking over BLE with the internet as fallback, and privacy mode |
-| `docs/notifications.md` | 4. Notifications: push topics and how each one routes, plus the notification centre behind the bell |
+| `docs/home.md` | 3. Home: the lock list, live updates, and unlocking over BLE with the internet as fallback |
+| `docs/lock-control-panel.md` | 4. Lock Control Panel: the screen for one lock, its privacy mode write, and where its three buttons lead |
+| `docs/user-management.md` | 5. User Management: inviting someone to a lock, the four kinds of user, accepting an invite, and setting the passcode |
+| `docs/notifications.md` | 6. Notifications: push topics and how each one routes, plus the notification centre behind the bell |
 
 Page titles come from the `nav` in `zensical.toml`. Renaming a file changes the
 page's URL, so keep the two in step when a title changes.
