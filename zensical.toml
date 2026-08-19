@@ -7,13 +7,15 @@ copyright = "Godrej Locks &mdash; internal integration reference"
 
 nav = [
   { "Overview" = "index.md" },
+  { "Reading these pages" = "conventions.md" },
   { "1. User Onboarding" = "user-onboarding.md" },
   { "2. Lock Onboarding" = "lock-onboarding.md" },
   { "3. Home" = "home.md" },
   { "4. Lock Control Panel" = "lock-control-panel.md" },
   { "5. User Management" = "user-management.md" },
   { "6. Activity Trail" = "activity-trail.md" },
-  { "7. Notifications" = "notifications.md" },
+  { "7. Lock Settings" = "lock-settings.md" },
+  { "8. Notifications" = "notifications.md" },
 ]
 
 extra_css = ["stylesheets/extra.css"]

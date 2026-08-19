@@ -20,38 +20,12 @@ users) name + email → email OTP → Home.
 In all three the Spintly work is identical. It starts once the app has a valid
 Keycloak token and does not care which screens produced it.
 
-## Who does what
+## Participants
 
-Seven participants appear across the diagrams. Each diagram shows only the ones
-it needs.
+This page uses User, App, Keycloak, Binaryveda's backend, and all three SDKs.
 
-| Participant | What it is |
-|---|---|
-| **User** | The person signing in |
-| **App** | The iOS or Android app |
-| **Keycloak** | Godrej's identity server, which the sign-in screens talk to directly over HTTP |
-| **Binaryveda's backend** | Binaryveda's GraphQL API |
-| **OAuth SDK** | Spintly's `oauthManager`, the only thing that can turn a Keycloak token into a Spintly session token |
-| **Access SDK** | Spintly's `serviceProvider`, which holds the session and the user's lock permissions |
-| **Config SDK** | Spintly's `configurationProvider`. Created and pointed at an environment here, but given no token and not used again until a lock flow |
-
-!!! tip "Reading the diagrams"
-
-    Each diagram reads top to bottom. Every participant has a vertical line, and
-    every arrow between two lines is one call.
-
-    | What you see | What it means |
-    |---|---|
-    | **Solid arrow** | A call going out, from whoever it starts at to whoever it points at |
-    | **Dashed arrow** | The answer coming back. Also used when an SDK calls back into the app on its own |
-    | **Arrow that loops back to its own line** | Work the app does by itself. Nothing leaves the app |
-    | **Two lines on an arrow** | The first line is the member or endpoint being called, the second says what it does |
-    | **Grey banner across the whole diagram** | A heading, marking where one part of the flow ends and the next begins |
-    | **Box labelled `opt`** | Something that only sometimes happens. Its condition sits at the top of the box, and when that condition is false everything inside is skipped |
-    | **Box labelled `alt`** | A choice between two paths. A dashed line splits the box into a top half and a bottom half, each with its own condition above it. Exactly one of the two halves happens |
-
-    The iOS and Android tabs are linked across the site. Pick a platform once
-    and every diagram follows.
+Each one is defined, along with the shapes the diagrams use, in
+[Reading these pages](conventions.md).
 
 ## The whole flow
 

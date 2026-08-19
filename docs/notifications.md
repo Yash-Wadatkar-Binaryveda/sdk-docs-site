@@ -1,4 +1,4 @@
-# 7. Notifications
+# 8. Notifications
 
 **What it is.** Two separate things that share a name: **push notifications**,
 which arrive from Firebase and route the user to a screen, and the
@@ -10,36 +10,13 @@ Binaryveda's backend.
     Only one push topic reaches a Spintly SDK, the sign-out one. Everything else
     on this page is Firebase and Binaryveda's backend.
 
-## Who does what
+## Participants
 
-Six participants appear across the diagrams. Each diagram shows only the ones
-it needs.
+This page uses User, App, Firebase, Binaryveda's backend, Access SDK, and OAuth
+SDK.
 
-| Participant | What it is |
-|---|---|
-| **User** | The person holding the phone |
-| **App** | The iOS or Android app |
-| **Firebase** | Firebase Cloud Messaging, which carries the push and issues the device token |
-| **Binaryveda's backend** | Binaryveda's GraphQL API, which stores the token and the notification list |
-| **Access SDK** | Spintly's `serviceProvider`, whose session is cleared on sign-out |
-| **OAuth SDK** | Spintly's `oauthManager`, whose session is cleared alongside it |
-
-!!! tip "Reading the diagrams"
-
-    Each diagram reads top to bottom. Every participant has a vertical line, and
-    every arrow between two lines is one call.
-
-    | What you see | What it means |
-    |---|---|
-    | **Solid arrow** | A call going out, from whoever it starts at to whoever it points at |
-    | **Dashed arrow** | The answer coming back. Also used when Firebase delivers a push on its own |
-    | **Arrow that loops back to its own line** | Work the app does by itself. Nothing leaves the app |
-    | **Two lines on an arrow** | The first line is the member or GraphQL field being called, the second says what it does |
-    | **Grey banner across the whole diagram** | A heading, marking where one part of the flow ends and the next begins |
-    | **Box labelled `alt`** | A choice between two paths. A dashed line splits the box into a top half and a bottom half, each with its own condition above it. Exactly one of the two halves happens |
-
-    The iOS and Android tabs are linked across the site. Pick a platform once
-    and every diagram follows.
+Each one is defined, along with the shapes the diagrams use, in
+[Reading these pages](conventions.md).
 
 ## The whole flow
 

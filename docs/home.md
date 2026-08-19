@@ -10,36 +10,12 @@ is not.
     Every SDK call on Home belongs to the **Access SDK**. The Config SDK is not
     used here at all.
 
-## Who does what
+## Participants
 
-Five participants appear across the diagrams. Each diagram shows only the ones
-it needs.
+This page uses User, App, Access SDK, Lock hardware, and Binaryveda's backend.
 
-| Participant | What it is |
-|---|---|
-| **User** | The person holding the phone, at or near the door |
-| **App** | The iOS or Android app |
-| **Access SDK** | Spintly's `serviceProvider`, which holds the session, the lock permissions, and both ways of opening a lock |
-| **Lock hardware** | The lock itself, reached over BLE |
-| **Binaryveda's backend** | Binaryveda's GraphQL API, and the socket that carries live updates |
-
-!!! tip "Reading the diagrams"
-
-    Each diagram reads top to bottom. Every participant has a vertical line, and
-    every arrow between two lines is one call.
-
-    | What you see | What it means |
-    |---|---|
-    | **Solid arrow** | A call going out, from whoever it starts at to whoever it points at |
-    | **Dashed arrow** | The answer coming back. Also used when the SDK calls back into the app on its own |
-    | **Arrow that loops back to its own line** | Work the app does by itself. Nothing leaves the app |
-    | **Two lines on an arrow** | The first line is the member or GraphQL field being called, the second says what it does |
-    | **Grey banner across the whole diagram** | A heading, marking where one part of the flow ends and the next begins |
-    | **Box labelled `opt`** | Something that only sometimes happens. Its condition sits at the top of the box, and when that condition is false everything inside is skipped |
-    | **Box labelled `alt`** | A choice between two paths. A dashed line splits the box into a top half and a bottom half, each with its own condition above it. Exactly one of the two halves happens |
-
-    The iOS and Android tabs are linked across the site. Pick a platform once
-    and every diagram follows.
+Each one is defined, along with the shapes the diagrams use, in
+[Reading these pages](conventions.md).
 
 ## The whole flow
 

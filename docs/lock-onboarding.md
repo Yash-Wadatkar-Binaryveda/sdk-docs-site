@@ -10,43 +10,13 @@ set a master passcode → optionally add a fingerprint or an RFID card.
     The **Config SDK** drives this flow from the scan onwards. The **Access
     SDK** is not used at all.
 
-## Who does what
+## Participants
 
-Six participants appear across the diagrams. Each diagram shows only the ones it
-needs.
+This page uses User, App, Config SDK, Lock hardware, Binaryveda's backend, and
+Spintly's servers.
 
-| Participant | What it is |
-|---|---|
-| **User** | The person setting the lock up, standing next to it |
-| **App** | The iOS or Android app |
-| **Config SDK** | Spintly's `configurationProvider`, the only SDK this flow uses and the only one that can talk to the lock |
-| **Lock hardware** | The lock itself, over BLE, in configuration mode |
-| **Binaryveda's backend** | Binaryveda's GraphQL API, with `lock-service` behind it |
-| **Spintly's servers** | Spintly's REST APIs, which only Binaryveda's backend calls |
-
-!!! tip "Reading the diagrams"
-
-    Each diagram reads top to bottom. Every participant has a vertical line, and
-    every arrow between two lines is one call.
-
-    | What you see | What it means |
-    |---|---|
-    | **Solid arrow** | A call going out, from whoever it starts at to whoever it points at |
-    | **Dashed arrow** | The answer coming back. Also used when the SDK calls back into the app on its own |
-    | **Arrow that loops back to its own line** | Work the app does by itself. Nothing leaves the app |
-    | **Two lines on an arrow** | The first line is the member, GraphQL field, or HTTP path being called, the second says what it does |
-    | **Grey banner across the whole diagram** | A heading, marking where one part of the flow ends and the next begins |
-    | **Box labelled `opt`** | Something that only sometimes happens. Its condition sits at the top of the box, and when that condition is false everything inside is skipped |
-    | **Box labelled `alt`** | A choice between two paths. A dashed line splits the box into a top half and a bottom half, each with its own condition above it. Exactly one of the two halves happens |
-    | **Box labelled `loop`** | Arrows that repeat. How often is written at the top of the box |
-    | **Box labelled `par`** | Two things running at the same time. A dashed line splits the box, and each half is labelled with whose work it is. Neither waits for the other |
-
-    Arrows into Binaryveda's backend carry the **GraphQL field** and its
-    arguments. Arrows into Spintly carry the **HTTP method and path** that
-    Binaryveda's backend uses.
-
-    The iOS and Android tabs are linked across the site. Pick a platform once
-    and every diagram follows.
+Each one is defined, along with the shapes the diagrams use, in
+[Reading these pages](conventions.md).
 
 ## The whole flow
 

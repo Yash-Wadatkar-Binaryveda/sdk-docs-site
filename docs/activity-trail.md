@@ -12,35 +12,13 @@ the **global trail**, which covers every lock in the selected property, and the
     that arrives on its own is the `activityTrail` socket event, which tells the
     screen to fetch again.
 
-## Who does what
+## Participants
 
-Four participants appear across the diagrams. Each diagram shows only the ones
-it needs.
+This page uses User, App, Binaryveda's backend, and the File store an export
+link points at.
 
-| Participant | What it is |
-|---|---|
-| **User** | The person holding the phone |
-| **App** | The iOS or Android app |
-| **Binaryveda's backend** | Binaryveda's GraphQL API, and the socket that carries live events |
-| **File store** | Wherever the export link points. The app downloads from it directly, not through the backend |
-
-!!! tip "Reading the diagrams"
-
-    Each diagram reads top to bottom. Every participant has a vertical line, and
-    every arrow between two lines is one call.
-
-    | What you see | What it means |
-    |---|---|
-    | **Solid arrow** | A call going out, from whoever it starts at to whoever it points at |
-    | **Dashed arrow** | The answer coming back, or an event the backend pushes on its own |
-    | **Arrow that loops back to its own line** | Work the app does by itself. Nothing leaves the app |
-    | **Two lines on an arrow** | The first line is the GraphQL field being called, the second says what it does |
-    | **Grey banner across the whole diagram** | A heading, marking where one part of the flow ends and the next begins |
-    | **Box labelled `opt`** | Something that only sometimes happens. Its condition sits at the top of the box, and when that condition is false everything inside is skipped |
-    | **Box labelled `alt`** | A choice between two paths, split by dashed lines, each half with its own condition above it. Exactly one of them happens |
-
-    The iOS and Android tabs are linked across the site. Pick a platform once
-    and every diagram follows.
+Each one is defined, along with the shapes the diagrams use, in
+[Reading these pages](conventions.md).
 
 ## The two ways in
 

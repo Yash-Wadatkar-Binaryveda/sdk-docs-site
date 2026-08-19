@@ -17,42 +17,13 @@ second lock is a second invite.
     Only one step on this page reaches the lock itself: the **Config SDK**
     writes the new user's passcode over BLE.
 
-## Who does what
+## Participants
 
-Seven participants appear across the diagrams. Each diagram shows only the ones
-it needs.
+This page uses Owner or primary, Invited user, App, Config SDK, Lock hardware,
+Binaryveda's backend, and Spintly's servers.
 
-| Participant | What it is |
-|---|---|
-| **Owner or primary** | The person sending the invite, from the lock's Users screen |
-| **Invited user** | The person receiving it, on their own phone |
-| **App** | The iOS or Android app. Both people are using it, on different phones |
-| **Config SDK** | Spintly's `configurationProvider`, the only SDK in this flow and the only one that can write to the lock |
-| **Lock hardware** | The lock itself, over BLE |
-| **Binaryveda's backend** | Binaryveda's GraphQL API, with `user-service` behind it |
-| **Spintly's servers** | Spintly's REST APIs, which only Binaryveda's backend calls |
-
-!!! tip "Reading the diagrams"
-
-    Each diagram reads top to bottom. Every participant has a vertical line, and
-    every arrow between two lines is one call.
-
-    | What you see | What it means |
-    |---|---|
-    | **Solid arrow** | A call going out, from whoever it starts at to whoever it points at |
-    | **Dashed arrow** | The answer coming back. Also used when the SDK calls back into the app on its own |
-    | **Arrow that loops back to its own line** | Work the app does by itself. Nothing leaves the app |
-    | **Two lines on an arrow** | The first line is the member, GraphQL field, or HTTP path being called, the second says what it does |
-    | **Grey banner across the whole diagram** | A heading, marking where one part of the flow ends and the next begins |
-    | **Box labelled `opt`** | Something that only sometimes happens. Its condition sits at the top of the box, and when that condition is false everything inside is skipped |
-    | **Box labelled `alt`** | A choice between two paths. A dashed line splits the box into a top half and a bottom half, each with its own condition above it. Exactly one of the two halves happens |
-
-    Arrows into Binaryveda's backend carry the **GraphQL field** and its
-    arguments. Arrows into Spintly carry the **HTTP method and path** that
-    Binaryveda's backend uses.
-
-    The iOS and Android tabs are linked across the site. Pick a platform once
-    and every diagram follows.
+Each one is defined, along with the shapes the diagrams use, in
+[Reading these pages](conventions.md).
 
 ## The kinds of user
 

@@ -12,36 +12,12 @@ activity, users and settings.
     not used. Opening the screen fetches nothing, since it is given the lock
     Home already holds.
 
-## Who does what
+## Participants
 
-Five participants appear across the diagrams. Each diagram shows only the ones
-it needs.
+This page uses User, App, Access SDK, Lock hardware, and Binaryveda's backend.
 
-| Participant | What it is |
-|---|---|
-| **User** | The person holding the phone, at or near the door |
-| **App** | The iOS or Android app |
-| **Access SDK** | Spintly's `serviceProvider`, which holds the session, the lock permissions, both ways of opening a lock, and the door state write behind privacy mode |
-| **Lock hardware** | The lock itself, reached over BLE |
-| **Binaryveda's backend** | Binaryveda's GraphQL API, and the socket that carries live updates |
-
-!!! tip "Reading the diagrams"
-
-    Each diagram reads top to bottom. Every participant has a vertical line, and
-    every arrow between two lines is one call.
-
-    | What you see | What it means |
-    |---|---|
-    | **Solid arrow** | A call going out, from whoever it starts at to whoever it points at |
-    | **Dashed arrow** | The answer coming back. Also used when the SDK calls back into the app on its own |
-    | **Arrow that loops back to its own line** | Work the app does by itself. Nothing leaves the app |
-    | **Two lines on an arrow** | The first line is the member or GraphQL field being called, the second says what it does |
-    | **Grey banner across the whole diagram** | A heading, marking where one part of the flow ends and the next begins |
-    | **Box labelled `opt`** | Something that only sometimes happens. Its condition sits at the top of the box, and when that condition is false everything inside is skipped |
-    | **Box labelled `alt`** | A choice between two paths. A dashed line splits the box into a top half and a bottom half, each with its own condition above it. Exactly one of the two halves happens |
-
-    The iOS and Android tabs are linked across the site. Pick a platform once
-    and every diagram follows.
+Each one is defined, along with the shapes the diagrams use, in
+[Reading these pages](conventions.md).
 
 ## Roles on this screen
 
@@ -292,10 +268,9 @@ the lock for the toggle to work.
 |---|---|---|
 | **Activity** | Everyone | The [Activity Trail](activity-trail.md) for this lock, scoped by its lock id rather than by the property |
 | **Users** | Owner and primary | [User Management](user-management.md) for this lock |
-| **Settings** | Everyone | Lock Settings. Edits made there are reflected back here on return, and a factory reset closes the screen |
+| **Settings** | Everyone | [Lock Settings](lock-settings.md). Edits made there are reflected back here on return, and a factory reset closes the screen |
 
-The activity trail has [a page of its own](activity-trail.md). Lock Settings is
-a flow of its own and is not covered here.
+The activity trail and Lock Settings each have a page of their own.
 
 ## What Binaryveda's backend does here
 

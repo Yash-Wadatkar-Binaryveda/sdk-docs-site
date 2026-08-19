@@ -93,11 +93,9 @@ flowchart TD
 ## How to read these pages
 
 Each flow page breaks the work into numbered steps, one diagram per step, read
-top to bottom. Every page opens with a table naming the participants and a key
-to the shapes its diagrams use, so you can start on any page.
-
-The iOS and Android tabs are linked across the whole site. Pick your platform
-once and every diagram follows.
+top to bottom. The participants those diagrams use, the shapes they are drawn
+with, and what each arrow carries are defined once in
+[Reading these pages](conventions.md).
 
 !!! info "Accessor"
 
