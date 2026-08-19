@@ -16,7 +16,8 @@ Source content lives in `docs/`, and the built site lands in `site/`.
 | `docs/home.md` | 3. Home: the lock list, live updates, and unlocking over BLE with the internet as fallback |
 | `docs/lock-control-panel.md` | 4. Lock Control Panel: the screen for one lock, its privacy mode write, and where its three buttons lead |
 | `docs/user-management.md` | 5. User Management: inviting someone to a lock, the four kinds of user, accepting an invite, and setting the passcode |
-| `docs/notifications.md` | 6. Notifications: push topics and how each one routes, plus the notification centre behind the bell |
+| `docs/activity-trail.md` | 6. Activity Trail: the global and per lock logs, how a row is built, filtering, paging, live updates, and export |
+| `docs/notifications.md` | 7. Notifications: push topics and how each one routes, plus the notification centre behind the bell |
 
 Page titles come from the `nav` in `zensical.toml`. Renaming a file changes the
 page's URL, so keep the two in step when a title changes.

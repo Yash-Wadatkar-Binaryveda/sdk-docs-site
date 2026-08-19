@@ -290,12 +290,12 @@ the lock for the toggle to work.
 
 | Button | Who sees it | What it opens |
 |---|---|---|
-| **Activity** | Everyone | The activity trail for this lock, scoped by its lock id rather than by the property |
+| **Activity** | Everyone | The [Activity Trail](activity-trail.md) for this lock, scoped by its lock id rather than by the property |
 | **Users** | Owner and primary | [User Management](user-management.md) for this lock |
 | **Settings** | Everyone | Lock Settings. Edits made there are reflected back here on return, and a factory reset closes the screen |
 
-The activity trail and Lock Settings are flows of their own and are not covered
-on this page.
+The activity trail has [a page of its own](activity-trail.md). Lock Settings is
+a flow of its own and is not covered here.
 
 ## What Binaryveda's backend does here
 

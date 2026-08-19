@@ -12,7 +12,8 @@ nav = [
   { "3. Home" = "home.md" },
   { "4. Lock Control Panel" = "lock-control-panel.md" },
   { "5. User Management" = "user-management.md" },
-  { "6. Notifications" = "notifications.md" },
+  { "6. Activity Trail" = "activity-trail.md" },
+  { "7. Notifications" = "notifications.md" },
 ]
 
 extra_css = ["stylesheets/extra.css"]

@@ -1,4 +1,4 @@
-# 6. Notifications
+# 7. Notifications
 
 **What it is.** Two separate things that share a name: **push notifications**,
 which arrive from Firebase and route the user to a screen, and the
@@ -101,7 +101,7 @@ does. The list of topics is the same on both platforms.
 |---|---|
 | `LOGOUT` | Signs the user out. **The only topic that touches a Spintly SDK** |
 | `NEW_LOCK_INVITE` | Opens the invite screen, carrying the invite id |
-| `ACTIVITY_TRAIL` | Opens the activity trail for the property in the payload |
+| `ACTIVITY_TRAIL` | Opens the [Activity Trail](activity-trail.md) for the property in the payload |
 | `LOCK_FIRMWARE_UPDATE` | Opens the firmware update screen |
 | `GATEWAY_FIRMWARE_UPDATE` | Opens the firmware update screen |
 | `DOORBELL` | Raises a local notification reading "Someone was at {lock} door!" |
