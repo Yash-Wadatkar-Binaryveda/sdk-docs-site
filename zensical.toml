@@ -19,8 +19,8 @@ nav = [
   { "9. Profile and Account" = "profile-and-account.md" },
 ]
 
-extra_css = ["stylesheets/extra.css"]
-extra_javascript = ["javascripts/diagrams.js"]
+extra_css = ["stylesheets/extra.css?v=1"]
+extra_javascript = ["javascripts/diagrams.js?v=1"]
 
 [project.theme]
 # variant = "classic"

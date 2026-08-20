@@ -51,6 +51,13 @@ is a workaround for how Zensical renders mermaid today, so it is worth a glance
 after a Zensical upgrade. If it ever stops matching, the diagrams fall back to
 mermaid's own colours rather than breaking.
 
+> [!IMPORTANT]
+> **Bump the `?v=` on both files in `zensical.toml` whenever you change either
+> of them.** Zensical fingerprints its own bundles, so a theme change reaches
+> readers on its own, but `extra_css` and `extra_javascript` are copied under
+> fixed names. Without a new version marker a browser keeps serving the copy it
+> already has, and the change looks like it never deployed.
+
 > [!NOTE]
 > Zensical fetches mermaid from `unpkg.com` when a page with a diagram opens, so
 > the diagrams need the reader to have internet access. That is Zensical's
