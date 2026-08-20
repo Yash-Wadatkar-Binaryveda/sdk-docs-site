@@ -15,7 +15,7 @@ Binaryveda's backend.
 This page uses User, App, Firebase, Binaryveda's backend, Access SDK, and OAuth
 SDK.
 
-Each one is defined, along with the shapes the diagrams use, in
+Each one is defined, with the colour it keeps across the site, in
 [Reading these pages](conventions.md).
 
 ## The whole flow

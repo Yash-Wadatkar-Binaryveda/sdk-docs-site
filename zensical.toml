@@ -16,10 +16,11 @@ nav = [
   { "6. Activity Trail" = "activity-trail.md" },
   { "7. Lock Settings" = "lock-settings.md" },
   { "8. Notifications" = "notifications.md" },
+  { "9. Profile and Account" = "profile-and-account.md" },
 ]
 
 extra_css = ["stylesheets/extra.css"]
-# extra_javascript = ["javascripts/extra.js"]
+extra_javascript = ["javascripts/diagrams.js"]
 
 [project.theme]
 # variant = "classic"

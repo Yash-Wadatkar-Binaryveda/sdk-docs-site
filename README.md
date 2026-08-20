@@ -20,9 +20,41 @@ Source content lives in `docs/`, and the built site lands in `site/`.
 | `docs/activity-trail.md` | 6. Activity Trail: the global and per lock logs, how a row is built, filtering, paging, live updates, and export |
 | `docs/lock-settings.md` | 7. Lock Settings: the menu and its role gating, hardware settings written over BLE, accessories, firmware, factory reset and removal, plus the gateway |
 | `docs/notifications.md` | 8. Notifications: push topics and how each one routes, plus the notification centre behind the bell |
+| `docs/profile-and-account.md` | 9. Profile and Account: the profile menu, updating the name and photo, changing the phone number or email, properties, voice assistants, integrators, support, and deleting the account |
 
 Page titles come from the `nav` in `zensical.toml`. Renaming a file changes the
 page's URL, so keep the two in step when a title changes.
+
+## The diagram colours
+
+Mermaid draws every participant in one colour and every arrow in one stroke,
+which turns a six participant diagram into a grey mesh, and it offers no per
+participant hook to change that. `docs/javascripts/diagrams.js` adds one, and
+also writes the short legend that appears under any diagram using an `opt`,
+`alt`, `par` or `loop` block.
+
+Two files, and they have to agree:
+
+| File | Holds |
+|---|---|
+| `docs/stylesheets/extra.css` | The colours themselves, as `--seq-*` properties, one set for the light palette and one for the dark |
+| `docs/javascripts/diagrams.js` | The map from a participant's label to its colour, and the legend wording |
+
+**To add a participant**, add a `--seq-` property to the stylesheet and an entry
+to `SLOT` in the script, keyed on the label exactly as it appears after `as` in
+the `participant` line. Miss the `SLOT` entry and it takes a spare colour rather
+than breaking.
+
+The script works by wrapping `mermaid.render`, because the theme seals each
+finished diagram inside a closed shadow root that nothing else can reach. That
+is a workaround for how Zensical renders mermaid today, so it is worth a glance
+after a Zensical upgrade. If it ever stops matching, the diagrams fall back to
+mermaid's own colours rather than breaking.
+
+> [!NOTE]
+> Zensical fetches mermaid from `unpkg.com` when a page with a diagram opens, so
+> the diagrams need the reader to have internet access. That is Zensical's
+> behaviour, not something this site sets up.
 
 ## Where the member names came from
 

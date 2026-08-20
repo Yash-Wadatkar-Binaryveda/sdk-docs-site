@@ -16,7 +16,7 @@ activity, users and settings.
 
 This page uses User, App, Access SDK, Lock hardware, and Binaryveda's backend.
 
-Each one is defined, along with the shapes the diagrams use, in
+Each one is defined, with the colour it keeps across the site, in
 [Reading these pages](conventions.md).
 
 ## Roles on this screen

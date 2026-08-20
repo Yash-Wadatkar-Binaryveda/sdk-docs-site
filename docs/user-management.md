@@ -22,7 +22,7 @@ second lock is a second invite.
 This page uses Owner or primary, Invited user, App, Config SDK, Lock hardware,
 Binaryveda's backend, and Spintly's servers.
 
-Each one is defined, along with the shapes the diagrams use, in
+Each one is defined, with the colour it keeps across the site, in
 [Reading these pages](conventions.md).
 
 ## The kinds of user
@@ -395,6 +395,8 @@ returns, so people who have not accepted yet are kept apart from active ones.
 | Action | What the app calls |
 |---|---|
 | Open a user | `getUserAccessDetails(lockId:userId:inviteId:)`, which returns the granted methods, the passcode value and the dual auth flag |
+| Open a one time user | `getOneTimeUserDetails(inviteId:)`, for the single use passcode and when it expires |
+| Open a scheduled user | `getScheduledUserDetails(inviteId:)`, for the days, dates and times they are allowed in |
 | Change what they may use | `updateUserAccessMethod(updateUserAccessMethodInput:)`, which carries the same four flags plus `dualAuth` |
 | Rename them | `editUserName(lockId:userId:name:)` |
 | Remove them | `removeUser(lockId:userId:)`, which revokes their access to this lock |

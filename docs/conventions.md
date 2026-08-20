@@ -2,7 +2,7 @@
 
 Every flow page on this site is built the same way: numbered steps, one diagram
 per step, read top to bottom. This page defines the participants those diagrams
-use and the shapes they are drawn with, so no flow page has to repeat them.
+use, so no flow page has to repeat them.
 
 Each page names the participants it uses at the top and links back here.
 
@@ -10,48 +10,38 @@ Each page names the participants it uses at the top and links back here.
 
 Eleven participants appear across the site. No page uses all of them.
 
+**Each one keeps its colour in every diagram it appears in**, and every arrow is
+drawn in the colour of the participant it leaves from, so an arrow can be traced
+back to whatever sent it.
+
 | Participant | What it is |
 |---|---|
-| **User** | The person holding the phone. Named by role where the role matters, such as **Owner or primary** and **Invited user** in [User Management](user-management.md) |
-| **App** | The iOS or Android app |
-| **Keycloak** | The identity provider behind the app's own sign in, which issues the token everything else starts from |
-| **Binaryveda's backend** | Binaryveda's GraphQL API, with `user-service`, `lock-service` and `notification-service` behind it, plus the socket that carries live events |
-| **Spintly's servers** | Spintly's REST APIs. Only Binaryveda's backend calls these. The app never does |
-| **OAuth SDK** | Spintly's `oauthManager`. Trades the Keycloak token for a Spintly session token |
-| **Access SDK** | Spintly's `serviceProvider`. Holds the credential and the lock permissions, and performs unlocks |
-| **Config SDK** | Spintly's `configurationProvider`. The only SDK that writes to hardware |
-| **Lock hardware** | The lock, an accessory, or a gateway, reached over BLE |
-| **Firebase** | Firebase Cloud Messaging, which carries push notifications and issues the device token |
-| **File store** | Wherever an export or download link points. The app fetches from it directly, not through the backend |
+| <span class="p-key p-user"></span> **User** | The person holding the phone. Named by role where the role matters, such as **Owner or primary** and **Invited user** in [User Management](user-management.md) |
+| <span class="p-key p-app"></span> **App** | The iOS or Android app |
+| <span class="p-key p-keycloak"></span> **Keycloak** | The identity provider behind the app's own sign in, which issues the token everything else starts from |
+| <span class="p-key p-backend"></span> **Binaryveda's backend** | Binaryveda's GraphQL API, with `user-service`, `lock-service` and `notification-service` behind it, plus the socket that carries live events |
+| <span class="p-key p-spintly"></span> **Spintly's servers** | Spintly's REST APIs. Only Binaryveda's backend calls these. The app never does |
+| <span class="p-key p-oauth"></span> **OAuth SDK** | Spintly's `oauthManager`. Trades the Keycloak token for a Spintly session token |
+| <span class="p-key p-access"></span> **Access SDK** | Spintly's `serviceProvider`. Holds the credential and the lock permissions, and performs unlocks |
+| <span class="p-key p-config"></span> **Config SDK** | Spintly's `configurationProvider`. The only SDK that writes to hardware |
+| <span class="p-key p-hardware"></span> **Lock hardware** | The lock, an accessory, or a gateway, reached over BLE |
+| <span class="p-key p-firebase"></span> **Firebase** | Firebase Cloud Messaging, which carries push notifications and issues the device token |
+| <span class="p-key p-filestore"></span> **File store** | Wherever an export or download link points. The app fetches from it directly, not through the backend |
+
+A few pages add a participant of their own, such as the accessory in
+[Lock Settings](lock-settings.md) or the assistant's app in
+[Profile and Account](profile-and-account.md). Those are named where they are
+used and get their own colour on that page.
 
 The three SDKs, what each is for, and the order they run in are covered on the
 [Overview](index.md).
 
-## Diagram shapes
+!!! note "Where the Spintly request bodies are"
 
-Every participant has a vertical line, and every arrow between two lines is one
-call.
-
-| What you see | What it means |
-|---|---|
-| **Solid arrow** | A call going out, from whoever it starts at to whoever it points at |
-| **Dashed arrow** | The answer coming back. Also used when an SDK calls back into the app, or when Firebase or the socket delivers something on its own |
-| **Arrow that loops back to its own line** | Work the app does by itself. Nothing leaves the app |
-| **Two lines on an arrow** | The first line is the member, GraphQL field, or HTTP path being called. The second says what it does |
-| **Grey banner across the whole diagram** | A heading, marking where one part of the flow ends and the next begins |
-| **Box labelled `opt`** | Something that only sometimes happens. Its condition sits at the top of the box, and when that condition is false everything inside is skipped |
-| **Box labelled `alt`** | A choice between two or more paths, split by dashed lines, each with its own condition above it. Exactly one of them happens |
-
-## What the arrows carry
-
-| Arrow points at | What is written on it |
-|---|---|
-| An SDK | The **member name** and its arguments |
-| Binaryveda's backend | The **GraphQL field** and its arguments |
-| Spintly's servers | The **HTTP method and path** that Binaryveda's backend uses |
-
-Request bodies, headers, and the per-service differences behind the Spintly
-paths are in Binaryveda's Spintly API usage document rather than here.
+    The arrows into Spintly's servers carry the method and the path only.
+    Request bodies, headers, and the differences between the four backend
+    services behind those paths are in Binaryveda's Spintly API usage document
+    rather than here.
 
 ## Platform tabs
 

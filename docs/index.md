@@ -93,8 +93,8 @@ flowchart TD
 ## How to read these pages
 
 Each flow page breaks the work into numbered steps, one diagram per step, read
-top to bottom. The participants those diagrams use, the shapes they are drawn
-with, and what each arrow carries are defined once in
+top to bottom. The participants those diagrams use, and the colour each one
+keeps across the site, are defined once in
 [Reading these pages](conventions.md).
 
 !!! info "Accessor"

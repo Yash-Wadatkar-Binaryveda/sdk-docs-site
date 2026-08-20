@@ -14,7 +14,7 @@ is not.
 
 This page uses User, App, Access SDK, Lock hardware, and Binaryveda's backend.
 
-Each one is defined, along with the shapes the diagrams use, in
+Each one is defined, with the colour it keeps across the site, in
 [Reading these pages](conventions.md).
 
 ## The whole flow
@@ -32,6 +32,7 @@ sequenceDiagram
     Note over U,B: 1. Opening Home
     A->>B: listAssignedProperties, then listLocksAndGateways
     B-->>A: The properties, and the locks in the chosen one
+    A->>B: getUserById<br/>Who is signed in, and whether anything is waiting for them
     A->>S: logIn if needed, then pollData
     S-->>A: The user's lock permissions
 
@@ -67,6 +68,8 @@ the user's lock permissions, which an unlock needs.
         B-->>A: The property list
         A->>B: listLocksAndGateways(propertyId:)<br/>Fetch the locks in the selected property
         B-->>A: Locks first, then gateways
+        A->>B: getUserById<br/>The signed-in user, and the two waiting flags
+        B-->>A: name, id, accessorId, hasNotifications
 
         Note over U,B: Get the Access SDK ready to unlock
         A->>S: credentialManager.isLoggedIn()<br/>A method on iOS
@@ -80,6 +83,10 @@ the user's lock permissions, which an unlock needs.
 
     **When the Access SDK work runs.** `setPermissionsToLock` fires once the
     lock list comes back with at least one lock, and again before every unlock.
+
+    **`getUserById` runs after the lock list, not before it.** If the profile it
+    returns has no email, the app sends the user straight to the change email
+    screen.
 
 === "Android"
 
@@ -95,6 +102,8 @@ the user's lock permissions, which an unlock needs.
         B-->>A: The property list
         A->>B: listLocksAndGateways(propertyId:)<br/>Fetch the locks in the selected property
         B-->>A: Locks first, then gateways
+        A->>B: getUserById<br/>The signed-in user, and the two waiting flags
+        B-->>A: name, id, accessorId, hasNotification, hasInvites
 
         Note over U,B: Get the Access SDK ready to unlock
         A->>S: credentialManager.isLoggedIn<br/>A property on Android
@@ -106,6 +115,11 @@ the user's lock permissions, which an unlock needs.
         A->>S: accessManager.startBleScan()<br/>Start listening for the user's locks nearby
         A-->>U: The lock cards
     ```
+
+    **`hasInvites` opens a screen on its own.** When it comes back true, Android
+    sends the user to the notification screen without being asked, once per
+    session. The invite itself is
+    [User Management](user-management.md#3-accepting-the-invite).
 
 ## 2. Live updates
 
@@ -272,6 +286,7 @@ over the socket.
 | | iOS | Android |
 |---|---|---|
 | When the Access SDK login runs | When the lock list arrives, and before every unlock | Once, when the Home screen opens |
+| What `getUserById` triggers | Sends the user to the change email screen when the profile has no email | Opens the notification screen when `hasInvites` is true |
 | Logged-in check | `isLoggedIn()`, a method | `isLoggedIn`, a property |
 | `pollData` on the remote fallback | Not repeated | Runs again before the second attempt |
 | The permission check against the SDK calls | After the session refresh and `pollData` | Before any SDK call |

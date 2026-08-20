@@ -24,7 +24,7 @@ Keycloak token and does not care which screens produced it.
 
 This page uses User, App, Keycloak, Binaryveda's backend, and all three SDKs.
 
-Each one is defined, along with the shapes the diagrams use, in
+Each one is defined, with the colour it keeps across the site, in
 [Reading these pages](conventions.md).
 
 ## The whole flow
@@ -149,6 +149,11 @@ decides whether the name and email screens run.
 
 The OTP is six digits on both platforms, and both submit it as soon as the field
 fills, so nobody taps the button on the way through.
+
+**The country code list is the one part of this screen that differs.** Android
+fetches it from Binaryveda's backend with `getCountryCodes`, which also backs the
+country picker used when changing a number later. iOS ships the list inside the
+app and makes no call for it.
 
 === "iOS"
 

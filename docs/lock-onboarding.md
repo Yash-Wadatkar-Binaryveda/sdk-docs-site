@@ -15,7 +15,7 @@ set a master passcode → optionally add a fingerprint or an RFID card.
 This page uses User, App, Config SDK, Lock hardware, Binaryveda's backend, and
 Spintly's servers.
 
-Each one is defined, along with the shapes the diagrams use, in
+Each one is defined, with the colour it keeps across the site, in
 [Reading these pages](conventions.md).
 
 ## The whole flow
@@ -292,6 +292,13 @@ until they arrive.
 The two platforms wait differently, but the same three ids come out either way:
 `organisationId`, `accessorId` and `accessPointId`. Every Config SDK call from
 provisioning onwards needs them.
+
+**Screens reached later look the three ids up again** with
+`spintlyDetails(lockSerialNumber:)`, which returns exactly those and nothing
+else. It is how [My Access](lock-settings.md#2-my-access), a user's detail
+screen in [User Management](user-management.md), and an invited user setting up
+their own access all get what a Config SDK call needs, without carrying the ids
+across from here.
 
 The permission call has to run last, because it names both the access point and
 the accessor and neither exists before then. Whether the access point or the

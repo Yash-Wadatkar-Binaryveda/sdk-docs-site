@@ -17,7 +17,7 @@ the **global trail**, which covers every lock in the selected property, and the
 This page uses User, App, Binaryveda's backend, and the File store an export
 link points at.
 
-Each one is defined, along with the shapes the diagrams use, in
+Each one is defined, with the colour it keeps across the site, in
 [Reading these pages](conventions.md).
 
 ## The two ways in

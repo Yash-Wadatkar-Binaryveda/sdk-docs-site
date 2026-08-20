@@ -22,7 +22,7 @@ getting rid of the lock.
 This page uses User, App, Config SDK, Lock hardware, Binaryveda's backend, and
 Spintly's servers.
 
-Each one is defined, along with the shapes the diagrams use, in
+Each one is defined, with the colour it keeps across the site, in
 [Reading these pages](conventions.md).
 
 ## The menu, and who sees what
@@ -243,7 +243,7 @@ sequenceDiagram
     participant C as Config SDK
     participant L as Lock hardware
 
-    A->>B: listAvailableLanguages<br/>Which languages this lock can take
+    A->>B: listAvailableLanguages, or listLanguages on Android<br/>Which languages this lock can take
     A->>C: getCurrentLanguageAndDoorbellTone<br/>Which one it is on now
     U->>A: Pick a different language
     A->>B: getLanguageUpdate<br/>Fetch the voice pack for it
@@ -256,6 +256,9 @@ sequenceDiagram
 This is the lock's spoken prompts, not the app's own language. The transfer runs
 in stages and reports progress back, because it moves a file rather than a
 handful of bytes.
+
+**The two platforms ask for the language list with different queries.** iOS
+sends `listAvailableLanguages`; Android's screen sends `listLanguages`.
 
 ## 4. Accessories
 
@@ -295,7 +298,9 @@ no name, only a MAC address, so its settings screen holds two entries:
 
 - **Firmware Update**, which is `getListOfFirmwareForBeacon` and then
   `firmwareUpdateToSelectedVersion`. The firmware transfers from the phone over
-  BLE.
+  BLE. Android asks the backend what is available first, with
+  `getBLERemoteFirmwareUpdate` or `getVDPModuleFirmwareUpdate` depending on the
+  accessory. iOS takes the list from the SDK alone.
 - **Factory Reset**, which is biometric authentication, then `resetBeacon`, then
   `removeBleRemote` or `removeVdpModule`.
 
@@ -478,8 +483,9 @@ Six entries, from the gateway's card on Home: **Edit Module Name**,
 **Connections**, **Wi-Fi Network**, **About**, **Firmware Update** and
 **Factory Reset**. The last two are owner only.
 
-Connections lists the locks this gateway serves, from `listConnections`.
-Renaming goes out on `updateGateway`.
+Opening the settings reads the gateway itself with `getGateway`, which is what
+About is drawn from. Connections lists the locks this gateway serves, from
+`listConnections`. Renaming goes out on `updateGateway`.
 
 ```mermaid
 sequenceDiagram
@@ -491,6 +497,7 @@ sequenceDiagram
     participant S as Spintly's servers
 
     alt Firmware Update
+        A->>B: getGatewayFirmwareUpdate<br/>The version the backend says it should be on
         A->>C: getListOfSoftwareForGatewaySerialNumber<br/>Versions, release notes and update history
         U->>A: Update
         A->>C: gatewaySoftwareUpdateToSelectedVersion(serialNumber, version)

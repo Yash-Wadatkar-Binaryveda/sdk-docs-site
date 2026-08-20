@@ -29,6 +29,129 @@
   margin: 1.2em 0;
 }
 
+/* --- Sequence diagram palette ---------------------------------------------
+   One colour per participant, applied by javascripts/diagrams.js after mermaid
+   renders. Each participant keeps its colour on every page, so the palette is
+   defined once here rather than per diagram.
+
+   Two sets, because the site has a light and a dark palette: the light values
+   are darkened so they hold contrast on white, the dark values lightened for
+   the same reason. Hues match across the pair, so a participant reads as the
+   same colour either way.
+
+   Adding a participant means adding a --seq-* here and a SLOT entry in
+   diagrams.js. Miss the SLOT entry and it falls back to a spare colour rather
+   than breaking.                                                            */
+
+:root {
+  --seq-user:      #64748b;  /* slate   — the person, deliberately neutral */
+  --seq-app:       #0891b2;  /* cyan    */
+  --seq-backend:   #16a34a;  /* green   */
+  --seq-spintly:   #e11d48;  /* rose    */
+  --seq-keycloak:  #c026d3;  /* fuchsia */
+  --seq-oauth:     #7c3aed;  /* violet  */
+  --seq-access:    #2563eb;  /* blue    */
+  --seq-config:    #ca8a04;  /* amber   — kept clear of Firebase's orange */
+  --seq-hardware:  #4d7c0f;  /* lime    — locks, gateways and accessories */
+  --seq-firebase:  #ea580c;  /* orange  */
+  --seq-filestore: #4f46e5;  /* indigo  */
+  --seq-invited:   #4f46e5;  /* indigo  — never shares a diagram with the file store */
+  --seq-assistant: #db2777;  /* pink    */
+
+  /* Fallbacks for a participant with no slot of its own. Kept well away from
+     App and Binaryveda's backend, which are in nearly every diagram. */
+  --seq-spare1: #a16207;
+  --seq-spare2: #9333ea;
+  --seq-spare3: #be123c;
+  --seq-spare4: #475569;
+}
+
+[data-md-color-scheme="slate"] {
+  --seq-user:      #94a3b8;
+  --seq-app:       #22d3ee;
+  --seq-backend:   #4ade80;
+  --seq-spintly:   #fb7185;
+  --seq-keycloak:  #e879f9;
+  --seq-oauth:     #a78bfa;
+  --seq-access:    #60a5fa;
+  --seq-config:    #fbbf24;
+  --seq-hardware:  #a3e635;
+  --seq-firebase:  #fb923c;
+  --seq-filestore: #818cf8;
+  --seq-invited:   #818cf8;
+  --seq-assistant: #f472b6;
+
+  --seq-spare1: #facc15;
+  --seq-spare2: #c4b5fd;
+  --seq-spare3: #fda4af;
+  --seq-spare4: #cbd5e1;
+}
+
+/* The legend under a diagram that uses an opt, alt, par or loop block. Written
+   by diagrams.js from the blocks that diagram actually contains, so a diagram
+   using none of them gets nothing at all.
+
+   The rule down the left ties it to the diagram above it, and the tag is drawn
+   to echo the label mermaid puts in the corner of the block it explains. */
+.md-typeset .seq-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  margin: -0.4em 0 1.6em;
+  padding: 0.1em 0 0.1em 0.9em;
+  border-left: 2px solid var(--md-default-fg-color--lightest);
+  font-size: 0.68rem;
+  line-height: 1.7;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .seq-legend > span {
+  display: block;
+  text-indent: -2.9em;
+  padding-left: 2.9em;
+}
+
+.md-typeset .seq-legend .seq-tag {
+  display: inline-block;
+  min-width: 2em;
+  margin-right: 0.7em;
+  padding: 0 0.35em;
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 0.15em;
+  font-family: var(--md-code-font-family);
+  font-size: 0.92em;
+  font-weight: 700;
+  text-align: center;
+  text-indent: 0;
+  color: var(--md-default-fg-color);
+}
+
+/* Swatches for the participant table on "Reading these pages". Drawn the same
+   way the diagrams draw a participant box: the colour as a border, over a wash
+   of the same colour. */
+.md-typeset .p-key {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: 0.55em;
+  border: 2px solid var(--c, var(--md-default-fg-color--light));
+  border-radius: 0.15em;
+  background: color-mix(in srgb, var(--c, transparent) 22%, transparent);
+  vertical-align: -0.1em;
+}
+
+.md-typeset .p-user      { --c: var(--seq-user); }
+.md-typeset .p-app       { --c: var(--seq-app); }
+.md-typeset .p-backend   { --c: var(--seq-backend); }
+.md-typeset .p-spintly   { --c: var(--seq-spintly); }
+.md-typeset .p-keycloak  { --c: var(--seq-keycloak); }
+.md-typeset .p-oauth     { --c: var(--seq-oauth); }
+.md-typeset .p-access    { --c: var(--seq-access); }
+.md-typeset .p-config    { --c: var(--seq-config); }
+.md-typeset .p-hardware  { --c: var(--seq-hardware); }
+.md-typeset .p-firebase  { --c: var(--seq-firebase); }
+.md-typeset .p-filestore { --c: var(--seq-filestore); }
+
 /* --- SDK colour key -------------------------------------------------------
    Swatches must stay in sync with the classDef strokes in the flow diagrams:
    OAuth #8b5cf6, Access #3b82f6, Config #f59e0b, failure #ef4444.          */
