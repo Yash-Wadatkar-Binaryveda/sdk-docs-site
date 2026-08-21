@@ -8,7 +8,7 @@ Each page names the participants it uses at the top and links back here.
 
 ## The participants
 
-Eleven participants appear across the site. No page uses all of them.
+Twelve participants appear across the site. No page uses all of them.
 
 **Each one keeps its colour in every diagram it appears in**, and every arrow is
 drawn in the colour of the participant it leaves from, so an arrow can be traced
@@ -21,6 +21,7 @@ back to whatever sent it.
 | <span class="p-key p-keycloak"></span> **Keycloak** | The identity provider behind the app's own sign in, which issues the token everything else starts from |
 | <span class="p-key p-backend"></span> **Binaryveda's backend** | Binaryveda's GraphQL API, with `user-service`, `lock-service` and `notification-service` behind it, plus the socket that carries live events |
 | <span class="p-key p-spintly"></span> **Spintly's servers** | Spintly's REST APIs. Only Binaryveda's backend calls these. The app never does |
+| <span class="p-key p-kafka"></span> **Kafka** | Spintly's message bus, an AWS MSK cluster. Spintly publishes to it, `notification-service` reads from it, and the app never touches it |
 | <span class="p-key p-oauth"></span> **OAuth SDK** | Spintly's `oauthManager`. Trades the Keycloak token for a Spintly session token |
 | <span class="p-key p-access"></span> **Access SDK** | Spintly's `serviceProvider`. Holds the credential and the lock permissions, and performs unlocks |
 | <span class="p-key p-config"></span> **Config SDK** | Spintly's `configurationProvider`. The only SDK that writes to hardware |
@@ -42,6 +43,14 @@ The three SDKs, what each is for, and the order they run in are covered on the
     Request bodies, headers, and the differences between the four backend
     services behind those paths are in Binaryveda's Spintly API usage document
     rather than here.
+
+!!! note "What a Kafka arrow carries"
+
+    An arrow into or out of Kafka is labelled with the field that says what kind
+    of message it is, and the fields of the body that matter to that step.
+    Whole message shapes, every message type on each topic, and what Binaryveda
+    does on receiving each one are in Binaryveda's Kafka events document rather
+    than here.
 
 ## Platform tabs
 

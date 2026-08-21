@@ -48,6 +48,7 @@
   --seq-app:       #0891b2;  /* cyan    */
   --seq-backend:   #16a34a;  /* green   */
   --seq-spintly:   #e11d48;  /* rose    */
+  --seq-kafka:     #0f766e;  /* teal    — pushed green-ward to clear App's cyan */
   --seq-keycloak:  #c026d3;  /* fuchsia */
   --seq-oauth:     #7c3aed;  /* violet  */
   --seq-access:    #2563eb;  /* blue    */
@@ -71,6 +72,7 @@
   --seq-app:       #22d3ee;
   --seq-backend:   #4ade80;
   --seq-spintly:   #fb7185;
+  --seq-kafka:     #5eead4;
   --seq-keycloak:  #e879f9;
   --seq-oauth:     #a78bfa;
   --seq-access:    #60a5fa;
@@ -144,6 +146,7 @@
 .md-typeset .p-app       { --c: var(--seq-app); }
 .md-typeset .p-backend   { --c: var(--seq-backend); }
 .md-typeset .p-spintly   { --c: var(--seq-spintly); }
+.md-typeset .p-kafka     { --c: var(--seq-kafka); }
 .md-typeset .p-keycloak  { --c: var(--seq-keycloak); }
 .md-typeset .p-oauth     { --c: var(--seq-oauth); }
 .md-typeset .p-access    { --c: var(--seq-access); }

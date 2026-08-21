@@ -84,6 +84,32 @@ does. The list of topics is the same on both platforms.
 | `DOORBELL` | Raises a local notification reading "Someone was at {lock} door!" |
 | `REMOTE_UNLOCK_REQUEST` | Nothing. The handler is commented out on both platforms |
 
+### Topics the backend sends that the phone apps do not route on
+
+The table above is what the app has a branch for. The backend sends more than
+that, and most of the extra topics come straight off a Kafka message from
+Spintly. They are listed here so a topic seen in a log is not mistaken for a
+missing handler.
+
+| Topic | Sent when | Who receives it |
+|---|---|---|
+| `DEADBOLT` | The deadbolt is thrown | **Watch only**. Registered `WATCH_OS` tokens |
+| `DOOR_STATUS` | The door opens or closes | **Watch only** |
+| `INVENTORY_STATUS` | A lock or gateway goes online or offline, or the battery level changes | **Watch only** |
+| `ACTIVITY_TRAIL`, as data | Any unlock | **Watch only**, to the person who opened it. The phone gets the alert version in the table above instead |
+| `LOCK_BATTERY` | The battery reaches critical or dead, at most once a day per lock | Owner and primary. Also written to the notification centre as `LOCK_BATTERY_STATUS` |
+| `DOOR_TAMPER`, `DOOR_TAMPER_RESET` | The tamper switch trips or is reset | Owner, primary and secondary |
+| `DOOR_AJAR` | The door is left open too long | Owner, primary and secondary |
+| `LATCH_LOCKING_FAILURE` | The door did not latch | Owner, primary and secondary |
+| `PRANK_ALARM` | Too many wrong passcodes | Owner, primary and secondary |
+
+**The five alarm topics have no handler on either phone app.** They are sent as
+alerts, so the operating system displays them, but tapping one does not route
+anywhere in particular.
+
+The Kafka message behind each of these, and the full routing, is in
+Binaryveda's Kafka events document.
+
 === "iOS"
 
     ```mermaid

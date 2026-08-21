@@ -437,14 +437,34 @@ sequenceDiagram
     else Remove them from the lock
         O->>A: Remove user
         A->>B: removeUser(lockId:userId:)
-        B->>S: PATCH .../accessors/{accessorId}/permissions<br/>The same endpoint, with the access point in permissionsToRemove
-        B->>S: DELETE /credentialManagementV3/v1/organisations/{orgId}/<br/>accessors/{accessorId}<br/>Take the accessor out of the organisation
+        alt If they still have another lock in this property's organisation
+            B->>S: PATCH .../accessors/{accessorId}/permissions<br/>The same endpoint, with the access point in permissionsToRemove
+        else If this was their last lock in it
+            B->>S: DELETE /credentialManagementV3/v1/organisations/{orgId}/<br/>accessors/{accessorId}<br/>Take the accessor out of the organisation
+        end
     else Change or drop a schedule
         O->>A: Edit or delete the schedule
         A->>B: updateSchedule(updateScheduleInput:), or deleteSchedule(scheduleId:)
         B->>S: PATCH or DELETE /permissionManagement/v1/organisations/{orgId}/<br/>schedules/user/device/{scheduleId}
     end
 ```
+
+**Removing a user makes one call, not two.** Which one depends on whether the
+person is left with any other lock in the same organisation. If they are, only
+the permission for this access point is withdrawn and their accessor stays.
+If they are not, the accessor is taken out of the organisation instead.
+
+A **scheduled** user is the exception and always takes the second branch, plus
+a `DELETE` for each of their schedules.
+
+!!! note "When Spintly destroys the accessor outright"
+
+    The `DELETE` only removes the accessor from that one organisation. If it
+    belonged to no other, Spintly destroys the accessor itself and says so with
+    `isAccessorDeleted` in the response. Binaryveda clears its stored
+    `accessorId` when that comes back, because a stale id would satisfy the
+    "does this user already have an accessor?" check on every later invite and
+    onboarding, and the user could never be given a working one again.
 
 ## Differences between the two
 

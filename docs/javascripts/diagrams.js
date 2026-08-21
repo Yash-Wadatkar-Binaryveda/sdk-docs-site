@@ -45,6 +45,8 @@
     "app": "app",
     "binaryveda's backend": "backend",
     "spintly's servers": "spintly",
+    "kafka": "kafka",
+    "spintly's kafka": "kafka",
     "keycloak": "keycloak",
     "oauth sdk": "oauth",
     "access sdk": "access",
@@ -220,6 +222,18 @@
     }
     var render = mermaid.render.bind(mermaid);
     mermaid.render = function (id, source) {
+      /* Before anything else, and while the theme still holds the <pre> this
+         source was read from. Once render resolves the theme replaces it, and
+         the source is sealed inside a closed shadow root. See the note above
+         addLegends. */
+      if (isSequence(source)) {
+        try {
+          legendForSource(source);
+        } catch (e) {
+          /* a missing legend is not worth failing a diagram over */
+        }
+      }
+
       var result = render(id, source);
       if (!result || typeof result.then !== "function" || !isSequence(source)) {
         return result;
@@ -256,43 +270,91 @@
 
   /* --- legends ------------------------------------------------------------ */
 
-  /* Read from the diagram source in the page, which is still a <pre> at this
-     point. The theme swaps that <pre> for its own element on the way to
-     rendering, and the legend inserted after it stays where it is. */
+  /* A legend is built from the diagram source, which is only readable while the
+     diagram is still the <pre> the page was served with. The theme replaces
+     that <pre> with a <div class="mermaid"> holding a closed shadow root, and
+     from that moment the source is unreachable: a legend not attached before
+     the swap can never be built afterwards.
+
+     The swap is a replaceWith, so a legend already inserted as the <pre>'s next
+     sibling survives it untouched. Attaching in time is therefore the whole
+     problem, and there are two chances to do it. Both are used, because neither
+     covers every case on its own:
+
+       1. A sweep of the document, on load and whenever the DOM changes.
+       2. A hook in the render wrapper above, which runs while the theme still
+          holds the <pre> it is about to replace.
+
+     The second is what makes this reliable. On the first page load mermaid is
+     still being fetched from the CDN, so the sweep always wins the race. On
+     every page reached by instant navigation mermaid is already warm, the
+     theme renders immediately, and the sweep frequently lost — which is why
+     legends appeared on a reloaded page and went missing on a navigated one. */
+
+  function legendMarkup(source) {
+    var blocks = {};
+    source.replace(/^[ \t]*(opt|alt|par|loop)\b/gm, function (whole, word) {
+      blocks[word] = true;
+      return whole;
+    });
+
+    var parts = BLOCKS.filter(function (b) { return blocks[b[0]]; });
+    if (!parts.length) return "";
+
+    return parts.map(function (b) {
+      return '<span><span class="seq-tag">' + b[0] + "</span>" + b[1] + "</span>";
+    }).join("");
+  }
+
+  /* Marked on the <pre> whether or not a legend follows it, so a diagram using
+     none of the blocks is not reconsidered on every mutation. */
+  function attach(pre, source) {
+    if (pre.dataset.seqLegend === "1") return;
+    pre.dataset.seqLegend = "1";
+
+    var markup = legendMarkup(source);
+    if (!markup) return;
+
+    var note = document.createElement("div");
+    note.className = "seq-legend";
+    note.innerHTML = markup;
+    pre.parentNode.insertBefore(note, pre.nextSibling);
+  }
+
   function addLegends() {
     document.querySelectorAll("pre").forEach(function (pre) {
       if (pre.dataset.seqLegend === "1") return;
-
       var source = pre.textContent || "";
-      if (!isSequence(source)) return;
-      pre.dataset.seqLegend = "1";
-
-      var blocks = {};
-      source.replace(/^[ \t]*(opt|alt|par|loop)\b/gm, function (_, word) {
-        blocks[word] = true;
-        return _;
-      });
-
-      var parts = BLOCKS.filter(function (b) { return blocks[b[0]]; });
-      if (!parts.length) return;
-
-      var note = document.createElement("div");
-      note.className = "seq-legend";
-      note.innerHTML = parts.map(function (b) {
-        return '<span><span class="seq-tag">' + b[0] + "</span>" + b[1] + "</span>";
-      }).join("");
-      pre.parentNode.insertBefore(note, pre.nextSibling);
+      if (isSequence(source)) attach(pre, source);
     });
+  }
+
+  /* Called from the render wrapper. The theme reads the <pre>'s textContent and
+     passes it straight to mermaid.render, so the source given here is an exact
+     match for the element still sitting in the document. */
+  function legendForSource(source) {
+    var pres = document.querySelectorAll("pre");
+    for (var i = 0; i < pres.length; i++) {
+      if (pres[i].dataset.seqLegend === "1") continue;
+      if ((pres[i].textContent || "") !== source) continue;
+      attach(pres[i], source);
+      return;
+    }
   }
 
   addLegends();
 
-  /* Instant navigation swaps in a whole new page without reloading. */
+  /* Instant navigation swaps in a whole new page without reloading.
+
+     Scheduled as a microtask rather than on an animation frame. Both coalesce a
+     burst of mutations, but a microtask runs at the end of the current task,
+     before the theme's render promises resolve, whereas an animation frame runs
+     after them — late enough that the <pre> could already be gone. */
   var queued = false;
   new MutationObserver(function () {
     if (queued) return;
     queued = true;
-    requestAnimationFrame(function () {
+    Promise.resolve().then(function () {
       queued = false;
       addLegends();
     });

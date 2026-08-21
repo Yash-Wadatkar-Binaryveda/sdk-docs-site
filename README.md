@@ -25,6 +25,17 @@ Source content lives in `docs/`, and the built site lands in `site/`.
 Page titles come from the `nav` in `zensical.toml`. Renaming a file changes the
 page's URL, so keep the two in step when a title changes.
 
+## Kept out of the site
+
+| File | What it is |
+|---|---|
+| `unpublished/kafka-events.md` | Kafka events: the three topics Spintly publishes, the shape of every message on each, and what `notification-service` does on receiving one, including the four messages that call back into Spintly. **Deliberately not in the `nav`**, so it is not built or published. The flow pages refer to it by name rather than linking to it |
+| `unpublished/lock-share-invites.md` | An earlier draft of the invite flow, since folded into `docs/user-management.md` |
+
+Anything in `unpublished/` is outside `docs/`, so Zensical never sees it. Adding
+a file there needs no other change. Publishing one means moving it into `docs/`
+**and** adding a `nav` entry, since a page not listed in `nav` is not built.
+
 ## The diagram colours
 
 Mermaid draws every participant in one colour and every arrow in one stroke,
@@ -43,7 +54,9 @@ Two files, and they have to agree:
 **To add a participant**, add a `--seq-` property to the stylesheet and an entry
 to `SLOT` in the script, keyed on the label exactly as it appears after `as` in
 the `participant` line. Miss the `SLOT` entry and it takes a spare colour rather
-than breaking.
+than breaking. If the participant is also listed in the table on
+`docs/conventions.md`, add a matching `.p-` class next to the others in the
+stylesheet so its swatch is drawn.
 
 The script works by wrapping `mermaid.render`, because the theme seals each
 finished diagram inside a closed shadow root that nothing else can reach. That

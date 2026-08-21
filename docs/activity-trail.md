@@ -236,15 +236,30 @@ trail does not draw the event. It treats it as a signal to fetch again.
 
 ```mermaid
 sequenceDiagram
+    participant L as Lock hardware
+    participant S as Spintly's servers
+    participant K as Kafka
     participant B as Binaryveda's backend
     participant A as App
     actor U as User
 
-    B-->>A: activityTrail, when someone opens the door
+    L->>S: Someone opens the door
+    S-->>K: eventType mobile_access<br/>accessPointId, accessorId, eventTime
+    K-->>B: Delivered to notification-service
+    B->>B: Resolve the lock and the user, write the row
+    B-->>A: activityTrail
     A->>B: The trail query again
     B-->>A: The events, now including that one
     A-->>U: The new row appears at the top
 ```
+
+**The row and the signal are written by the same handler**, off one Kafka
+message. The row goes into the time-series store, and the socket event is the
+app's cue to go and read it. There is no separate write path for the two, which
+is why a row can exist without the screen having been told: the event is only
+sent when it is newer than the newest row already stored for that lock. The
+message shapes, and the rest of what an unlock message sets off, are in
+Binaryveda's Kafka events document.
 
 Because iOS refetches the page it is on rather than starting over, an event
 arriving while the user has scrolled past page 1 adds that page a second time.

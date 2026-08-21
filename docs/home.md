@@ -160,14 +160,59 @@ that event belongs to.
         B-->>A: inventoryStatus<br/>Battery, and online or offline
         B-->>A: doorModes<br/>Privacy mode and passage mode
         B-->>A: doorStatus<br/>The door was opened or closed
-        B-->>A: deadbolt<br/>The deadbolt was thrown or withdrawn
+        Note over A: deadbolt is subscribed to under the wrong name,<br/>so it is never delivered
         A-->>U: The card redraws itself
     ```
 
-Both platforms open the same socket and receive the same five events. They
-differ only in which of them Home acts on.
+Both platforms open the same socket and subscribe to the same five events. They
+differ in which of them Home acts on, and in one case in whether the event
+arrives at all: **Android never receives `deadbolt`**, because it subscribes
+under the name `deadBolt` and the backend emits `deadbolt`. That is covered on
+the [Lock Control Panel](lock-control-panel.md#2-live-updates), where the event
+matters more.
 
 No SDK is involved here. The socket is Binaryveda's, not Spintly's.
+
+### Where these events come from
+
+The socket is the last leg of a longer path. The lock reports to Spintly,
+Spintly publishes to Kafka, and `notification-service` turns each message into
+the event the app receives.
+
+```mermaid
+sequenceDiagram
+    participant L as Lock hardware
+    participant S as Spintly's servers
+    participant K as Kafka
+    participant B as Binaryveda's backend
+    participant A as App
+
+    L->>S: Something happened at the lock
+    S-->>K: eventType, and the fields for that event
+    K-->>B: Delivered to notification-service
+    B->>B: Resolve the lock, write the change
+    B-->>A: The matching socket event, to everyone with access to that lock
+```
+
+Which message becomes which event:
+
+| Kafka message | Socket event |
+|---|---|
+| `mobile_access`, `card_access`, `remote_access` and the other unlock types | `activityTrail` |
+| `deadbolt_event` | `deadbolt`, and an `activityTrail` row when the state is LOCKED |
+| `door_open`, `door_close` | `doorStatus` |
+| `door_mode_changed` | `doorModes` |
+| `device_status`, `gateway_status`, `device_battery_status` | `inventoryStatus` |
+
+The messages themselves, and everything else each one sets off, are in
+Binaryveda's Kafka events document.
+
+!!! note "Why an event sometimes does not arrive"
+
+    Before sending anything for an unlock or a deadbolt, the backend checks the
+    event against the newest row already stored for that lock and drops it if it
+    is not newer. An event that loses that check is still recorded in the
+    activity trail, but no socket event and no push go out for it.
 
 ## 3. Unlocking a lock
 

@@ -10,10 +10,29 @@ set a master passcode → optionally add a fingerprint or an RFID card.
     The **Config SDK** drives this flow from the scan onwards. The **Access
     SDK** is not used at all.
 
+!!! info "Two of the eight steps below wait on Kafka, not on a REST response"
+
+    **Step 1, Choose a property** and **step 4, Customise the lock** both end
+    with the app waiting. What it is waiting for is not a slow Spintly call. It
+    is a **Kafka message** coming back from Spintly, which is what creates the
+    owner's accessor and sets the flags the app is polling for.
+
+    | | What the app is waiting for | The message that provides it |
+    |---|---|---|
+    | Step 1, Choose a property | The property to become usable, so `addLock` will accept a lock on it | `resource_alive` for the organisation, then `site_create` |
+    | Step 4, Customise the lock | `accessorId` on iOS, the status `ACCESS_POINT_CREATED` on Android | `access_point_create` |
+
+    Those messages are named on the arrows in both diagrams. Their full shape,
+    and everything else each one sets off, is in Binaryveda's Kafka events
+    document rather than here.
+
+    The other six steps are the app talking to the Config SDK and the lock over
+    BLE, and no Kafka message is involved in any of them.
+
 ## Participants
 
-This page uses User, App, Config SDK, Lock hardware, Binaryveda's backend, and
-Spintly's servers.
+This page uses User, App, Config SDK, Lock hardware, Binaryveda's backend,
+Spintly's servers, and Kafka.
 
 Each one is defined, with the colour it keeps across the site, in
 [Reading these pages](conventions.md).
@@ -30,52 +49,57 @@ sequenceDiagram
     participant L as Lock hardware
     participant B as Binaryveda's backend
     participant S as Spintly's servers
+    participant K as Kafka
 
-    Note over U,S: 1. Choose a property
+    Note over U,K: 1. Choose a property
     U->>A: Add a new lock, name the property
     A->>B: createSite(name:)
     B->>S: POST /organisations, or POST /organisations/{orgId}/sites
+    S-->>K: resource_alive, then site_create
+    K-->>B: The owner's accessor is created, the property is marked synced
 
-    Note over U,S: 2. Put the lock into configuration mode
+    Note over U,K: 2. Put the lock into configuration mode
     U->>L: Long press on the lock
 
-    Note over U,S: 3. Scan for the lock
+    Note over U,K: 3. Scan for the lock
     A->>C: Start the BLE scan
     C->>L: Look for locks nearby
     L-->>C: Serial number
     C-->>A: The locks it found
     A->>B: listLockData(lockSerialNumberList:)
 
-    Note over U,S: 4. Customise the lock
+    Note over U,K: 4. Customise the lock
     U->>A: Name, area and image
     A->>B: addLock(createLockInput:)
-    B->>S: POST /accessPoints, POST /accessors, PATCH /permissions
-    A->>B: getLock(lockId:), until Spintly returns the ids
+    B->>S: POST /accessPoints
+    S-->>K: access_point_create
+    K-->>B: Status ACCESS_POINT_CREATED, then the owner's permissions
+    A->>B: getLock(lockId:), until that has happened
 
-    Note over U,S: 5. Provisioning
+    Note over U,K: 5. Provisioning
     A->>C: Configure the lock
     C->>L: Provision it over BLE
     A->>B: updateLockConfigurationStatus(lockId:lockConfigurationStatus:)
 
-    Note over U,S: 6. Firmware, only if the lock is behind
+    Note over U,K: 6. Firmware, only if the lock is behind
     A->>C: Read the installed version
     C->>L: Read it off the lock
     A->>B: getLockFirmwareUpdate(lockId:platform:)
     A->>C: Push the new firmware
     C->>L: Update it over BLE
 
-    Note over U,S: 7. Master passcode
+    Note over U,K: 7. Master passcode
     U->>A: Choose a passcode
     A->>C: Replace the factory passcode
     C->>L: Write it over BLE
     A->>B: finalisePasscode(passcode:lockId:accessorId:)
 
-    Note over U,S: 8. Fingerprint and RFID, both optional
+    Note over U,K: 8. Fingerprint and RFID, both optional
     U->>A: Add a fingerprint or a card
     A->>C: Enrol it
     C->>L: Enrol it over BLE
 
-    Note over U,S: The lock is ready to open
+    Note over U,K: The lock is ready to open
 ```
 
 ## 1. Choose a property
@@ -89,31 +113,59 @@ sequenceDiagram
     participant A as App
     participant B as Binaryveda's backend
     participant S as Spintly's servers
+    participant K as Kafka
 
-    Note over U,S: In the app
+    Note over U,K: In the app
     U->>A: Add a new lock
     A->>B: listSites(limit:page:)<br/>Fetch the property list
     B-->>A: Empty, this is the first lock on the account
     U->>A: Name the property
     A->>B: createSite(name:)<br/>Create the property
 
-    Note over U,S: On Binaryveda's backend, out of the app's sight
+    Note over U,K: On Binaryveda's backend, out of the app's sight
     alt If this is the first lock on the account
         B->>S: POST /infrastructureManagement/internal/v1/organisations<br/>Create the organisation
         Note right of S: One call creates all three:<br/>the organisation, the property inside it,<br/>and that property's network
         S-->>B: organisationId, siteId, networkId
+        Note over B: The property is stored, but synced is false<br/>and the owner has no accessor yet
     else If the account already has an organisation
         B->>S: POST /infrastructureManagement/internal/v1/<br/>organisations/{orgId}/sites<br/>Create the property inside the existing organisation
         Note right of S: Creates that property's network too
         S-->>B: siteId, networkId
+        B->>S: POST /credentialManagementV3/v1/accessors<br/>Create the accessor now, if the owner has none
     end
     B-->>A: Done
     A-->>U: Property created. Next, put the lock into configuration mode
+
+    Note over U,K: Later, when Spintly has finished setting the property up
+    S-->>K: msgType resource_alive<br/>data { resourceId, resourceName: "organisations" }
+    K-->>B: Delivered to notification-service
+    opt Only on the first branch, where the owner still has no accessor
+        B->>S: POST /credentialManagementV3/v1/accessors<br/>Create the owner's accessor, up to three attempts
+        S-->>B: accessorId
+    end
+    Note over B: organisations.synced becomes true
+    S-->>K: msgType site_create, data { siteId }
+    K-->>B: sites.synced becomes true
 ```
 
 The app sends the same `createSite` whichever branch runs, and gets the same
 answer back either way, so it never finds out which one it was. Choosing between
 them is Binaryveda's backend's job.
+
+!!! warning "The accessor is created in a different place on each branch"
+
+    On the **first** property, the organisation does not exist inside Spintly
+    yet when the REST call returns, so the accessor cannot be created there.
+    It is created later, when the `resource_alive` message arrives.
+
+    On **every property after that** the organisation is already live, so the
+    accessor is created inline, in the same request.
+
+    The difference matters because `addLock` in step 4 refuses a property whose
+    `synced` flag is still false, answering *"The site has not synced yet"*.
+    On the first property that flag is set by a Kafka message, so the user can
+    reach the next screen before the backend will accept a lock on it.
 
 No SDK is used in this step. The two operations live in `ListProperties.graphql`
 and `CreateProperty.graphql`.
@@ -199,14 +251,15 @@ of the list. They go about it differently.
 The user names the lock and picks where in the house it sits. `addLock` then
 tells Binaryveda's backend to build it on Spintly's side.
 
-Three things have to be created at Spintly for that: the **access point**, which
-is the lock, the **accessor**, which is the owner, and the owner's
-**permissions** on the lock.
+Three things have to exist at Spintly for that: the **access point**, which is
+the lock, the **accessor**, which is the owner, and the owner's **permissions**
+on the lock.
 
-Binaryveda's backend does all three in the background, so `addLock` comes back
-straight away, before any of them exist. Each one produces an id, and every
-Config SDK call from provisioning onwards needs those ids, so the app sits and polls
-until they arrive.
+Only the first is created by `addLock`. Spintly then publishes an
+`access_point_create` message, and the second and third are done by
+`notification-service` when that message arrives. So the work is split across a
+Kafka round trip, `addLock` comes back before any of it has finished, and the
+app polls until it has.
 
 === "iOS"
 
@@ -216,8 +269,9 @@ until they arrive.
         participant A as App
         participant B as Binaryveda's backend
         participant S as Spintly's servers
+        participant K as Kafka
 
-        Note over U,S: Fill in the lock's details
+        Note over U,K: Fill in the lock's details
         U->>A: Pick the lock from the list
         A->>B: listAreaOfHouse<br/>Fetch the areas of the house
         U->>A: Name it, pick an area, choose an image
@@ -226,16 +280,22 @@ until they arrive.
             A->>A: PUT the image to that URL<br/>Straight to S3, not through Binaryveda's backend
         end
 
-        Note over U,S: Create it, then wait for it to exist at Spintly
+        Note over U,K: Create it, then wait for it to exist at Spintly
         A->>B: addLock(createLockInput:)<br/>Create the lock on Binaryveda's side and on Spintly's
+        B->>S: POST /infrastructureManagement/internal/v2/<br/>networks/{networkId}/accessPoints<br/>Create the access point, which is the lock
+        Note right of S: The serial number from the scan lands here
         B-->>A: Accepted, before any of the work below has run
-        par Binaryveda's backend works through Spintly
-            B->>S: POST /infrastructureManagement/internal/v2/<br/>networks/{networkId}/accessPoints<br/>Create the access point, which is the lock
-            Note right of S: The serial number from the scan lands here
-            B->>S: POST /credentialManagementV3/v1/accessors<br/>Create the accessor, which is the owner
-            Note right of S: Carries the owner Keycloak sub and the provider id
-            B->>S: PATCH /permissionManagementV3/v1/organisations/{orgId}/<br/>accessors/{accessorId}/permissions<br/>Give the owner access to the new lock
-            Note right of S: Mobile, card, fingerprint, passcode and admin are on.<br/>Face and dual auth are off
+        par Spintly tells Binaryveda the access point is there
+            S-->>K: msgType access_point_create<br/>data { accessPointId }
+            K-->>B: Delivered to notification-service
+            Note over B: Status becomes ACCESS_POINT_CREATED
+            alt If the owner has no accessor yet
+                B->>S: POST /credentialManagementV3/v1/accessors<br/>Create the accessor, which is the owner
+                Note right of S: Carries the owner Keycloak sub, the provider id,<br/>and this access point
+            else If the owner already has one
+                B->>S: PATCH /permissionManagementV3/v1/organisations/{orgId}/<br/>accessors/{accessorId}/permissions<br/>Give the owner access to the new lock
+                Note right of S: Mobile, card, fingerprint, passcode and admin are on.<br/>Face and dual auth are off
+            end
         and Meanwhile the app keeps asking whether it is ready
             loop Every 2 seconds, until all three ids arrive
                 A->>B: getLock(lockId:)
@@ -256,8 +316,9 @@ until they arrive.
         participant A as App
         participant B as Binaryveda's backend
         participant S as Spintly's servers
+        participant K as Kafka
 
-        Note over U,S: Fill in the lock's details
+        Note over U,K: Fill in the lock's details
         U->>A: Pick the lock from the list
         A->>B: listAreaOfHouse<br/>Fetch the areas of the house
         U->>A: Name it, pick an area, choose an image
@@ -266,16 +327,22 @@ until they arrive.
             A->>A: PUT the image to that URL<br/>Straight to S3, not through Binaryveda's backend
         end
 
-        Note over U,S: Create it, then wait for it to exist at Spintly
+        Note over U,K: Create it, then wait for it to exist at Spintly
         A->>B: addLock(createLockInput:)<br/>Create the lock on Binaryveda's side and on Spintly's
+        B->>S: POST /infrastructureManagement/internal/v2/<br/>networks/{networkId}/accessPoints<br/>Create the access point, which is the lock
+        Note right of S: The serial number from the scan lands here
         B-->>A: Accepted, before any of the work below has run
-        par Binaryveda's backend works through Spintly
-            B->>S: POST /infrastructureManagement/internal/v2/<br/>networks/{networkId}/accessPoints<br/>Create the access point, which is the lock
-            Note right of S: The serial number from the scan lands here
-            B->>S: POST /credentialManagementV3/v1/accessors<br/>Create the accessor, which is the owner
-            Note right of S: Carries the owner Keycloak sub and the provider id
-            B->>S: PATCH /permissionManagementV3/v1/organisations/{orgId}/<br/>accessors/{accessorId}/permissions<br/>Give the owner access to the new lock
-            Note right of S: Mobile, card, fingerprint, passcode and admin are on.<br/>Face and dual auth are off
+        par Spintly tells Binaryveda the access point is there
+            S-->>K: msgType access_point_create<br/>data { accessPointId }
+            K-->>B: Delivered to notification-service
+            Note over B: This message is what writes<br/>ACCESS_POINT_CREATED
+            alt If the owner has no accessor yet
+                B->>S: POST /credentialManagementV3/v1/accessors<br/>Create the accessor, which is the owner
+                Note right of S: Carries the owner Keycloak sub, the provider id,<br/>and this access point
+            else If the owner already has one
+                B->>S: PATCH /permissionManagementV3/v1/organisations/{orgId}/<br/>accessors/{accessorId}/permissions<br/>Give the owner access to the new lock
+                Note right of S: Mobile, card, fingerprint, passcode and admin are on.<br/>Face and dual auth are off
+            end
         and Meanwhile the app keeps asking whether it is ready
             loop Every 5 seconds, until the status is right
                 A->>B: getLock(lockId:)
@@ -293,6 +360,22 @@ The two platforms wait differently, but the same three ids come out either way:
 `organisationId`, `accessorId` and `accessPointId`. Every Config SDK call from
 provisioning onwards needs them.
 
+!!! warning "The accessor call and the permission call are alternatives"
+
+    Only one of the two runs. A user onboarding their **first** lock has no
+    accessor, so one is created, and it carries the access point with it, which
+    grants the permission at the same time. A user adding a **second** lock
+    already has an accessor, so only the permission call runs.
+
+    Neither is made by the service that handled `addLock`. Both are made by
+    `notification-service`, off the Kafka message.
+
+**What the app is polling for is written by the Kafka consumer.** Android's
+`ACCESS_POINT_CREATED` and the `accessorId` iOS waits for are both set when the
+`access_point_create` message is handled, not when the access point REST call
+returns. If the message never arrives, the poll never finishes, and neither
+platform will show an error: they will simply keep asking.
+
 **Screens reached later look the three ids up again** with
 `spintlyDetails(lockSerialNumber:)`, which returns exactly those and nothing
 else. It is how [My Access](lock-settings.md#2-my-access), a user's detail
@@ -300,9 +383,9 @@ screen in [User Management](user-management.md), and an invited user setting up
 their own access all get what a Config SDK call needs, without carrying the ids
 across from here.
 
-The permission call has to run last, because it names both the access point and
-the accessor and neither exists before then. Whether the access point or the
-accessor is created first is not something the app can see.
+Whichever of the two runs, it has to run after the access point exists, because
+it names the access point. That ordering is what the Kafka message provides:
+Spintly does not publish `access_point_create` until the access point is there.
 
 !!! note "Resuming an interrupted onboarding"
 
@@ -311,6 +394,14 @@ accessor is created first is not something the app can see.
     ids and reports the site, access point and organisation as synced. Android
     gives up after 15 tries and iOS keeps going. iOS only takes this path in
     non-production builds and stays on `getLock` everywhere else.
+
+    **`resumeOnboarding` is a state machine over those same synced flags**, and
+    every one of them is set by a Kafka message. Each step refuses to run until
+    the flag the previous step waits on has arrived: the property is only
+    created once the organisation is synced, the access point only once the
+    property is synced, and the accessor or permission only once the access
+    point is synced. Repeating the query is how it walks forward as each message
+    lands.
 
     The diagrams above are the normal path, for a lock being added for the first
     time.
@@ -406,8 +497,8 @@ button, so cancelling there leaves the lock unfinished on Home.
         end
     ```
 
-    **iOS checks the firmware after Binaryveda's backend has finished its
-    three Spintly calls.**
+    **iOS checks the firmware after the access point, the accessor and the
+    permission are all in place**, because step 4 waits for all three ids.
 
     **The new version is recorded afterwards**, through
     `updateLockInformation(currentFirmwareVersion:id:)` when the lock has no
@@ -444,8 +535,9 @@ button, so cancelling there leaves the lock unfinished on Home.
         end
     ```
 
-    **Android checks the firmware before Binaryveda's backend has finished
-    its three Spintly calls.**
+    **Android checks the firmware before that work has necessarily finished**,
+    because step 4 moves on at `ACCESS_POINT_CREATED`, which is written before
+    the accessor or permission call is made.
 
     **The new version is recorded too**, through the same two mutations as iOS,
     but from a different place. `LockOnboardingViewModel` only reads the two

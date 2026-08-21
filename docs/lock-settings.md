@@ -417,12 +417,17 @@ touches neither the lock nor anyone else's account.
         A-->>U: A warning that saved passcodes and fingerprints go with it
         A->>B: removeDeviceFromUserAccount(lockId:)
         B->>S: PATCH /permissionManagementV3/v1/organisations/{orgId}/<br/>accessors/{accessorId}/permissions<br/>The access point goes in permissionsToRemove
-        B->>S: DELETE /credentialManagementV3/v1/organisations/{orgId}/<br/>accessors/{accessorId}<br/>Take the accessor out of the organisation
+        Note right of S: One call only. The accessor itself is left alone,<br/>so the user keeps their access to every other lock
         A-->>U: Back to Home
     ```
 
     **No SDK member runs and the lock is never contacted**, so this works from
     anywhere. The lock keeps working for everyone else.
+
+    **This is not the same as an owner removing someone**, which is
+    [removeUser in User Management](user-management.md#what-changing-a-user-does-at-spintly)
+    and can take the accessor out of the organisation. Leaving a lock yourself
+    never does.
 
 Both Spintly paths above are the same ones
 [User Management](user-management.md#what-changing-a-user-does-at-spintly) uses
