@@ -194,3 +194,97 @@
 .md-typeset .sdk-key .k-flow::before {
   border-radius: 0.36rem;
 }
+
+/* --- Screen strips --------------------------------------------------------
+   The app screens for one step of a flow, laid out left to right in the order
+   the user meets them, each with a caption saying what is happening on it. A
+   strip sits above the diagram for its step, so the reader sees the screens
+   first and then the calls running behind them.
+
+   The captures are phone screens, so they are tall and narrow. The width set
+   here is what fits a whole step's worth on one row on a laptop; they wrap on
+   anything narrower. Each one links to the full size file, because some of
+   the text on a screen is too small to read at strip size.
+
+   Files live in docs/images/<page-name>/.                                   */
+
+/* A grid rather than a flex row, so a screen comes out the same size on every
+   strip whether that step has one screen or six. */
+.md-typeset .screens {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  align-items: start;
+  gap: 1.5rem 1.1rem;
+  margin: 1.2em 0 1.8em;
+}
+
+/* The theme centres a figure and italicises its caption, which is right for a
+   lone captioned image and wrong for a strip of them. Undone here. */
+.md-typeset .screens > figure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0;
+  min-width: 0;
+  text-align: left;
+}
+
+/* Each figure spans an image row and a caption row of the parent grid, so the
+   captions in a row start on the same line however tall each screen is. */
+@supports (grid-template-rows: subgrid) {
+  .md-typeset .screens > figure {
+    display: grid;
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+  }
+}
+
+/* A screen is a light capture, so on the dark palette it needs a border to
+   stop it reading as a floating white block. */
+.md-typeset .screens img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-radius: 0.4rem;
+}
+
+.md-typeset .screens a {
+  display: block;
+  line-height: 0;
+}
+
+.md-typeset .screens figcaption {
+  max-width: none;
+  margin: 0;
+  font-size: 0.62rem;
+  font-style: normal;
+  line-height: 1.6;
+  text-align: left;
+  color: var(--md-default-fg-color--light);
+}
+
+/* The first line of a caption names the screen; the rest says what it does. */
+/* An SDK member name is often wider than the column, so it has to break. Tighter
+   padding than the theme's default keeps the break tidy and stops the
+   punctuation after it being pushed onto a line of its own. */
+.md-typeset .screens figcaption code {
+  padding: 0 0.15em;
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+
+.md-typeset .screens figcaption strong {
+  display: block;
+  margin-bottom: 0.15rem;
+  font-weight: 700;
+  color: var(--md-default-fg-color);
+}
+
+/* A cropped dialog or sheet, rather than a whole screen. Sits on a wash so it
+   does not look like a screenshot that failed to load. */
+.md-typeset .screens > figure.crop img {
+  padding: 0.7rem 0.5rem;
+  background: var(--md-default-fg-color--lightest);
+}

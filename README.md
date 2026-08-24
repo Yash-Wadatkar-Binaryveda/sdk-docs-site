@@ -76,6 +76,42 @@ mermaid's own colours rather than breaking.
 > the diagrams need the reader to have internet access. That is Zensical's
 > behaviour, not something this site sets up.
 
+## Screenshots
+
+App screens live in `docs/images/<page-name>/`, numbered in the order the user
+meets them, e.g. `docs/images/lock-onboarding/07-open-door.png`.
+
+They are laid out by the `.screens` component in
+`docs/stylesheets/extra.css`, as a grid of `<figure>` elements. One step of a
+flow gets one strip, placed above that step's diagram, so the reader sees the
+screens first and the calls behind them second:
+
+```html
+<div class="screens">
+<figure>
+<a href="images/lock-onboarding/07-open-door.png"><img src="images/lock-onboarding/07-open-door.png" alt="Step 1 of 4, Open Door"></a>
+<figcaption><strong>Short title</strong>What is happening on this screen.</figcaption>
+</figure>
+</div>
+```
+
+Three things to keep to:
+
+- **The `src` is written page relative**, without a leading `../`. Zensical
+  rewrites it at build time, so `images/…` becomes `../images/…` and the page
+  works both locally and under the `/sdk-docs-site/` path on Pages. Writing
+  `../images/…` yourself gets it rewritten a second time and breaks on Pages.
+- **The first thing in a `<figcaption>` is a `<strong>`**, which the stylesheet
+  draws as the caption's title line. The sentence explaining the screen follows
+  it directly, with no `<br>`.
+- **A cropped dialog or bottom sheet takes `class="crop"` on its `<figure>`**,
+  which sits it on a wash so it does not read as a screenshot that failed to
+  load. A whole phone screen takes no class.
+
+Captions are where the value is. A caption that names the screen adds nothing a
+reader cannot see; one that says which call the button sends, or why the screen
+exists at all, is worth the space.
+
 ## Where the member names came from
 
 The SDKs ship as closed binaries, so the member names were read off each
