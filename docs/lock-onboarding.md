@@ -476,6 +476,15 @@ Spintly does not publish `access_point_create` until the access point is there.
     The diagrams above are the normal path, for a lock being added for the first
     time.
 
+A lock in that state is visible on Home, drawn differently from a working one.
+
+<div class="screens">
+<figure>
+<a href="images/lock-onboarding/39-onboarding-pending.png"><img src="images/lock-onboarding/39-onboarding-pending.png" alt="A Home card reading Onboarding Pending, with a Resume Onboarding button"></a>
+<figcaption><strong>Onboarding pending</strong>No tiles and no Unlock button, because none of it works yet. Resume Onboarding is what runs the query in the note above rather than starting the flow again from the top, which is how the half finished lock is picked up where it stopped.</figcaption>
+</figure>
+</div>
+
 ## 5. Provisioning
 
 The lock now exists on Spintly's side and the app has its ids. Provisioning

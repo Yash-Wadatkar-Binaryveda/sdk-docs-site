@@ -124,6 +124,37 @@ lookup and is used instead of the typed one.
 
 ### Privileged, primary or secondary
 
+<div class="screens">
+<figure>
+<a href="images/user-management/24-privileged-empty.png"><img src="images/user-management/24-privileged-empty.png" alt="The Users screen on the Privileged tab with no users, and an Add Privileged User button"></a>
+<figcaption><strong>The tab, empty</strong>Primary and secondary users share one tab. Which of the two someone becomes is decided by a single tick on the next screen.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/25-privileged-form.png"><img src="images/user-management/25-privileged-form.png" alt="The Privileged User form with a name and number, and a Make them Primary User tick box reading 0 of 2"></a>
+<figcaption><strong>The tick that decides the role</strong>Left unticked, this is a secondary user and Next leads to the access methods. The <strong>0/2</strong> beside the heading is <code>getPrimaryUserCount(lockId:)</code>, which is why that query only runs on this tab.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/26-primary-ticked.png"><img src="images/user-management/26-primary-ticked.png" alt="The same form with Make them Primary User ticked, the counter reading 1 of 2, and the button now reading Send Invite"></a>
+<figcaption><strong>Ticked, and the button changes</strong>Next becomes Send Invite. This is the primary user skipping the access method step, visible in the form itself: there is nowhere left to go before the invite is sent.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/27-primary-full.png"><img src="images/user-management/27-primary-full.png" alt="The form with the counter reading 2 of 2 and the Make them Primary User tick box greyed out"></a>
+<figcaption><strong>Both places taken</strong>At <strong>2/2</strong> the tick box is greyed and only a secondary user can be invited. The count came back before the form was filled in, so the limit is enforced ahead of the mutation rather than by it.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/28-privileged-access-methods.png"><img src="images/user-management/28-privileged-access-methods.png" alt="An access methods step listing Mobile Access greyed and ticked, then Passcode, Fingerprint, RFID Card and Mobile NFC"></a>
+<figcaption><strong>Five rows, four flags</strong>Mobile Access sits at the top ticked and greyed out, because opening the lock from the app comes with the invite and cannot be withdrawn here. The four below it are what <code>grantAccessMethod</code> actually carries.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/29-card-secondary.png"><img src="images/user-management/29-card-secondary.png" alt="A User Invitation Sent card reading Secondary User, listing passcode, fingerprint and RFID card"></a>
+<figcaption><strong>A secondary user's card</strong>The role and the granted methods are named on it. No passcode is shown, because a secondary user picks their own after accepting rather than being handed one.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/30-card-primary.png"><img src="images/user-management/30-card-primary.png" alt="A User Invitation Sent card reading Primary User and All Access Methods"></a>
+<figcaption><strong>A primary user's card</strong>The methods line reads <strong>All Access Methods</strong>, which is the other half of skipping the step. Nothing was chosen, so there is nothing to list.</figcaption>
+</figure>
+</div>
+
 ```mermaid
 sequenceDiagram
     actor O as Owner or primary
@@ -153,6 +184,29 @@ comes with the invite itself and cannot be turned off here.
 
 ### Scheduled
 
+<div class="screens">
+<figure>
+<a href="images/user-management/11-scheduled-empty.png"><img src="images/user-management/11-scheduled-empty.png" alt="The Users screen on the Scheduled tab with no users, and an Add Scheduled User button"></a>
+<figcaption><strong>The tab, empty</strong>The Scheduled tab of the same Users screen, and the same <code>listUsersForLock(lockId:type:)</code> behind it with a different type.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/12-scheduled-form.png"><img src="images/user-management/12-scheduled-form.png" alt="The Scheduled User form with name and number fields, a date slot, day toggles and a time slot"></a>
+<figcaption><strong>The schedule itself</strong>The identity step, then the three things that make up <code>scheduledUserInput</code>: a date range as <code>startDate</code> and <code>endDate</code>, the day toggles as <code>daysOfWeek</code>, and one daily slot as <code>fromTime</code> and <code>toTime</code>. Next goes to the methods rather than sending anything.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/13-scheduled-access-methods.png"><img src="images/user-management/13-scheduled-access-methods.png" alt="An access methods step offering Passcode, Fingerprint and RFID Card, with Passcode and Fingerprint ticked"></a>
+<figcaption><strong>Three, not four</strong>NFC tap is not offered to a scheduled user. The note is the app's own rule that at least one method has to be picked before Send Invite will go, which is why these flags are never all false at creation.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/14-scheduled-card-passcode.png"><img src="images/user-management/14-scheduled-card-passcode.png" alt="A User Invitation Sent card listing the date slot, days and time slot, with a passcode below"></a>
+<figcaption><strong>The card, with a passcode</strong>The schedule is repeated back on the card so the invited person knows when the lock will let them in. The passcode came back from the invite, generated at Spintly against that schedule rather than against the lock as a whole.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/15-scheduled-card-no-passcode.png"><img src="images/user-management/15-scheduled-card-no-passcode.png" alt="The same invitation card showing only the schedule, with no passcode section"></a>
+<figcaption><strong>The card, without one</strong>The same card when no passcode was granted. The <code>passcode/generate</code> call in the diagram below never ran, so the card is the schedule and the share link and nothing else.</figcaption>
+</figure>
+</div>
+
 ```mermaid
 sequenceDiagram
     actor O as Owner or primary
@@ -178,6 +232,29 @@ platforms fill those three flags differently, which is covered in
 [Differences](#differences-between-the-two).
 
 ### One time
+
+<div class="screens">
+<figure>
+<a href="images/user-management/01-one-time-empty.png"><img src="images/user-management/01-one-time-empty.png" alt="The Users screen on the One Time tab with no users, and an Add One Time User button"></a>
+<figcaption><strong>The tab, empty</strong>One time users have their own tab on the Users screen, filled by <code>listUsersForLock(lockId:type:)</code>. Add One Time User is the only thing to do here until an invite exists.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/02-one-time-form.png"><img src="images/user-management/02-one-time-form.png" alt="The One Time User form with a country code box, a mobile number in an error state, and a name field"></a>
+<figcaption><strong>Everything the invite needs</strong>A country code, a mobile number and a name, the same identity step all four kinds of user share. The number is checked as it is typed, and the note under the fields is what the inviter is told about how long the code lasts.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/03-invitation-sent.png"><img src="images/user-management/03-invitation-sent.png" alt="The User Invite screen showing the passcode 834 819 and a Share Invite link"></a>
+<figcaption><strong>The card, with the passcode on it</strong>The six digits came back on <code>inviteUser</code> as <code>passcodeValue</code>, already reserved and activated at Spintly. Nothing about the code is worked out on the phone. Share Invite is <code>shareInvite(inviteId:)</code> and then the phone's own share sheet.</figcaption>
+</figure>
+<figure class="crop">
+<a href="images/user-management/04-invite-card.png"><img src="images/user-management/04-invite-card.png" alt="The invitation card as received, reading You have been invited, with the passcode"></a>
+<figcaption><strong>What arrives at the other end</strong>The shared card carries the passcode itself, so the code reaches the invited person over whichever messaging app was picked.</figcaption>
+</figure>
+<figure class="crop">
+<a href="images/user-management/05-error-creating-user.png"><img src="images/user-management/05-error-creating-user.png" alt="An Error Creating User dialog with Cancel and Try again buttons"></a>
+<figcaption><strong>When it does not go through</strong>Shown when the invite mutation fails. The wording sends the inviter back to the lock rather than to the network, and Try again re-sends the same invite.</figcaption>
+</figure>
+</div>
 
 ```mermaid
 sequenceDiagram
@@ -386,11 +463,37 @@ NFC tap needs no enrolment. It is a permission rather than something stored on
 the lock, so it is granted on the invite and never appears on the invited user's
 setup list.
 
+<div class="screens">
+<figure>
+<a href="images/user-management/06-fingerprints.png"><img src="images/user-management/06-fingerprints.png" alt="The Fingerprints screen listing one enrolled fingerprint with a delete icon, and a note about the four fingerprint limit"></a>
+<figcaption><strong>What the lock is holding</strong>Enrolled fingerprints are listed back on their own screen, one row each, with a delete beside them. The lock stores at most four, and the note is there because deleting one erases it from the lock's own memory rather than from a server.</figcaption>
+</figure>
+</div>
+
 ## 6. Managing users afterwards
 
 The Users screen lists this lock's users under the same three tabs, from
 `listUsersForLock(lockId:type:)`. Each tab groups them by the status that query
 returns, so people who have not accepted yet are kept apart from active ones.
+
+<div class="screens">
+<figure>
+<a href="images/user-management/07-invited-users.png"><img src="images/user-management/07-invited-users.png" alt="The One Time tab with one row under an Invited Users heading"></a>
+<figcaption><strong>One invite, out</strong>The tab after a single one time invite. <strong>Invited Users</strong> is the group for a code that has been issued and not yet used.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/08-invited-and-past.png"><img src="images/user-management/08-invited-and-past.png" alt="The One Time tab with two rows under Invited Users showing time left, and two rows under Past Users showing dates"></a>
+<figcaption><strong>Two groups, one query</strong>Both come back on the same <code>listUsersForLock</code> and are split by the status on each row. The time left against an invited user is worked out from <code>otpExpiryAt</code>; a past user is shown the date their code was used instead.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/09-user-actions.png"><img src="images/user-management/09-user-actions.png" alt="An action sheet over the user list offering Invite Again, Delete User and Cancel"></a>
+<figcaption><strong>The two things left to do</strong>Behind the row's menu. Invite Again runs <code>inviteUser</code> a second time with the same name and number, which is what produces a fresh code.</figcaption>
+</figure>
+<figure class="crop">
+<a href="images/user-management/10-delete-user.png"><img src="images/user-management/10-delete-user.png" alt="A Delete User dialog warning that access will be immediately revoked, with Cancel and Delete"></a>
+<figcaption><strong>Asked before anything is revoked</strong>Delete sends <code>deleteInvite(inviteId:)</code> for someone who has not accepted, and <code>removeUser(lockId:userId:)</code> for someone who has. The second is the one that reaches Spintly.</figcaption>
+</figure>
+</div>
 
 | Action | What the app calls |
 |---|---|
@@ -409,9 +512,75 @@ out on `updateUserAccessMethod`. It applies to a single user rather than to the
 lock, and it is what makes that user's unlock Bluetooth only, as described in
 [Unlocking a lock](home.md#3-unlocking-a-lock).
 
+<div class="screens">
+<figure>
+<a href="images/user-management/31-privileged-list.png"><img src="images/user-management/31-privileged-list.png" alt="The Privileged tab with an invited user above a group of active users, one carrying a Primary badge"></a>
+<figcaption><strong>Invited above active</strong>The invited row is someone who has not accepted yet, and it counts down like a one time invite does. The <strong>Primary</strong> badge on an active row is the only place the two privileged roles are told apart in the list.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/32-privileged-detail.png"><img src="images/user-management/32-privileged-detail.png" alt="A secondary user's detail screen with a Dual Authentication toggle, a masked passcode, an RFID card row and an NFC device row"></a>
+<figcaption><strong>Where dual auth lives</strong>The toggle at the top is the <code>dualAuth</code> flag that goes out on <code>updateUserAccessMethod</code>. The note under it is the app's own rule that one method alone cannot satisfy a two method check.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/33-privileged-actions.png"><img src="images/user-management/33-privileged-actions.png" alt="An action sheet over a secondary user's screen offering Access Methods, Delete User and Cancel"></a>
+<figcaption><strong>A secondary user's menu</strong>Two entries. Access Methods is the route to what they may use, and Delete User is <code>removeUser(lockId:userId:)</code>.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/34-primary-detail.png"><img src="images/user-management/34-primary-detail.png" alt="A primary user's detail screen with a Primary badge, a Dual Authentication toggle, and RFID and NFC rows both empty"></a>
+<figcaption><strong>A primary user's screen</strong>Same screen, one row short: there is no passcode line, since a primary user's passcode is the master passcode they set themselves rather than one granted from here.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/35-primary-actions.png"><img src="images/user-management/35-primary-actions.png" alt="An action sheet over a primary user's screen offering only Delete User and Cancel"></a>
+<figcaption><strong>A primary user's menu</strong>Access Methods is gone. A primary user holds every method by definition, so there is nothing to tick or untick and only the removal is left.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/36-privileged-access-edit.png"><img src="images/user-management/36-privileged-access-edit.png" alt="An Access Methods screen listing Passcode, Fingerprint, RFID Card and Mobile NFC, with a Save button"></a>
+<figcaption><strong>Changing what they may use</strong>The same four flags as the invite, this time on <code>updateUserAccessMethod</code>. Mobile Access is not on this list at all, so app access cannot be taken away here either.</figcaption>
+</figure>
+<figure class="crop">
+<a href="images/user-management/37-update-access-methods.png"><img src="images/user-management/37-update-access-methods.png" alt="An Update Access Methods dialog with Cancel and Confirm buttons"></a>
+<figcaption><strong>Asked before the write</strong>Confirm is what sends the mutation. The whole new set of flags goes out together, not just the one that changed.</figcaption>
+</figure>
+</div>
+
 **Updating a scheduled user's methods can return a passcode.**
 `updateUserAccessMethod` returns a `passcodeValue`, which is how a newly granted
 passcode reaches the inviter for re-sharing.
+
+<div class="screens">
+<figure>
+<a href="images/user-management/16-scheduled-list.png"><img src="images/user-management/16-scheduled-list.png" alt="The Scheduled tab listing active users, one marked 2 Schedules, above a past users group"></a>
+<figcaption><strong>Active and past</strong>The same two groups as the One Time tab, split on the status each row comes back with. A person can hold more than one schedule at a lock, and the row says so.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/17-user-schedule.png"><img src="images/user-management/17-user-schedule.png" alt="A scheduled user's detail screen showing one schedule, a hidden passcode, an RFID card and a fingerprint row"></a>
+<figcaption><strong>One user, opened</strong>Built from <code>getScheduledUserDetails(inviteId:)</code> for the schedule block, and <code>getUserAccessDetails</code> for the methods under it. The passcode is masked until the eye is tapped, and the two rows below it are the methods that have to be enrolled at the lock rather than granted from here.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/18-user-two-schedules.png"><img src="images/user-management/18-user-two-schedules.png" alt="The same screen with two schedule blocks, each with its own dates, days and times"></a>
+<figcaption><strong>Two schedules, one user</strong>Each block is a separate schedule object at Spintly with its own <code>scheduleId</code>, which is why editing and deleting are per block and not per user.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/19-scheduled-user-actions.png"><img src="images/user-management/19-scheduled-user-actions.png" alt="An action sheet offering Access Methods, Add New Schedule, Delete User and Cancel"></a>
+<figcaption><strong>What the menu offers</strong>Behind the menu on the user's own card. Add New Schedule is the route to a second block, and it is the only one of the three that adds rather than changes.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/20-edit-access-methods.png"><img src="images/user-management/20-edit-access-methods.png" alt="An Access Methods screen with tick boxes for Passcode, Fingerprint and RFID Card, and a Save button"></a>
+<figcaption><strong>Changing what they may use</strong>Save is <code>updateUserAccessMethod(updateUserAccessMethodInput:)</code>, and the note is the reason it can hand a <code>passcodeValue</code> back: ticking Passcode has one made and returned, while the other two are only permission to enrol later.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/21-edit-schedule.png"><img src="images/user-management/21-edit-schedule.png" alt="A User Schedule screen with a date slot, day toggles and a time slot, and a Save button"></a>
+<figcaption><strong>Changing when</strong>The same three fields as creation, reached from a schedule block's own menu. Save is <code>updateSchedule(updateScheduleInput:)</code>, which is one of the three actions that reaches Spintly.</figcaption>
+</figure>
+<figure>
+<a href="images/user-management/22-passcode-revealed.png"><img src="images/user-management/22-passcode-revealed.png" alt="A scheduled user's detail screen with the passcode shown in full and a Delete button at the foot"></a>
+<figcaption><strong>The passcode, unmasked</strong>The digits are held on the backend and come back on the details query, so the inviter can read out a passcode they never chose. Delete at the foot removes the user rather than the schedule.</figcaption>
+</figure>
+<figure class="crop">
+<a href="images/user-management/23-delete-schedule.png"><img src="images/user-management/23-delete-schedule.png" alt="A Delete Schedule dialog warning the schedule will be permanently deleted for this user"></a>
+<figcaption><strong>Dropping one schedule</strong><code>deleteSchedule(scheduleId:)</code>, which takes the schedule away and leaves the user in place. Deleting the user instead is the dialog further up, and for a scheduled user that also deletes every schedule they hold.</figcaption>
+</figure>
+</div>
 
 ### What changing a user does at Spintly
 

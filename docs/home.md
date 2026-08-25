@@ -54,6 +54,13 @@ The app fetches the property list, then the locks in whichever property is
 selected. Separately it makes sure the Access SDK is logged in and pulls down
 the user's lock permissions, which an unlock needs.
 
+<div class="screens">
+<figure>
+<a href="images/home/01-locked-card.png"><img src="images/home/01-locked-card.png" alt="A lock card on Home, locked, with Door, Battery and Status tiles and an Unlock button"></a>
+<figcaption><strong>A lock card</strong>The name, area and model come off the lock list; the three tiles are the same Door, Battery and Status values the Lock Control Panel shows. Status <strong>Online</strong> means the lock is reachable through its gateway, so an unlock has somewhere to fall back to when Bluetooth cannot reach it.</figcaption>
+</figure>
+</div>
+
 === "iOS"
 
     ```mermaid
@@ -126,6 +133,13 @@ the user's lock permissions, which an unlock needs.
 The cards do not need a pull to refresh. Binaryveda's backend keeps a socket
 open and sends an event whenever something changes. The app redraws the card
 that event belongs to.
+
+<div class="screens">
+<figure>
+<a href="images/home/02-passage-mode.png"><img src="images/home/02-passage-mode.png" alt="A lock card showing a passage mode badge"></a>
+<figcaption><strong>Passage mode, arrived over the socket</strong>The badge changed because a <code>doorModes</code> event landed, not because anything was tapped. The app never writes this mode: it is set at the lock, and while it is on the Unlock button below it does nothing for anyone.</figcaption>
+</figure>
+</div>
 
 === "iOS"
 
@@ -225,6 +239,13 @@ Whether the tap does anything at all depends on the lock's mode, and that rule
 is the same on both platforms and on both screens: passage mode blocks everyone,
 privacy mode blocks everyone except the owner and primary users. It is set out
 in [Who can unlock, and when](lock-control-panel.md#who-can-unlock-and-when).
+
+<div class="screens">
+<figure class="crop">
+<a href="images/home/03-unlocked-card.png"><img src="images/home/03-unlocked-card.png" alt="A lock card after unlocking, showing an unlocked badge and a BLE status"></a>
+<figcaption><strong>After the unlock</strong>Status has gone to <strong>BLE</strong>, which is the phone reaching the lock directly rather than through the gateway. The card does not stay like this: both platforms repaint it as locked a few seconds later, and nothing is sent when that happens.</figcaption>
+</figure>
+</div>
 
 === "iOS"
 

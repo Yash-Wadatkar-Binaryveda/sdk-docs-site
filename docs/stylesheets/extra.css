@@ -275,7 +275,9 @@
   overflow-wrap: anywhere;
 }
 
-.md-typeset .screens figcaption strong {
+/* Only the leading strong is the caption's title line. Bold used inside the
+   sentence after it has to stay inline, or it breaks the sentence in three. */
+.md-typeset .screens figcaption > strong:first-child {
   display: block;
   margin-bottom: 0.15rem;
   font-weight: 700;

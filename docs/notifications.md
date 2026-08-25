@@ -179,6 +179,17 @@ The bell on Home opens a history of notifications, a page at a time.
 Binaryveda's backend keeps a record for each one: a title, a body, a timestamp,
 whether the user has read it, and a code saying what kind it is.
 
+<div class="screens">
+<figure>
+<a href="images/notifications/01-home-bell.png"><img src="images/notifications/01-home-bell.png" alt="Home with a lock card, the battery reading Critical, and the bell in the header carrying an unread dot"></a>
+<figcaption><strong>The bell, with something waiting</strong>The dot is the only sign on Home that anything has arrived. The card behind it shows the battery reading Critical, which is one of the states that produces a notification in the first place.</figcaption>
+</figure>
+<figure>
+<a href="images/notifications/02-notification-centre.png"><img src="images/notifications/02-notification-centre.png" alt="A Notifications list grouped under Today, Yesterday and a dated heading, mixing lock offline, battery and invitation entries, some marked unread"></a>
+<figcaption><strong>One page of history</strong><code>listNotifications(page:limit:)</code>, grouped by date. Each row names the lock it is about, and the dot marks one still unread. Tapping a row is <code>markViewed</code> for that one id, then a jump to the screen its code points at.</figcaption>
+</figure>
+</div>
+
 ```mermaid
 sequenceDiagram
     actor U as User

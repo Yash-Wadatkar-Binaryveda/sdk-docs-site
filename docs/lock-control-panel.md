@@ -186,6 +186,25 @@ Only one thing about it belongs to this screen: the lock's mode can stop the tap
 before any of it runs, as set out in
 [Who can unlock, and when](#who-can-unlock-and-when) above.
 
+<div class="screens">
+<figure>
+<a href="images/lock-control-panel/01-panel-locked.png"><img src="images/lock-control-panel/01-panel-locked.png" alt="The Lock Control Panel with the lock locked and a red circle"></a>
+<figcaption><strong>Before the tap</strong>TAP TO UNLOCK over a red circle. The line beneath is who last opened the door and how, reading <strong>You</strong> when it was the signed in user. Whether this tap reaches any of the calls below is settled first by the mode, above.</figcaption>
+</figure>
+<figure>
+<a href="images/lock-control-panel/02-panel-unlocked.png"><img src="images/lock-control-panel/02-panel-unlocked.png" alt="The Lock Control Panel with the lock unlocked and a green circle"></a>
+<figcaption><strong>After it</strong>The circle turns green and the banner flips to TAP TO LOCK. Two tiles moved with it: Door to Open, and Status to BLE, so this one went over Bluetooth rather than through the gateway. A few seconds later the panel repaints itself as locked without sending anything.</figcaption>
+</figure>
+<figure>
+<a href="images/lock-control-panel/04-dual-auth.png"><img src="images/lock-control-panel/04-dual-auth.png" alt="A Dual Authentication sheet listing passcode, fingerprint, RFID card and NFC"></a>
+<figcaption><strong>Dual authentication</strong>On a lock with it turned on, the tap is only half of what opens the door: one of these has to be presented at the lock as well. It is also what cancels the internet fallback, so a Bluetooth attempt that fails stops there rather than trying the gateway.</figcaption>
+</figure>
+<figure>
+<a href="images/lock-control-panel/05-two-step-verification.png"><img src="images/lock-control-panel/05-two-step-verification.png" alt="A Two-step Verification screen listing the same four methods"></a>
+<figcaption><strong>The same four, under a second name</strong>The identical list appears as Two-step Verification, drawn full screen rather than as a sheet over the panel.</figcaption>
+</figure>
+</div>
+
 ## 4. Privacy mode
 
 Privacy mode shuts every other user out of the lock, so only the owner and
@@ -198,6 +217,13 @@ the lock for the toggle to work.
 | `0x01` | Access control | Privacy mode off, the normal state |
 | `0x02` | Unlocked | Not used in this app |
 | `0x03` | Locked | Privacy mode on |
+
+<div class="screens">
+<figure>
+<a href="images/lock-control-panel/03-panel-privacy.png"><img src="images/lock-control-panel/03-panel-privacy.png" alt="The Lock Control Panel in privacy mode, with a grey circle and the toggle on"></a>
+<figcaption><strong>Privacy mode on</strong>The toggle in the corner is the only mode the app can write, and flipping it is what sends <code>0x03</code> over Bluetooth. The circle greys out and the banner names the mode, so it is clear why the circle is inert rather than just unresponsive.</figcaption>
+</figure>
+</div>
 
 === "iOS"
 

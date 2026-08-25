@@ -42,6 +42,17 @@ means something when more than one lock is in view:
 - the **lock name** on the right of each row, saying which lock the event came from
 - the **Export** button
 
+<div class="screens">
+<figure>
+<a href="images/activity-trail/01-global-trail.png"><img src="images/activity-trail/01-global-trail.png" alt="The global activity trail, with a property dropdown, Export, lock names and a Filter button"></a>
+<figcaption><strong>The global trail</strong>All four are on this one screen: the property dropdown in the title bar, Export beside the heading, a lock name on the right of every row, and the Filter button that will offer Locks. The Activity tab underneath it is the first of the two ways in.</figcaption>
+</figure>
+<figure>
+<a href="images/activity-trail/02-property-picker.png"><img src="images/activity-trail/02-property-picker.png" alt="The property picker, with one property selected and three others listed"></a>
+<figcaption><strong>The dropdown, opened</strong>This is what decides how much the trail covers, because the global query is scoped by <code>siteId</code>. Changing the selection refetches on both platforms.</figcaption>
+</figure>
+</div>
+
 The notification bell also sits in the title bar of the global trail, but it
 belongs to the tab bar rather than to this screen, and is covered in
 [Notifications](notifications.md#3-the-notification-centre).
@@ -172,6 +183,13 @@ Five fields build it: `eventSource`, `userName`, `userId`, `eventTimestamp` and
 `secondAccessType` are in both platforms' queries and reach nothing on this
 screen.
 
+<div class="screens">
+<figure>
+<a href="images/activity-trail/03-rows.png"><img src="images/activity-trail/03-rows.png" alt="A page of trail rows, grouped by day, each naming a person and a method"></a>
+<figcaption><strong>One row per event</strong>The person, the method, the time, and the lock name because this is the global trail. The methods running down it are what the <code>eventSource</code> values in the table below come out as, and eight more fields arrive with every one of these rows without reaching the screen at all.</figcaption>
+</figure>
+</div>
+
 ### What each event source shows as
 
 | `eventSource` | Shown as |
@@ -192,6 +210,29 @@ screen.
 The **Filter** button floats over the bottom right of the list and opens a
 **Filter by** sheet. Each entry in that sheet opens a sheet of its own, and
 applying one closes them and refetches from page 1.
+
+<div class="screens">
+<figure>
+<a href="images/activity-trail/04-filter-sheet.png"><img src="images/activity-trail/04-filter-sheet.png" alt="The Filter by sheet, offering Users, Date and Time, and Locks"></a>
+<figcaption><strong>Filter by</strong>Three entries on the global trail, two on the per lock one. Opening this fetches nothing: the people and the locks both came down with the screen.</figcaption>
+</figure>
+<figure>
+<a href="images/activity-trail/05-users-filter.png"><img src="images/activity-trail/05-users-filter.png" alt="The Users filter, grouped into one time, scheduled and privileged users"></a>
+<figcaption><strong>Users</strong>Split into privileged and scheduled, which is exactly what the two user queries return, with <strong>You</strong> for the signed in user. The single box at the top is not a person: no one time users come back from either query to list individually.</figcaption>
+</figure>
+<figure>
+<a href="images/activity-trail/06-date-time-filter.png"><img src="images/activity-trail/06-date-time-filter.png" alt="The Date and Time filter, with a date range, a time range and a summary line"></a>
+<figcaption><strong>Date and Time</strong>Two dates and two times, and the line at the foot spells out how they combine: the dates bound the days, the times apply inside each one of them. Both are picked in the app and turned into UTC on the way out.</figcaption>
+</figure>
+<figure>
+<a href="images/activity-trail/07-locks-filter.png"><img src="images/activity-trail/07-locks-filter.png" alt="The Locks filter, listing the locks in the property"></a>
+<figcaption><strong>Locks</strong>The global trail's own filter, and the only one that goes out as a list of lock ids. iOS fetches these names with a call of its own; Android reuses the list Home is already holding.</figcaption>
+</figure>
+<figure>
+<a href="images/activity-trail/08-chips-per-lock.png"><img src="images/activity-trail/08-chips-per-lock.png" alt="A filtered trail with two user chips and a Clear All link above the list"></a>
+<figcaption><strong>Applied</strong>A chip each, with Clear All beside them, and removing either refetches straight away. This one is the per lock trail: no property dropdown, no Export, and no lock name on any row, because every row came from the same lock.</figcaption>
+</figure>
+</div>
 
 ```mermaid
 sequenceDiagram
@@ -330,6 +371,13 @@ handler does nothing even if it is reached.
 ## When there is nothing to show
 
 The same query answers four different ways, and the screen has a state for each.
+
+<div class="screens">
+<figure>
+<a href="images/activity-trail/09-empty.png"><img src="images/activity-trail/09-empty.png" alt="The empty trail, reading Nothing to see here"></a>
+<figcaption><strong>Nothing came back, and nothing is filtered</strong>The first of the four branches below. The global trail also lands here when no property is selected, because without a <code>siteId</code> there is nothing to ask for.</figcaption>
+</figure>
+</div>
 
 ```mermaid
 sequenceDiagram

@@ -85,6 +85,13 @@ sequenceDiagram
 All three SDKs are created and pointed at an environment before anything else
 can run. The two platforms differ in when that work happens.
 
+<div class="screens">
+<figure>
+<a href="images/user-onboarding/01-splash.png"><img src="images/user-onboarding/01-splash.png" alt="The Godrej Locks splash screen"></a>
+<figcaption><strong>The splash screen</strong>There is nothing on it, and that is the point: everything in this step happens behind it. For a returning user with a saved session it is also the only screen they see, because the app goes from here straight to Home.</figcaption>
+</figure>
+</div>
+
 === "iOS"
 
     ```mermaid
@@ -154,6 +161,37 @@ fills, so nobody taps the button on the way through.
 fetches it from Binaryveda's backend with `getCountryCodes`, which also backs the
 country picker used when changing a number later. iOS ships the list inside the
 app and makes no call for it.
+
+<div class="screens">
+<figure>
+<a href="images/user-onboarding/02-mobile-empty.png"><img src="images/user-onboarding/02-mobile-empty.png" alt="The welcome screen with an empty code and mobile number field"></a>
+<figcaption><strong>The number screen</strong>Request OTP stays dead until both fields are filled. Nothing has been sent anywhere yet, and on iOS this is where the SDKs get built if the launch was a signed out one.</figcaption>
+</figure>
+<figure>
+<a href="images/user-onboarding/03-country-code.png"><img src="images/user-onboarding/03-country-code.png" alt="The country code picker, with India pinned above the alphabetical list"></a>
+<figcaption><strong>The picker</strong>The one part of this screen that is not the same on both platforms. Android fetches this list from Binaryveda's backend; iOS ships it inside the app and makes no call for it.</figcaption>
+</figure>
+<figure>
+<a href="images/user-onboarding/04-mobile-filled.png"><img src="images/user-onboarding/04-mobile-filled.png" alt="The welcome screen with a country code and number filled in"></a>
+<figcaption><strong>Ready to send</strong>This tap is what opens the Keycloak session. On Android it also wipes the previous user's Access SDK and OAuth sessions first, before Keycloak is contacted at all.</figcaption>
+</figure>
+<figure>
+<a href="images/user-onboarding/05-otp-empty.png"><img src="images/user-onboarding/05-otp-empty.png" alt="The OTP screen, empty, with a resend countdown"></a>
+<figcaption><strong>Sent</strong>Keycloak has the number and the app is waiting on six digits. The countdown is how long until Resend is offered.</figcaption>
+</figure>
+<figure>
+<a href="images/user-onboarding/06-otp-filled.png"><img src="images/user-onboarding/06-otp-filled.png" alt="The OTP screen with six digits entered and Continue enabled"></a>
+<figcaption><strong>Six digits in</strong>Continue has come alive, but it is rarely what sends the code. Both platforms submit as soon as the field fills, so most users never reach for this button.</figcaption>
+</figure>
+<figure>
+<a href="images/user-onboarding/07-otp-invalid.png"><img src="images/user-onboarding/07-otp-invalid.png" alt="The OTP screen with an invalid OTP error along the bottom"></a>
+<figcaption><strong>The wrong code</strong>This is the second branch in both diagrams below. Nothing is torn down and the user stays put: the Keycloak session travels in the URL that came back with the last response, so the retry posts to the same place.</figcaption>
+</figure>
+<figure>
+<a href="images/user-onboarding/08-otp-resent.png"><img src="images/user-onboarding/08-otp-resent.png" alt="The OTP screen confirming a new OTP has been sent"></a>
+<figcaption><strong>Resent</strong>The field is cleared and the countdown starts over.</figcaption>
+</figure>
+</div>
 
 === "iOS"
 
@@ -263,6 +301,17 @@ This step runs when the profile read at the end of the mobile OTP step comes bac
 name or an email. It goes to Binaryveda's backend rather than to Keycloak, and
 touches no SDK. Both platforms send the same two mutations, and neither branches.
 
+<div class="screens">
+<figure>
+<a href="images/user-onboarding/09-name-email.png"><img src="images/user-onboarding/09-name-email.png" alt="The welcome screen asking for a name and an email"></a>
+<figcaption><strong>Both fields at once</strong>Only the email is sent when Continue is tapped. The name stays in the app and goes up with the code on the next screen, which is why the second call carries all three.</figcaption>
+</figure>
+<figure>
+<a href="images/user-onboarding/10-email-otp.png"><img src="images/user-onboarding/10-email-otp.png" alt="The OTP screen again, this time for the emailed code"></a>
+<figcaption><strong>The email OTP</strong>The same screen as the mobile step, and nothing on it says which of the two this is. What differs is where the code goes: to Binaryveda's backend rather than back to Keycloak.</figcaption>
+</figure>
+</div>
+
 === "iOS"
 
     ```mermaid
@@ -309,6 +358,22 @@ touches no SDK. Both platforms send the same two mutations, and neither branches
 
     **The Keycloak versions of both calls** are still written in
     `KeyCloakClient` but are commented out at the call site, so they never run.
+
+The Android diagrams in both steps above hand off to *Device authentication,
+then Home* rather than to Home. That handoff is this screen, and it is the
+phone's own authentication being put in front of the app rather than anything
+Spintly provides.
+
+<div class="screens">
+<figure>
+<a href="images/user-onboarding/11-device-auth.png"><img src="images/user-onboarding/11-device-auth.png" alt="Device authentication, offering to enable it for faster and more secure login"></a>
+<figcaption><strong>The offer</strong>Shown once the account exists, so it is the last thing between signing in and Home.</figcaption>
+</figure>
+<figure>
+<a href="images/user-onboarding/12-app-locked.png"><img src="images/user-onboarding/12-app-locked.png" alt="The app locked behind a dialog, with Home visible but dimmed behind it"></a>
+<figcaption><strong>A later launch, with it turned on</strong>Home is already built behind the dialog and stays covered until the authentication passes.</figcaption>
+</figure>
+</div>
 
 ## 4. Trading the Keycloak token for a Spintly session
 
@@ -516,6 +581,13 @@ notes mark two separate events, not one sequence.
 Both platforms clear the Access SDK credential first and the OAuth session
 second, and both tell Binaryveda's backend separately. Neither branches. The
 only difference is where the backend call sits.
+
+<div class="screens">
+<figure class="crop">
+<a href="images/user-onboarding/13-sign-out-confirm.png"><img src="images/user-onboarding/13-sign-out-confirm.png" alt="Sign Out confirmation dialog, with Cancel and Sign Out"></a>
+<figcaption><strong>The confirmation</strong>Nothing in the diagrams below has run yet. Cancel leaves the session whole; Sign Out is what sets off all three clears, and they go in a fixed order with nothing to decide along the way.</figcaption>
+</figure>
+</div>
 
 === "iOS"
 
