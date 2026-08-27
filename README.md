@@ -123,6 +123,9 @@ upgraded.
 
 ## Working on it
 
+Publish from the `docs-site` branch. Pushes to `main` do not build or deploy the
+site.
+
 Python and Zensical are already installed into `.venv/`.
 
 ```powershell
@@ -150,7 +153,7 @@ If `.venv/` ever goes missing, recreate it:
 > Nothing added to `docs/` should be anything you would not put on the open
 > internet, including credentials, customer data, and unreleased plans.
 
-`.github/workflows/docs.yml` deploys on every push to `main`:
+`.github/workflows/docs.yml` deploys on every push to `docs-site` (not `main`):
 
 1. builds with `--strict`, which **fails on warnings**. Broken internal links
    and missing heading anchors both count, so a bad cross-reference cannot reach
