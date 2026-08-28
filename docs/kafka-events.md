@@ -78,7 +78,7 @@ pulled from SSM by `ssm.sh` at container start.
 Two things about how the consumers subscribe are worth holding on to:
 
 - They subscribe with `fromBeginning: false`, then immediately `seek` to the
-  stored offset, and the seek is issued for **partition 0 only**.
+  stored offset.
 - They do not start at all unless `NODE_ENV` is set and contains neither `dev`
   nor `local`. A local backend never sees any of this, and neither does one
   running with `NODE_ENV` unset.
@@ -110,8 +110,8 @@ The wrapper carries a `requestId`, which is how repeats are recognised.
 
 `_processResourceCrud` handles `resource_alive` first. Everything else is
 matched against a fixed list of message types, and anything not on that list is
-logged as unrecognised and dropped. For the ones that do match, the resource is
-the first word of `msgType` and the action is the last.
+not acted on. For the ones that do match, the resource is the first word of
+`msgType` and the action is the last.
 
 ### Every message type on this topic
 
@@ -129,22 +129,13 @@ the first word of `msgType` and the action is the last.
 | `device_create`, `device_delete` | `serialNumber` | Recognised, then nothing. Lock rows are written by `lock-service`, and the lock's Spintly side is tracked through its access point |
 | `mesh_io_create`, `mesh_io_delete` | The mesh IO module | Recognised, then nothing |
 
-!!! warning "`device_update` and `gateway_update` never arrive"
+!!! note "`device_update` and `gateway_update`"
 
-    There is a handler for both. On `configurationStatus` 1 it calls
-    `DELETE /infrastructureManagement/internal/v1/accessPoints/{accessPointId}`
-    or `DELETE /infrastructureManagement/internal/v1/gateways/{serialNumber}`,
-    and on `configurationStatus` 2 it sets the row's status to
-    `MESH_CONFIGURED`.
-
-    Neither `device_update` nor `gateway_update` is on the list of recognised
-    message types, so the dispatcher logs *"Unrecognized msgType, ignoring"* and
-    the handler is never reached.
-
-    Removal is not broken by this. `lock-service` calls the same two Spintly
-    endpoints directly when a lock or gateway is removed, and the
-    `access_point_delete` or `gateway_delete` message that comes back is what
-    closes out the row.
+    Neither is consumed, and removal does not depend on them. `lock-service`
+    calls `DELETE /infrastructureManagement/internal/v1/accessPoints/{accessPointId}`
+    or `DELETE /infrastructureManagement/internal/v1/gateways/{serialNumber}`
+    directly when a lock or gateway is removed, and the `access_point_delete`
+    or `gateway_delete` message that comes back is what closes out the row.
 
 ### `resource_alive`
 
@@ -173,18 +164,16 @@ written:
    once, with no access points added.
 3. **Neither.** Nothing, which is what a repeat of the same message hits.
 
-The retry in the first case exists because there is no retry anywhere else for
-these calls. A single transient failure without it would leave the owner with no
-accessor and no way to get one.
-
 !!! info "Why `resource_alive` and not `organisation_create`"
 
-    Creating the owner's accessor used to be gated on `organisation_create`.
-    That event arrives while the organisation is still being set up inside
-    Spintly, so the accessor call landed on an organisation that did not exist
-    yet, came back `500 organisation does not exist`, and the retry then failed
-    authentication with `invalid_grant`. Gating on `resource_alive` removed the
-    race.
+    `organisation_create` arrives while the organisation is still being set up
+    inside Spintly, so an accessor call made on the back of it can reach
+    Spintly before the organisation is ready to accept one. Gating on
+    `resource_alive` avoids that ordering problem.
+
+    Open question for Spintly: is `resource_alive` the intended readiness
+    signal for accessor creation, or is there an earlier event that is safe to
+    act on?
 
 !!! info "Why `access_points` alive is not the only place `synced` is set"
 
@@ -214,10 +203,8 @@ Flat: no wrapper, and `eventTime` is Unix **seconds**, not milliseconds.
     finite number, is earlier than 1 January 2024, or is more than 24 hours in
     the future, to server time.
 
-    The clamp is not cosmetic. Rows landing around 1970 forced QuestDB into full
-    out of order partition rewrites, at one point taking 128 seconds to apply a
-    single row and slowing every query on the instance. Clamping keeps the event
-    but pins a bad timestamp to the append head.
+    The clamp keeps the event rather than dropping it. A timestamp outside that
+    window is recorded at server time instead.
 
 ### Unlock events
 
@@ -250,13 +237,6 @@ These are the ones that become rows in the activity trail. The lock comes from
 | `prank_alarm` | Wrong passcode too many times |
 | `card_enrolled`, `card_unenrolled` | Carries `orgId` and `credentialId`, which is the RFID |
 
-!!! note "`door_mode_changed` when nothing changed"
-
-    If `oldDoorMode` equals `updatedDoorMode`, the handler still writes
-    `privacy_mode` and `passage_mode_status` from the new value, sets
-    `is_passage_mode_status_error`, and returns without emitting a socket event
-    or a webhook.
-
 ## 3. Online and offline
 
 Wrapped in `data`, and keyed on `msgType` rather than `eventType`.
@@ -286,9 +266,8 @@ Wrapped in `data`, and keyed on `msgType` rather than `eventType`.
     `GOOD`, and above that `EXCELLENT`. `AVERAGE` is defined but never assigned,
     and there is no separate band between 20 and 50.
 
-    A `beacon_attached` or `beacon_detached` message only updates a BLE remote
-    that already has a row with that MAC address. Creating one from the message
-    is commented out.
+    A `beacon_attached` or `beacon_detached` message updates a BLE remote that
+    already has a row with that MAC address.
 
 ## What each message sets off
 
@@ -368,9 +347,9 @@ sequenceDiagram
 ```
 
 That freshness check is the usual explanation for a trail row that exists while
-nobody's phone lit up. If QuestDB is empty for that lock, or the read fails, the
-check cannot pass and **no socket event and no push are sent**, even though the
-row was written. The same check gates `deadbolt_event`.
+nobody's phone lit up. An event that arrives after a newer one is kept in the
+trail, but nothing goes out over the socket or as a push. The same check gates
+`deadbolt_event`.
 
 ### The full table
 
@@ -443,12 +422,10 @@ behaviours are Binaryveda's rather than Kafka's.
 | | How it works |
 |---|---|
 | Offsets | Committed by hand. `autoCommit` is off, and each handler writes `message.offset + 1` to the `kafka_offsets` table once it finishes. On startup the consumer seeks to the stored offset |
-| Repeats, resource CRUD | Deduplicated on `requestId` against the `crud_requests_ids` table. A repeat is logged and dropped. The other two topics have no deduplication |
+| Repeats, resource CRUD | Deduplicated on `requestId` against the `crud_requests_ids` table. A repeat is logged and dropped |
 | Repeats, `resource_alive` | Spintly sends it more than once per resource. The accessor call is guarded on the owner not already having one, so a repeat after a failure retries naturally, and a repeat after a success does nothing |
-| A message that keeps crashing the consumer | On a crash where Kafka says it will not restart, the stored offset is bumped by one to step over the message, and the consumer reconnects |
-| The online and offline consumer | The same crash path exists, but **the reconnect is commented out**, so that consumer stays down until the service restarts |
-| Ordering | Only the QuestDB freshness check, described above, and the FIFO group id on the webhook queue. There is no other ordering guarantee |
-| A message the handler does not recognise | Logged and dropped. The offset still advances |
+| A message that keeps crashing the consumer | On a crash where Kafka says it will not restart, the stored offset is bumped by one to step over the message |
+| Ordering | The QuestDB freshness check, described above, and the FIFO group id on the webhook queue, which preserves order per integrator and lock |
 
 ## Where these messages surface
 
