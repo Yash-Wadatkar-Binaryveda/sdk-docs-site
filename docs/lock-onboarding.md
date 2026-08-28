@@ -23,8 +23,7 @@ set a master passcode → optionally add a fingerprint or an RFID card.
     | Step 4, Customise the lock | `accessorId` on iOS, the status `ACCESS_POINT_CREATED` on Android | `access_point_create` |
 
     Those messages are named on the arrows in both diagrams. Their full shape,
-    and everything else each one sets off, is in Binaryveda's Kafka events
-    document rather than here.
+    and everything else each one sets off, is in [Kafka events](kafka-events.md).
 
     The other six steps are the app talking to the Config SDK and the lock over
     BLE, and no Kafka message is involved in any of them.

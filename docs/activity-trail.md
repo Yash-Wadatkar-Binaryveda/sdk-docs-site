@@ -300,7 +300,7 @@ app's cue to go and read it. There is no separate write path for the two, which
 is why a row can exist without the screen having been told: the event is only
 sent when it is newer than the newest row already stored for that lock. The
 message shapes, and the rest of what an unlock message sets off, are in
-Binaryveda's Kafka events document.
+[Kafka events](kafka-events.md).
 
 Because iOS refetches the page it is on rather than starting over, an event
 arriving while the user has scrolled past page 1 adds that page a second time.

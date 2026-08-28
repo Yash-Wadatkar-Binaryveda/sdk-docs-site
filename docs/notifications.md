@@ -108,7 +108,7 @@ alerts, so the operating system displays them, but tapping one does not route
 anywhere in particular.
 
 The Kafka message behind each of these, and the full routing, is in
-Binaryveda's Kafka events document.
+[Kafka events](kafka-events.md).
 
 === "iOS"
 

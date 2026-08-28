@@ -8,6 +8,7 @@ copyright = "Godrej Locks &mdash; internal integration reference"
 nav = [
   { "Overview" = "index.md" },
   { "Reading these pages" = "conventions.md" },
+  { "Kafka events" = "kafka-events.md" },
   { "1. User Onboarding" = "user-onboarding.md" },
   { "2. Lock Onboarding" = "lock-onboarding.md" },
   { "3. Home" = "home.md" },

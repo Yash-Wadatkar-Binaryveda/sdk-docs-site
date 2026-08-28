@@ -12,6 +12,7 @@ Source content lives in `docs/`, and the built site lands in `site/`.
 |---|---|
 | `docs/index.md` | Overview of the three SDKs and the order they run in |
 | `docs/conventions.md` | Reading these pages: the participants, the diagram shapes, and what each arrow carries. Defined once so no flow page repeats them |
+| `docs/kafka-events.md` | Kafka events: the three topics Spintly publishes, the shape of every message on each, and what `notification-service` does on receiving one, including the four messages that call back into Spintly |
 | `docs/user-onboarding.md` | 1. User Onboarding: iOS and Android SDK members per phase, plus the differences |
 | `docs/lock-onboarding.md` | 2. Lock Onboarding: a fresh user's first lock, as sequence diagrams, with the GraphQL and Spintly REST calls on the arrows |
 | `docs/home.md` | 3. Home: the lock list, live updates, and unlocking over BLE with the internet as fallback |
@@ -29,7 +30,6 @@ page's URL, so keep the two in step when a title changes.
 
 | File | What it is |
 |---|---|
-| `unpublished/kafka-events.md` | Kafka events: the three topics Spintly publishes, the shape of every message on each, and what `notification-service` does on receiving one, including the four messages that call back into Spintly. **Deliberately not in the `nav`**, so it is not built or published. The flow pages refer to it by name rather than linking to it |
 | `unpublished/lock-share-invites.md` | An earlier draft of the invite flow, since folded into `docs/user-management.md` |
 
 Anything in `unpublished/` is outside `docs/`, so Zensical never sees it. Adding

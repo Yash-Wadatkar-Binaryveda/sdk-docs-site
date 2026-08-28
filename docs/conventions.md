@@ -49,8 +49,7 @@ The three SDKs, what each is for, and the order they run in are covered on the
     An arrow into or out of Kafka is labelled with the field that says what kind
     of message it is, and the fields of the body that matter to that step.
     Whole message shapes, every message type on each topic, and what Binaryveda
-    does on receiving each one are in Binaryveda's Kafka events document rather
-    than here.
+    does on receiving each one are in [Kafka events](kafka-events.md).
 
 ## Platform tabs
 

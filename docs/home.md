@@ -219,7 +219,7 @@ Which message becomes which event:
 | `device_status`, `gateway_status`, `device_battery_status` | `inventoryStatus` |
 
 The messages themselves, and everything else each one sets off, are in
-Binaryveda's Kafka events document.
+[Kafka events](kafka-events.md).
 
 !!! note "Why an event sometimes does not arrive"
 
