@@ -12,7 +12,7 @@ Source content lives in `docs/`, and the built site lands in `site/`.
 |---|---|
 | `docs/index.md` | Overview of the three SDKs and the order they run in |
 | `docs/conventions.md` | Reading these pages: the participants, the diagram shapes, and what each arrow carries. Defined once so no flow page repeats them |
-| `docs/kafka-events.md` | Kafka events: the three topics Spintly publishes, the shape of every message on each, and what `notification-service` does on receiving one, including the four messages that call back into Spintly |
+| `docs/kafka-events.md` | Kafka events: the three topics Spintly publishes, the shape of every message on each, and what `notification-service` does on receiving one, including the two messages that call back into Spintly |
 | `docs/user-onboarding.md` | 1. User Onboarding: iOS and Android SDK members per phase, plus the differences |
 | `docs/lock-onboarding.md` | 2. Lock Onboarding: a fresh user's first lock, as sequence diagrams, with the GraphQL and Spintly REST calls on the arrows |
 | `docs/home.md` | 3. Home: the lock list, live updates, and unlocking over BLE with the internet as fallback |
@@ -123,9 +123,6 @@ upgraded.
 
 ## Working on it
 
-Publish from the `docs-site` branch. Pushes to `main` do not build or deploy the
-site.
-
 Python and Zensical are already installed into `.venv/`.
 
 ```powershell
@@ -153,7 +150,7 @@ If `.venv/` ever goes missing, recreate it:
 > Nothing added to `docs/` should be anything you would not put on the open
 > internet, including credentials, customer data, and unreleased plans.
 
-`.github/workflows/docs.yml` deploys on every push to `docs-site` (not `main`):
+`.github/workflows/docs.yml` deploys on every push to `main`:
 
 1. builds with `--strict`, which **fails on warnings**. Broken internal links
    and missing heading anchors both count, so a bad cross-reference cannot reach

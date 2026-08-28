@@ -12,10 +12,8 @@ name: Documentation
 on:
   push:
     branches:
-      - docs-site
+      - main
   pull_request:
-    branches:
-      - docs-site
   workflow_dispatch:
 
 permissions:
@@ -49,9 +47,9 @@ jobs:
         with:
           path: site
 
-  # Pull requests build above but stop here — only docs-site gets published.
+  # Pull requests build above but stop here — only main gets published.
   deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/docs-site'
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     environment:
