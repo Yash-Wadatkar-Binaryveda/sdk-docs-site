@@ -88,11 +88,20 @@ Two things about how the consumers subscribe are worth holding on to:
 The three topics do not agree on a message shape, and the field that says what
 kind of message it is has a different name on each. This catches people out:
 
-| Topic | Kind field | Where the body is |
-|---|---|---|
-| Resource CRUD | `messageData.msgType` | `messageData.data` |
-| Activity trail | `eventType` | The top level of the message |
-| Online and offline | `msgType` | `data` |
+| Topic | Kind field | Where the body is | Versioning |
+|---|---|---|---|
+| Resource CRUD | `messageData.msgType` | `messageData.data` | `messageVersion` at the top level, `dataVersion` inside `messageData` |
+| Activity trail | `eventType` | The top level of the message | `version`, and a `hash` on every message |
+| Online and offline | `msgType` | `data` | `version`, plus a `dataVersion` on `device_status` and the two beacon messages |
+
+Every message on all three topics is versioned, and the version is per message
+type rather than per topic. On the resource CRUD topic `messageVersion` has been
+`1` throughout while `dataVersion` differs by message type, `4` on
+`access_point_create` and `1` on `organisation_delete`. On the activity trail the
+`version` genuinely changes the shape: `door_mode_changed` exists as v1 and v3
+with different fields, and `no_permission_card` as v2 and v3. None of the
+handlers branch on a version today, so a new one arriving is something to watch
+for rather than something the code already absorbs.
 
 ## 1. Resource CRUD
 
@@ -100,9 +109,11 @@ The wrapper carries a `requestId`, which is how repeats are recognised.
 
 ```json
 {
+  "messageVersion": 1,
   "messageData": {
     "requestId": "8f2c...",
     "msgType": "access_point_create",
+    "dataVersion": 4,
     "data": { "accessPointId": 12345 }
   }
 }
@@ -110,8 +121,8 @@ The wrapper carries a `requestId`, which is how repeats are recognised.
 
 `_processResourceCrud` handles `resource_alive` first. Everything else is
 matched against a fixed list of message types, and anything not on that list is
-not acted on. For the ones that do match, the resource is the first word of
-`msgType` and the action is the last.
+logged as an unrecognised `msgType` and dropped. For the ones that do match, the
+resource is the first word of `msgType` and the action is the last.
 
 ### Every message type on this topic
 
@@ -127,7 +138,21 @@ not acted on. For the ones that do match, the resource is the first word of
 | `organisation_create`, `organisation_update`, `organisation_delete` | The organisation | Recognised, then nothing. Organisations are handled through `resource_alive` |
 | `site_update` | `siteId` | Recognised, then nothing |
 | `device_create`, `device_delete` | `serialNumber` | Recognised, then nothing. Lock rows are written by `lock-service`, and the lock's Spintly side is tracked through its access point |
-| `mesh_io_create`, `mesh_io_delete` | The mesh IO module | Recognised, then nothing |
+| `meshio_create`, `meshio_delete` | The mesh IO module | Not on the recognised list. Logged as an unrecognised `msgType` and ignored. See below |
+| `network_create`, `network_update`, `network_delete` | `networkId`, `name` | Also not on the recognised list, and ignored the same way. Networks are tracked through the site |
+
+!!! warning "`meshio` is one word on the wire, two in `MESSAGE_TYPES`"
+
+    Spintly sends `meshio_create` and `meshio_delete`, with no underscore. The
+    matching `resource_alive` value is `mesh_ios`, with one. `MESSAGE_TYPES` in
+    `constants.ts` has the wrong spelling for both, `mesh_io_create` and
+    `mesh_io_delete`, so the real messages never match and fall through to the
+    unrecognised branch.
+
+    Nothing breaks today, because the mesh IO messages were never meant to do
+    anything. It matters only if mesh IO ever needs handling, and it is the
+    reason a `[ResourceCRUD] Unrecognized msgType, ignoring` line appears in the
+    logs for these.
 
 !!! note "`device_update` and `gateway_update`"
 
@@ -188,14 +213,21 @@ Flat: no wrapper, and `eventTime` is Unix **seconds**, not milliseconds.
 
 ```json
 {
+  "version": 1,
   "eventType": "mobile_access",
   "eventTime": 1755765432,
   "accessPointId": 12345,
   "accessorId": 67890,
   "accessPointDirection": "entry",
-  "mobileAccessMode": "clickToAccess"
+  "mobileAccessMode": "clickToAccess",
+  "customParameter": 0,
+  "hash": "e8743922075b791de26c2ceec3783360ec41d885e5215cbcdd731b3b73bc1701"
 }
 ```
+
+Every message on this topic carries a `version` and a `hash`. Neither is read.
+The handlers key off `eventType` alone, and the `hash` is not verified against
+anything.
 
 !!! note "How `eventTime` is converted"
 
@@ -214,7 +246,7 @@ These are the ones that become rows in the activity trail. The lock comes from
 | `eventType` | Shows in the trail as |
 |---|---|
 | `card_access` | Card |
-| `mobile_access` | Mobile, plus `_Bluetooth` or `_NFC` from `mobileAccessMode` |
+| `mobile_access` | Mobile, plus a suffix built from `mobileAccessMode`. See below |
 | `remote_access` | Remote |
 | `fingerprint_access` | Fingerprint |
 | `keypad_accessor_access` | Passcode |
@@ -222,6 +254,38 @@ These are the ones that become rows in the activity trail. The lock comes from
 | `dual_auth_access` | 2FA. Carries `firstAccessType` and `secondAccessType`, each with its own mobile access mode |
 | `web_remote_access` | Web Remote |
 | `mechanical_key_unlock` | **Nothing.** A physical key unlock is excluded from the trail |
+
+#### `mobileAccessMode` has four values, and only two are mapped
+
+Spintly sends one of four words. `MOBILE_ACCESS_MODES` in `constants.ts` has an
+entry for two of them:
+
+| Value on the wire | Suffix in the trail |
+|---|---|
+| `clickToAccess` | `_Bluetooth` |
+| `mobileNfcAccess` | `_NFC` |
+| `tapToAccess` | `_undefined` |
+| `proximity` | `_undefined` |
+
+!!! warning "The lookup is not guarded"
+
+    The suffix is built as `'_' + MOBILE_ACCESS_MODES[mode]` whenever
+    `mobileAccessMode` is present. A mode that is not in the map returns
+    `undefined`, and the row is written to the trail as `Mobile_undefined`
+    rather than falling back to `Mobile`.
+
+    The same lookup runs twice more on `dual_auth_access`, once for
+    `firstMobileAccessMode` and once for `secondMobileAccessMode`. On that event
+    Spintly only ever sends three of the four, `proximity` is not among them.
+
+    It carries into the push as well. `NOTIFICATION_UNLOCK_METHODS` is keyed on
+    the same string and only has `Mobile_Bluetooth` and `Mobile_NFC`, and the
+    body is built as `` `using ${NOTIFICATION_UNLOCK_METHODS[event_source]}` ``,
+    so the phone would read *"Unlocked by Yash using undefined"*.
+
+    Whether this is reachable in practice depends on whether Godrej locks are
+    configured to send `tapToAccess` at all. Worth confirming with Spintly, and
+    worth a fallback in the map either way.
 
 ### Everything else on the same topic
 
@@ -243,22 +307,43 @@ Wrapped in `data`, and keyed on `msgType` rather than `eventType`.
 
 ```json
 {
+  "version": 2,
   "msgType": "device_status",
+  "dataVersion": 2,
   "data": {
     "serialNumber": "...",
     "status": "online",
     "activeGatewaySerialNumber": "...",
-    "statusTime": 1755765432
+    "statusTime": 1755765432,
+    "gatewayTime": 1755765432,
+    "cloudTime": 1755765434
   }
 }
 ```
 
 | `msgType` | What `data` carries |
 |---|---|
-| `device_status` | `serialNumber`, `status`, `activeGatewaySerialNumber`, `statusTime`. The gateway serial is what builds the lock to gateway mapping, and only while the lock is online |
-| `gateway_status` | `serialNumber`, `status` |
-| `device_battery_status` | `serialNumber`, `deviceBatteryVoltage`, `deviceBatteryPercentage`, `eventTime` |
-| `beacon_attached`, `beacon_detached` | `serialNumber`, `beaconMacId`. A BLE remote being paired to or cleared from a lock |
+| `device_status` | `serialNumber`, `status`, `activeGatewaySerialNumber`, `statusTime`, `gatewayTime`, `cloudTime`. The gateway serial is what builds the lock to gateway mapping, and only while the lock is online |
+| `gateway_status` | `serialNumber`, `status`, `gatewayTime`, `cloudTime`. No `statusTime`, and no `dataVersion` |
+| `device_battery_status` | `serialNumber`, `deviceBatteryVoltage`, `deviceBatteryPercentage`, `eventTime`, `gatewayTime`, `cloudTime` |
+| `beacon_attached`, `beacon_detached` | `deviceSerialNumber`, `beaconId`, `beaconMacId`, `cloudTime`. A BLE remote being paired to or cleared from a lock |
+
+!!! warning "Three field names that catch people out"
+
+    - The serial on the beacon messages is `deviceSerialNumber`, not
+      `serialNumber` as it is on every other message on this topic. The handler
+      reads `data.serialNumber` here, so it gets `undefined`. Harmless today,
+      because the only line that used it was the row create, which is commented
+      out. The lock is not resolved from the message at all: the remote is found
+      by MAC address alone.
+    - `beaconId` is a small integer, `2` in Spintly's sample, and is not read.
+      It is not the same thing as `beaconMacId`, which is what the handler
+      matches the stored BLE remote row on.
+    - `statusTime` belongs to `device_status` only. `gateway_status` has
+      `gatewayTime` and `cloudTime` and nothing else time related. The handler
+      reads `statusTime` in one place, to stamp the `DEVICE_STATUS` webhook, and
+      that is inside the `device_status` branch. Anything added later that
+      expects a `statusTime` on a gateway message will get `undefined`.
 
 !!! note "How a battery percentage becomes a status"
 
