@@ -1,27 +1,41 @@
 [project]
 site_url = "https://yash-wadatkar-binaryveda.github.io/sdk-docs-site/"
 site_name = "SDK & Backend Calls"
-site_description = "Spintly SDK members and backend endpoints used by the app on iOS and Android"
+site_description = "Spintly SDK members and backend endpoints used by the IoT9 consumer app and the Connected Lock staff app, on iOS and Android"
 
 copyright = "Godrej Locks &mdash; internal integration reference"
 
 nav = [
-  { "Overview" = "index.md" },
-  { "Reading these pages" = "conventions.md" },
-  { "Kafka events" = "kafka-events.md" },
-  { "1. User Onboarding" = "user-onboarding.md" },
-  { "2. Lock Onboarding" = "lock-onboarding.md" },
-  { "3. Home" = "home.md" },
-  { "4. Lock Control Panel" = "lock-control-panel.md" },
-  { "5. User Management" = "user-management.md" },
-  { "6. Activity Trail" = "activity-trail.md" },
-  { "7. Lock Settings" = "lock-settings.md" },
-  { "8. Notifications" = "notifications.md" },
-  { "9. Profile and Account" = "profile-and-account.md" },
+  { "Home" = "index.md" },
+  { "IoT9 Consumer App" = [
+    { "Overview" = "iot9/index.md" },
+    { "Reading these pages" = "iot9/conventions.md" },
+    { "Kafka events" = "iot9/kafka-events.md" },
+    { "1. User Onboarding" = "iot9/user-onboarding.md" },
+    { "2. Lock Onboarding" = "iot9/lock-onboarding.md" },
+    { "3. Home" = "iot9/home.md" },
+    { "4. Lock Control Panel" = "iot9/lock-control-panel.md" },
+    { "5. User Management" = "iot9/user-management.md" },
+    { "6. Activity Trail" = "iot9/activity-trail.md" },
+    { "7. Lock Settings" = "iot9/lock-settings.md" },
+    { "8. Notifications" = "iot9/notifications.md" },
+    { "9. Profile and Account" = "iot9/profile-and-account.md" },
+  ] },
+  { "Connected Lock Staff App" = [
+    { "Overview" = "staff/index.md" },
+    { "Reading these pages" = "staff/conventions.md" },
+    { "1. User Onboarding" = "staff/user-onboarding.md" },
+    { "2. Tasks" = "staff/tasks.md" },
+    { "3. Rooms" = "staff/rooms.md" },
+    { "4. Search" = "staff/search.md" },
+    { "5. Control Panel" = "staff/control-panel.md" },
+    { "6. Notifications" = "staff/notifications.md" },
+    { "7. Profile and Logout" = "staff/profile-and-logout.md" },
+  ] },
 ]
 
-extra_css = ["stylesheets/extra.css?v=3"]
-extra_javascript = ["javascripts/diagrams.js?v=3"]
+extra_css = ["stylesheets/extra.css?v=5"]
+extra_javascript = ["javascripts/diagrams.js?v=5"]
 
 [project.theme]
 # variant = "classic"
@@ -41,15 +55,17 @@ features = [
   # "header.autohide",
   # "navigation.expand",
   "navigation.footer",
-  "navigation.indexes",
+  # navigation.indexes is off on purpose: it folds a section's index.md into the
+  # section header, which loses the "Overview" row from each project's sidebar.
+  # "navigation.indexes",
   "navigation.instant",
   "navigation.instant.prefetch",
   # "navigation.instant.progress",
   "navigation.path",
   # "navigation.prune",
   "navigation.sections",
-  # "navigation.tabs",
-  # "navigation.tabs.sticky",
+  "navigation.tabs",
+  "navigation.tabs.sticky",
   "navigation.top",
   "navigation.tracking",
   "search.highlight",

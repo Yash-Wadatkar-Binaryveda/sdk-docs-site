@@ -49,7 +49,8 @@
   --seq-backend:   #16a34a;  /* green   */
   --seq-spintly:   #e11d48;  /* rose    */
   --seq-kafka:     #0f766e;  /* teal    — pushed green-ward to clear App's cyan */
-  --seq-keycloak:  #c026d3;  /* fuchsia */
+  --seq-keycloak:  #c026d3;  /* fuchsia — the consumer app's identity provider */
+  --seq-cognito:   #c026d3;  /* fuchsia — the staff app's, never in the same diagram */
   --seq-oauth:     #7c3aed;  /* violet  */
   --seq-access:    #2563eb;  /* blue    */
   --seq-config:    #ca8a04;  /* amber   — kept clear of Firebase's orange */
@@ -58,6 +59,8 @@
   --seq-filestore: #4f46e5;  /* indigo  */
   --seq-invited:   #4f46e5;  /* indigo  — never shares a diagram with the file store */
   --seq-assistant: #db2777;  /* pink    */
+  --seq-guest:     #db2777;  /* pink    — the guest a staff task is for */
+  --seq-admin:     #b45309;  /* bronze  — the admin behind a permissions change */
 
   /* Fallbacks for a participant with no slot of its own. Kept well away from
      App and Binaryveda's backend, which are in nearly every diagram. */
@@ -74,6 +77,7 @@
   --seq-spintly:   #fb7185;
   --seq-kafka:     #5eead4;
   --seq-keycloak:  #e879f9;
+  --seq-cognito:   #e879f9;
   --seq-oauth:     #a78bfa;
   --seq-access:    #60a5fa;
   --seq-config:    #fbbf24;
@@ -82,6 +86,8 @@
   --seq-filestore: #818cf8;
   --seq-invited:   #818cf8;
   --seq-assistant: #f472b6;
+  --seq-guest:     #f472b6;
+  --seq-admin:     #fbbf24;
 
   --seq-spare1: #facc15;
   --seq-spare2: #c4b5fd;
@@ -148,11 +154,14 @@
 .md-typeset .p-spintly   { --c: var(--seq-spintly); }
 .md-typeset .p-kafka     { --c: var(--seq-kafka); }
 .md-typeset .p-keycloak  { --c: var(--seq-keycloak); }
+.md-typeset .p-cognito   { --c: var(--seq-cognito); }
 .md-typeset .p-oauth     { --c: var(--seq-oauth); }
 .md-typeset .p-access    { --c: var(--seq-access); }
 .md-typeset .p-config    { --c: var(--seq-config); }
 .md-typeset .p-hardware  { --c: var(--seq-hardware); }
 .md-typeset .p-firebase  { --c: var(--seq-firebase); }
+.md-typeset .p-guest     { --c: var(--seq-guest); }
+.md-typeset .p-admin     { --c: var(--seq-admin); }
 .md-typeset .p-filestore { --c: var(--seq-filestore); }
 
 /* --- SDK colour key -------------------------------------------------------
