@@ -15,7 +15,7 @@ Control Panel, Notifications, Profile.
 %%{init:{"flowchart":{"wrappingWidth":300,"rankSpacing":38}}}%%
 flowchart TD
     APP["<b>Staff app</b><br/>iOS and Android"]
-    APP -->|phone number and OTP| C["<b>AWS Cognito</b><br/><small>issues the session token</small>"]
+    APP -->|phone number and OTP| C["<b>AWS Cognito</b><br/><small>issues the access token</small>"]
     C -->|access token| G["<b>Binaryveda's backend</b><br/>AppSync GraphQL<br/><small>tasks, rooms, staff, notifications</small>"]
     C -->|access token| S["<b>Socket.IO</b><br/>subscription-service<br/><small>live task and door updates</small>"]
     C -->|access token| O["<b>OAuth SDK</b><br/>getOrCreateSession<br/><small>trades it for a Spintly session</small>"]

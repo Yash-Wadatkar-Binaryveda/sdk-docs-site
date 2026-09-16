@@ -11,8 +11,11 @@ tabs, and the back arrow returns here.
 
 !!! warning "Key point"
 
-    No SDK call happens on this screen, with one exception: the Spintly session
-    is established from here on first load.
+    Almost nothing on this screen touches an SDK. The exceptions are the Spintly
+    session, set up from here on first load, and on Android the BLE scan, which
+    this tab starts whenever Bluetooth or location becomes available. Which roles
+    get a session here differs by platform, and that is
+    [User Onboarding, step 5](user-onboarding.md#5-trading-the-cognito-token-for-a-spintly-session).
 
 ## Participants
 
@@ -682,5 +685,15 @@ app clears it.
 
 ## Every SDK member this flow uses
 
-None, other than the Spintly session set up on first load, which is
-[User Onboarding, step 5](user-onboarding.md#5-trading-the-cognito-token-for-a-spintly-session).
+The Spintly session set up on first load, which is
+[User Onboarding, step 5](user-onboarding.md#5-trading-the-cognito-token-for-a-spintly-session),
+and on Android one Access SDK call of its own.
+
+??? note "Android"
+
+    | SDK | Member | When | What it is for |
+    |---|---|---|---|
+    | Access | `accessManager.startBleScan()` | Whenever Bluetooth, or on API 30 and below location, becomes available | Start listening for locks nearby |
+
+iOS starts its BLE scan immediately before each unlock instead, on the
+[Control Panel](control-panel.md#3-unlocking).

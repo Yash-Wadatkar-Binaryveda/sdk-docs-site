@@ -118,8 +118,9 @@ Two consequences follow:
 
 The permissions the **Access SDK** holds are a separate copy of the same idea,
 kept in step by `pollData`. If an admin changes a shift, the backend updates the
-staff member's accessor permissions at Spintly and sends a push that triggers a
-fresh `pollData`. See [Notifications](notifications.md#2-a-push-arrives).
+staff member's accessor permissions at Spintly and sends a push, which on Android
+triggers a fresh `pollData`. See
+[Notifications](notifications.md#2-a-push-arrives).
 
 ## 3. Live updates
 

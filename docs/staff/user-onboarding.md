@@ -184,7 +184,7 @@ what creates their Spintly accessor.
 </figure>
 <figure>
 <a href="images/user-onboarding/05-otp-filled.png"><img src="images/user-onboarding/05-otp-filled.png" alt="The OTP screen with six digits entered and Continue enabled"></a>
-<figcaption><strong>Six digits in</strong>The six digits go to <code>confirmSignIn</code>. In these environments the Lambda answers every challenge with <code>123456</code>.</figcaption>
+<figcaption><strong>Six digits in</strong>The six digits go to <code>confirmSignIn</code>. Outside production the Lambda answers every challenge with a fixed code.</figcaption>
 </figure>
 </div>
 
@@ -252,11 +252,11 @@ of its own, and iOS shows the web view over the login screen.
         end
     ```
 
-!!! warning "The code is fixed in these environments"
+!!! warning "The code is fixed outside production"
 
-    The `CreateAuthChallenge` Lambda answers every challenge with `123456`, and
-    only sends an SMS when the number starts `+91`. Five wrong attempts fail the
-    whole session.
+    In the non-production environments the `CreateAuthChallenge` Lambda answers
+    every challenge with a fixed code, and only sends an SMS when the number
+    starts `+91`. Five wrong attempts fail the whole session.
 
 ## 4. Who is signed in
 

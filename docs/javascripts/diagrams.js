@@ -52,6 +52,7 @@
     "staff member": "user",
     "guest": "guest",
     "admin": "admin",
+    "front desk": "admin",
     "the lock": "hardware",
     "oauth sdk": "oauth",
     "access sdk": "access",

@@ -10,9 +10,10 @@ Tapping a push banner opens the same screen.
 
 !!! warning "Key point"
 
-    One push category, `LOCK_PERMISSION_UPDATED`, is the only route by which a
-    change to a staff member's door permissions reaches the Access SDK. See
-    [step 2](#2-a-push-arrives).
+    One push category, `LOCK_PERMISSION_UPDATED`, is how a change to a staff
+    member's door permissions reaches the Access SDK on **Android**. iOS does not
+    handle the category at all, and picks the change up whenever something else
+    calls `pollData`. See [step 2](#2-a-push-arrives).
 
 ## Participants
 
@@ -109,10 +110,10 @@ sequenceDiagram
     alt category = STAFF_ROLE_UPDATED
         A->>A: Force a sign out
         A-->>U: The login screen
-    else category = LOCK_PERMISSION_UPDATED
+    else category = LOCK_PERMISSION_UPDATED, on Android only
         A->>S: cloudSyncManager.pollData<br/>Refresh the door permissions
         S-->>A: The refreshed door permissions
-        Note over A,U: Nothing is shown
+        Note over A,U: Nothing is shown. iOS ignores this category
     else Anything else
         A-->>U: A banner, and the unseen dot appears
     end
@@ -126,7 +127,8 @@ they sign in again.
 
 **`LOCK_PERMISSION_UPDATED`** means their door permissions changed, usually
 because a shift or a floor assignment moved. The Access SDK holds a cached copy
-of those permissions, and this push is what tells it to refresh.
+of those permissions, and on **Android** this push is what tells it to refresh.
+iOS does not act on the category, which the note at the foot of this page covers.
 
 ```mermaid
 sequenceDiagram
@@ -139,15 +141,16 @@ sequenceDiagram
     Ad->>B: Change a shift or a floor assignment
     B->>SP: PATCH .../accessors/{accessorId}/permissions<br/>Update the accessor at Spintly
     B->>A: Push, category LOCK_PERMISSION_UPDATED
+    Note over A,S: Android only, from here down
     A->>S: cloudSyncManager.pollData<br/>Refresh the door permissions
     S->>SP: Fetch the permissions
     SP-->>S: The new set
     S-->>A: Done
 ```
 
-Without this, the SDK would keep the old permission set until the next sign in,
-and an unlock would fail with `UnauthorisedError` 7 on a door the staff member
-is now permitted to open. See
+Without it the SDK keeps the old permission set until something else calls
+`pollData`, and an unlock fails with `UnauthorisedError` 7 on a door the staff
+member is now permitted to open. That is the position iOS is in. See
 [Control Panel](control-panel.md#what-an-unlock-error-means).
 
 On Android this is handled in `GodrejMessagingService`, which will initialise

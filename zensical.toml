@@ -1,7 +1,7 @@
 [project]
 site_url = "https://yash-wadatkar-binaryveda.github.io/sdk-docs-site/"
 site_name = "SDK & Backend Calls"
-site_description = "Spintly SDK members and backend endpoints used by the IoT9 consumer app and the Connected Lock staff app, on iOS and Android"
+site_description = "Spintly SDK members and backend endpoints used by the IoT9 consumer app and the Connected Lock staff and guest apps, on iOS and Android"
 
 copyright = "Godrej Locks &mdash; internal integration reference"
 
@@ -32,10 +32,21 @@ nav = [
     { "6. Notifications" = "staff/notifications.md" },
     { "7. Profile and Logout" = "staff/profile-and-logout.md" },
   ] },
+  { "Connected Lock Guest App" = [
+    { "Overview" = "guest/index.md" },
+    { "Reading these pages" = "guest/conventions.md" },
+    { "1. User Onboarding" = "guest/user-onboarding.md" },
+    { "2. Home and Unlock" = "guest/home.md" },
+    { "3. Control Panel" = "guest/control-panel.md" },
+    { "4. Assistance" = "guest/assistance.md" },
+    { "5. Activity Trail" = "guest/activity-trail.md" },
+    { "6. Notifications" = "guest/notifications.md" },
+    { "7. Profile and Logout" = "guest/profile-and-logout.md" },
+  ] },
 ]
 
-extra_css = ["stylesheets/extra.css?v=5"]
-extra_javascript = ["javascripts/diagrams.js?v=5"]
+extra_css = ["stylesheets/extra.css?v=6"]
+extra_javascript = ["javascripts/diagrams.js?v=6"]
 
 [project.theme]
 # variant = "classic"
