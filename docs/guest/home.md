@@ -250,9 +250,9 @@ sequenceDiagram
     `accessManager.startBleScan()` whenever Bluetooth, or on older Android
     versions location, becomes available.
 
-Nothing is sent to Binaryveda's backend after an unlock. The backend hears about
+Nothing is sent to Binaryveda's backend after an unlock. The backend learns of
 it from Spintly through Kafka, and that is how the Activity Trail and other
-guests on the same booking find out.
+guests on the same booking are updated.
 
 ## 4. When Bluetooth fails
 
@@ -336,7 +336,7 @@ schedule.
 <div class="screens">
 <figure>
 <a href="images/home/03-room-card-unlocked.png"><img src="images/home/03-room-card-unlocked.png" alt="The same room card with a green UNLOCKED badge and the last updated line reading UNLOCKED"></a>
-<figcaption><strong>Inside the window</strong>The badge and the last updated line both turn green, and the Unlock button goes away for as long as the timer runs.</figcaption>
+<figcaption><strong>Inside the window</strong>The badge and the last updated line both turn green, and the Unlock button is hidden for as long as the timer runs.</figcaption>
 </figure>
 </div>
 

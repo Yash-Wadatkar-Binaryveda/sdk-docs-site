@@ -1,7 +1,7 @@
 [project]
 site_url = "https://yash-wadatkar-binaryveda.github.io/sdk-docs-site/"
 site_name = "SDK & Backend Calls"
-site_description = "Spintly SDK members and backend endpoints used by the IoT9 consumer app and the Connected Lock staff and guest apps, on iOS and Android"
+site_description = "Spintly SDK members and backend endpoints used by the IoT9 consumer app, the Connected Lock staff and guest apps on iOS and Android, and the Connected Lock hotel web app"
 
 copyright = "Godrej Locks &mdash; internal integration reference"
 
@@ -42,6 +42,21 @@ nav = [
     { "5. Activity Trail" = "guest/activity-trail.md" },
     { "6. Notifications" = "guest/notifications.md" },
     { "7. Profile and Logout" = "guest/profile-and-logout.md" },
+  ] },
+  { "Connected Lock Hotel Web App" = [
+    { "Overview" = "web/index.md" },
+    { "Reading these pages" = "web/conventions.md" },
+    { "1. Sign In and Roles" = "web/sign-in-and-roles.md" },
+    { "2. Bookings" = "web/bookings.md" },
+    { "3. Check In and Room Access" = "web/check-in.md" },
+    { "4. Stay Over and Check Out" = "web/stay-over-and-check-out.md" },
+    { "5. Requests" = "web/requests.md" },
+    { "6. Rooms and Master Data" = "web/rooms-and-master-data.md" },
+    { "7. Staff" = "web/staff.md" },
+    { "8. Inventory and RFID" = "web/inventory.md" },
+    { "9. Restaurant" = "web/restaurant.md" },
+    { "10. Dashboards and Reports" = "web/dashboards-and-reports.md" },
+    { "11. Administration" = "web/administration.md" },
   ] },
 ]
 

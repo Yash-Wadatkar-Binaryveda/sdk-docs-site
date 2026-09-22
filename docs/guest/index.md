@@ -21,7 +21,7 @@ flowchart TD
     C -->|access token| G["<b>Binaryveda's backend</b><br/>AppSync GraphQL<br/><small>the stay, requests, notifications, activity</small>"]
     C -->|access token| S["<b>Socket.IO</b><br/>subscription-service<br/><small>live unlocks, door modes, request updates</small>"]
     C -->|access token| O["<b>OAuth SDK</b><br/>getOrCreateSession<br/><small>trades it for a Spintly session</small>"]
-    O -->|Spintly token| A["<b>Access SDK</b><br/>logIn, then pollData<br/><small>seats the credential, pulls door permissions</small>"]
+    O -->|Spintly token| A["<b>Access SDK</b><br/>logIn, then pollData<br/><small>signs in, fetches door permissions</small>"]
     A --> L(["Open a door<br/>over BLE, or remotely"])
 
     classDef sdkOauth stroke:#8b5cf6,stroke-width:2px
@@ -90,15 +90,15 @@ versions. They share nothing except the session token the OAuth SDK produces.
 
 ### OAuth SDK: the session token
 
-Exchanges the Cognito access token for a Spintly **session token**. Nothing else
-can talk to Spintly until this succeeds. The exchange runs over callbacks: the
-app asks for a session, the SDK asks how to authenticate, the app hands back a
+Exchanges the Cognito access token for a Spintly **session token**. No other
+Spintly call works until this succeeds. The exchange runs over callbacks: the
+app asks for a session, the SDK asks how to authenticate, the app returns a
 token exchange request, and the SDK returns the session.
 
 ### Access SDK: the credential
 
-Holds the signed in credential and the guest's door permissions. `logIn` seats
-the Spintly token, `pollData` pulls down which doors the guest may open,
+Holds the signed in credential and the guest's door permissions. `logIn` signs
+in with the Spintly token, `pollData` fetches which doors the guest may open,
 `bleUnlockAccessPoint` opens one over Bluetooth, and `remoteUnlockAccessPoint`
 opens one through the internet when Bluetooth fails.
 

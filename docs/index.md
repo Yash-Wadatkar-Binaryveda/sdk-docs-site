@@ -5,3 +5,5 @@
 ## [Connected Lock Staff App](staff/index.md)
 
 ## [Connected Lock Guest App](guest/index.md)
+
+## [Connected Lock Hotel Web App](web/index.md)

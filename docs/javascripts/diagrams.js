@@ -43,6 +43,8 @@
     "owner or primary": "user",
     "invited user": "invited",
     "app": "app",
+    "web app": "app",
+    "hotel staff": "user",
     "binaryveda's backend": "backend",
     "spintly's servers": "spintly",
     "kafka": "kafka",

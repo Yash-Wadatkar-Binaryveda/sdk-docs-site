@@ -299,3 +299,16 @@
   padding: 0.7rem 0.5rem;
   background: var(--md-default-fg-color--lightest);
 }
+
+/* The web app is captured in a browser, so its screens are landscape rather
+   than the portrait phone shots the strip above is sized for. At 8.5rem a
+   browser window is unreadable, so a wide strip gives two per row on a laptop
+   and one on anything narrower. */
+.md-typeset .screens.wide {
+  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  gap: 1.5rem 1.3rem;
+}
+
+.md-typeset .screens.wide figcaption {
+  font-size: 0.68rem;
+}

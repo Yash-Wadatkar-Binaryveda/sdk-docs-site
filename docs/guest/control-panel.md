@@ -143,7 +143,7 @@ Tapping the lock runs the same unlock as the Home button, with the same remote
 fallback. The whole path is on
 [Home and Unlock](home.md#3-unlocking).
 
-The tap only does anything while the door shows Locked. iOS also requires
+The tap has an effect only while the door shows Locked. iOS also requires
 privacy mode to be off, and Android requires both modes to be off. On Android
 this screen goes straight to the permission check and the Bluetooth unlock,
 without first checking that the Spintly login and poll have finished.
@@ -151,7 +151,7 @@ without first checking that the Spintly login and poll have finished.
 ## 4. Asking for the room to be cleaned
 
 **Clean Room** opens a sheet with two choices. Both send a `HOUSEKEEPING` request
-with the single item `ROOM_CLEANING`, which lands in the housekeeping queue of
+with the single item `ROOM_CLEANING`, which arrives in the housekeeping queue of
 the staff app.
 
 <div class="screens">

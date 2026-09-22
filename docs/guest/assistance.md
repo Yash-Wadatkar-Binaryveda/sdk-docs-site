@@ -2,7 +2,7 @@
 
 **What it is.** The second tab. Four kinds of request the guest can send to hotel
 staff: **Housekeeping**, **Reception**, **Room Service** and **Checkout**. Every
-one ends in `createServiceRequest`, and the staff app picks it up from there.
+one ends in `createServiceRequest`, and the staff app takes it from there.
 
 **How to get there.** Tap Assistance in the tab bar. The Checkout screen also
 opens from the checkout reminder in the

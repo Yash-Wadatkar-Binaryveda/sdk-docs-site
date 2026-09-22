@@ -80,7 +80,7 @@ a session appears.
         A->>F: Messaging.apnsToken, once Apple returns it<br/>Firebase then issues the FCM token
     ```
 
-    The SDK work sits in `SmartAccessHelper.initialise()`. The service provider
+    The SDK work is in `SmartAccessHelper.initialise()`. The service provider
     is only built when it is still nil. The notification permission is not asked
     for here. It is a card on the permissions screen in
     [step 5](#5-permissions).
