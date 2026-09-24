@@ -25,8 +25,8 @@ Each one is defined, with the colour it keeps across the site, in
 ## The menu
 
 Nine entries, in the same order on both platforms. None of them depends on the
-user's role, because nothing on this page belongs to a lock. What varies between
-the two is which entries are built in at all.
+user's role, because nothing on this page belongs to a lock. The two platforms
+differ only in which entries are built in at all.
 
 | Entry | What it is |
 |---|---|
@@ -47,11 +47,11 @@ the two is which entries are built in at all.
 </figure>
 <figure>
 <a href="images/profile-and-account/02-menu.png"><img src="images/profile-and-account/02-menu.png" alt="The profile menu listing Update Profile, Manage Properties, Add new devices, Support, FAQs and Terms & Policies"></a>
-<figcaption><strong>The menu</strong>The header shrinks as the list scrolls under it. Neither Voice Assistants nor System Integrators is present here, which is what the two flags in Differences decide.</figcaption>
+<figcaption><strong>The menu</strong>The header shrinks as the list scrolls under it. Neither Voice Assistants nor System Integrators is present here, which the two flags in Differences decide.</figcaption>
 </figure>
 <figure>
 <a href="images/profile-and-account/03-menu-voice.png"><img src="images/profile-and-account/03-menu-voice.png" alt="The same menu with a Voice Assistants row between Add New Devices and Support"></a>
-<figcaption><strong>With Voice Assistants</strong>The row sits fourth, above Support. Nothing about it depends on a lock, which is why it is on this page rather than in Lock Settings.</figcaption>
+<figcaption><strong>With Voice Assistants</strong>The row sits fourth, above Support. Nothing about it depends on a lock, so it sits on this page rather than in Lock Settings.</figcaption>
 </figure>
 <figure>
 <a href="images/profile-and-account/04-menu-integrators.png"><img src="images/profile-and-account/04-menu-integrators.png" alt="The same menu with both a Voice Assistants and a System Integrators row"></a>
@@ -116,7 +116,7 @@ a **Change** link each, and those two go to the next section.
 <div class="screens">
 <figure>
 <a href="images/profile-and-account/07-update-profile.png"><img src="images/profile-and-account/07-update-profile.png" alt="The Update Profile screen with an editable name, and greyed number and email fields each with a Change link"></a>
-<figcaption><strong>Two fields, and two links</strong>Name is the only thing typed here, and it is the only thing besides the photo that <code>updateUserInfo</code> carries. The number and the email are shown for reference, with Change beside each.</figcaption>
+<figcaption><strong>Two fields, and two links</strong>Name is the only thing typed here, and besides the photo it is all that <code>updateUserInfo</code> carries. The number and the email are shown for reference, with Change beside each.</figcaption>
 </figure>
 <figure class="crop">
 <a href="images/profile-and-account/08-photo-sheet.png"><img src="images/profile-and-account/08-photo-sheet.png" alt="An action sheet offering Choose Photo, Take Photo and Cancel"></a>
@@ -166,7 +166,7 @@ being changed, it is four calls and two codes.
 </figure>
 <figure>
 <a href="images/profile-and-account/11-verify-new-number.png"><img src="images/profile-and-account/11-verify-new-number.png" alt="A Verify New Number screen saying the OTP was sent to the new number, with a resend countdown"></a>
-<figcaption><strong>And proving it</strong>There is no separate verify call here. The code and the new number go up together on <code>updateUserMobile</code>, which is what writes the change.</figcaption>
+<figcaption><strong>And proving it</strong>There is no separate verify call here. The code and the new number go up together on <code>updateUserMobile</code>, which writes the change.</figcaption>
 </figure>
 <figure>
 <a href="images/profile-and-account/12-verify-existing-mobile.png"><img src="images/profile-and-account/12-verify-existing-mobile.png" alt="A Verify Existing Account screen saying the OTP was sent to the account's mobile number"></a>
@@ -212,7 +212,8 @@ only thing separating the four calls above.
 The two are opposites in step 1 and identical in step 2.
 
 The last call has no separate verify step. `updateUserMobile` and
-`updateUserEmail` take the code alongside the new value and write it in one go.
+`updateUserEmail` take the code alongside the new value and write it in a
+single call.
 
 !!! note "An account with no email yet skips step 1"
 
@@ -220,6 +221,7 @@ The last call has no separate verify step. `updateUserMobile` and
     `verifyEmailForFirstLogin(email:)` in place of the first `requestOtp` and go
     straight to the new value. The app lands on this screen on its own when
     [Home](home.md#1-opening-home) finds the profile has no email.
+
 Both apps submit the code as soon as the field is full, and both stop doing so
 after a wrong one, so the button matters only on a retry.
 
@@ -233,7 +235,7 @@ branch for the first property on an account.
 <div class="screens">
 <figure>
 <a href="images/profile-and-account/15-properties.png"><img src="images/profile-and-account/15-properties.png" alt="The Manage Properties list, four properties each showing a lock and gateway count, above a Create Property button"></a>
-<figcaption><strong>One page of sites</strong><code>listSites(limit:page:listNonEmpty:)</code>, one row per property. The two counts on a row are what Android reads before it will let a property be deleted.</figcaption>
+<figcaption><strong>One page of sites</strong><code>listSites(limit:page:listNonEmpty:)</code>, one row per property. Android reads the two counts on a row before it will let a property be deleted.</figcaption>
 </figure>
 <figure>
 <a href="images/profile-and-account/16-property-in-progress.png"><img src="images/profile-and-account/16-property-in-progress.png" alt="The same list with an In Progress badge on the top property"></a>
@@ -245,7 +247,7 @@ branch for the first property on an account.
 </figure>
 <figure>
 <a href="images/profile-and-account/18-property-devices.png"><img src="images/profile-and-account/18-property-devices.png" alt="A property opened, showing a lock and a gateway inside it, each with a Remove link"></a>
-<figcaption><strong>Opened</strong><code>listLocksAndGateways(propertyId:)</code>. The menu on the property card holds the three things that can be done to it, and Remove beside a device moves that device rather than deleting it.</figcaption>
+<figcaption><strong>Opened</strong><code>listLocksAndGateways(propertyId:)</code>. The menu on the property card holds the three actions available for it, and Remove beside a device moves that device rather than deleting it.</figcaption>
 </figure>
 <figure>
 <a href="images/profile-and-account/19-property-actions.png"><img src="images/profile-and-account/19-property-actions.png" alt="An action sheet offering Add device to property, Edit Property Name, Delete Property and Cancel"></a>
@@ -253,7 +255,7 @@ branch for the first property on an account.
 </figure>
 <figure class="crop">
 <a href="images/profile-and-account/20-edit-property-name.png"><img src="images/profile-and-account/20-edit-property-name.png" alt="An Edit Property Name sheet with the name filled in and a Save button"></a>
-<figcaption><strong>Renaming</strong><code>updateProperty(updateSiteInput:)</code>, the id and the new name. The note is there because a property is shared, so the new name is what every user of it sees.</figcaption>
+<figcaption><strong>Renaming</strong><code>updateProperty(updateSiteInput:)</code>, the id and the new name. The note is there because a property is shared, so every user of it sees the new name.</figcaption>
 </figure>
 <figure class="crop">
 <a href="images/profile-and-account/21-delete-property.png"><img src="images/profile-and-account/21-delete-property.png" alt="A Delete Property dialog warning it will be permanently deleted for all users"></a>
@@ -269,7 +271,7 @@ branch for the first property on an account.
 </figure>
 <figure>
 <a href="images/profile-and-account/24-devices-selected.png"><img src="images/profile-and-account/24-devices-selected.png" alt="The same list with one device ticked and the Add button enabled"></a>
-<figcaption><strong>One picked</strong>More than one can go at a time, which is why the confirmation is worded for a set rather than a device.</figcaption>
+<figcaption><strong>One picked</strong>More than one can go at a time, so the confirmation is worded for a set rather than a device.</figcaption>
 </figure>
 <figure class="crop">
 <a href="images/profile-and-account/25-add-devices-confirm.png"><img src="images/profile-and-account/25-add-devices-confirm.png" alt="An Add Devices dialog saying all selected devices will be moved to this property"></a>
@@ -281,7 +283,7 @@ branch for the first property on an account.
 </figure>
 <figure>
 <a href="images/profile-and-account/27-move-device.png"><img src="images/profile-and-account/27-move-device.png" alt="A Remove Device sheet listing other properties to move the device to"></a>
-<figcaption><strong>Remove is a move</strong>Taking a device out of a property means choosing which property it goes to instead. It cannot be left in none.</figcaption>
+<figcaption><strong>Remove is a move</strong>Taking a device out of a property means choosing which property it goes to instead. It cannot be left without one.</figcaption>
 </figure>
 <figure>
 <a href="images/profile-and-account/28-move-device-empty.png"><img src="images/profile-and-account/28-move-device-empty.png" alt="The same sheet empty, reading No properties to show, with a Create Property button"></a>
@@ -346,7 +348,7 @@ waiting for.
 </figure>
 <figure>
 <a href="images/profile-and-account/33-voice-otp.png"><img src="images/profile-and-account/33-voice-otp.png" alt="An OTP Verification screen with a code field and a resend countdown"></a>
-<figcaption><strong>A second sign in, not a mutation</strong>This code goes to Keycloak rather than to Binaryveda's backend. What comes back is the authorisation code the assistant has been waiting for.</figcaption>
+<figcaption><strong>A second sign in, not a mutation</strong>This code goes to Keycloak rather than to Binaryveda's backend. The response carries the authorisation code the assistant has been waiting for.</figcaption>
 </figure>
 <figure>
 <a href="images/profile-and-account/34-voice-linked.png"><img src="images/profile-and-account/34-voice-linked.png" alt="The Voice Assistants screen with Alexa showing Unlink and Google showing Link"></a>

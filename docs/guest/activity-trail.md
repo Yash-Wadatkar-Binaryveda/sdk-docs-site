@@ -99,8 +99,8 @@ Three filters: **You**, **Other Guests** and **Staff**. They are sent as the
 booleans `you`, `otherGuests` and `staff`, and the app sends all three as false
 when none is chosen. Applying or removing a filter reloads from page 1.
 
-Chosen filters appear as chips above the list, and each chip can be removed on
-its own. On iOS the filter sheet belongs to the tab. On Android it is the
+Chosen filters appear as chips above the list, and each chip can be removed
+separately. On iOS the filter sheet belongs to the tab. On Android it is the
 Dashboard's bottom sheet, with an **Apply Filter** button.
 
 <div class="screens">
@@ -114,7 +114,7 @@ Dashboard's bottom sheet, with an **Apply Filter** button.
 </figure>
 <figure>
 <a href="images/activity-trail/04-filter-chips.png"><img src="images/activity-trail/04-filter-chips.png" alt="The trail filtered, with YOU and OTHER GUESTS chips above the list and no staff rows"></a>
-<figcaption><strong>The chips</strong>One chip per chosen filter, each removable on its own. The staff row visible in the unfiltered list above is gone.</figcaption>
+<figcaption><strong>The chips</strong>One chip per chosen filter, each one removable separately. The staff row visible in the unfiltered list above is gone.</figcaption>
 </figure>
 </div>
 
@@ -136,7 +136,7 @@ A row says who opened the room and with what.
 | `GUEST`, another guest | by their first and last name |
 | `STAFF` | by the role, then "staff", then the name |
 
-A key unlock names nobody. iOS only writes the sentence for rows whose
+A key unlock shows no name. iOS only writes the sentence for rows whose
 `eventName` is `entry`.
 
 ## 4. Live updates

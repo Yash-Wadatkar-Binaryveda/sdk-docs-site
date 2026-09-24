@@ -8,8 +8,8 @@ the **global trail**, which covers every lock in the selected property, and the
 
     Nothing on this page touches a Spintly SDK and nothing reaches the lock
     hardware. Every call is a **read** against Binaryveda's backend, so nothing
-    here can change a lock, a user, or the record of an event. The only thing
-    that arrives on its own is the `activityTrail` socket event, which tells the
+    here can change a lock, a user, or the record of an event. The one thing
+    that arrives unprompted is the `activityTrail` socket event, which tells the
     screen to fetch again.
 
 ## Participants
@@ -49,7 +49,7 @@ means something when more than one lock is in view:
 </figure>
 <figure>
 <a href="images/activity-trail/02-property-picker.png"><img src="images/activity-trail/02-property-picker.png" alt="The property picker, with one property selected and three others listed"></a>
-<figcaption><strong>The dropdown, opened</strong>This is what decides how much the trail covers, because the global query is scoped by <code>siteId</code>. Changing the selection refetches on both platforms.</figcaption>
+<figcaption><strong>The dropdown, opened</strong>This decides how much the trail covers, because the global query is scoped by <code>siteId</code>. Changing the selection refetches on both platforms.</figcaption>
 </figure>
 </div>
 
@@ -94,7 +94,7 @@ sequenceDiagram
 
 ## 1. Opening the screen
 
-Opening either trail costs two calls: one for the first page of events, and one
+Opening either trail makes two calls: one for the first page of events, and one
 for the people who can be filtered on. iOS makes a third call on the global
 trail, for the locks that can be filtered on.
 
@@ -153,8 +153,7 @@ trail, for the locks that can be filtered on.
     changes or a filter is applied.
 
     **No lock list is fetched.** The Locks filter is filled from the lock list
-    Home already holds, so the global trail costs one call fewer than it does on
-    iOS.
+    Home already holds, so the global trail makes one call fewer than on iOS.
 
 ### What the two queries take
 
@@ -186,7 +185,7 @@ screen.
 <div class="screens">
 <figure>
 <a href="images/activity-trail/03-rows.png"><img src="images/activity-trail/03-rows.png" alt="A page of trail rows, grouped by day, each naming a person and a method"></a>
-<figcaption><strong>One row per event</strong>The person, the method, the time, and the lock name because this is the global trail. The methods running down it are what the <code>eventSource</code> values in the table below come out as, and eight more fields arrive with every one of these rows without reaching the screen at all.</figcaption>
+<figcaption><strong>One row per event</strong>The person, the method, the time, and the lock name because this is the global trail. The methods running down it show the <code>eventSource</code> values from the table below, and eight more fields arrive with every row without reaching the screen at all.</figcaption>
 </figure>
 </div>
 
@@ -218,7 +217,7 @@ applying one closes them and refetches from page 1.
 </figure>
 <figure>
 <a href="images/activity-trail/05-users-filter.png"><img src="images/activity-trail/05-users-filter.png" alt="The Users filter, grouped into one time, scheduled and privileged users"></a>
-<figcaption><strong>Users</strong>Split into privileged and scheduled, which is exactly what the two user queries return, with <strong>You</strong> for the signed in user. The single box at the top is not a person: no one time users come back from either query to list individually.</figcaption>
+<figcaption><strong>Users</strong>Split into privileged and scheduled, which is exactly what the two user queries return, with <strong>You</strong> for the signed in user. The single box at the top is not a person. Neither query returns one time users to list individually.</figcaption>
 </figure>
 <figure>
 <a href="images/activity-trail/06-date-time-filter.png"><img src="images/activity-trail/06-date-time-filter.png" alt="The Date and Time filter, with a date range, a time range and a summary line"></a>
@@ -259,7 +258,7 @@ sequenceDiagram
     A-->>U: The filtered list
 ```
 
-Nothing is fetched when a filter sheet opens. The people and the locks were
+Opening a filter sheet fetches nothing. The people and the locks were
 already fetched with the screen, and the dates and times are picked in the app,
 then converted to UTC before they go out.
 
@@ -273,7 +272,7 @@ a chip or clearing them all refetches straight away.
 
 Binaryveda's backend pushes an `activityTrail` event over the same socket
 [Home](home.md) and the [Lock Control Panel](lock-control-panel.md) read. The
-trail does not draw the event. It treats it as a signal to fetch again.
+trail treats the event as a signal to fetch again rather than drawing it.
 
 ```mermaid
 sequenceDiagram
@@ -296,11 +295,10 @@ sequenceDiagram
 
 **The row and the signal are written by the same handler**, off one Kafka
 message. The row goes into the time-series store, and the socket event is the
-app's cue to go and read it. There is no separate write path for the two, which
-is why a row can exist without the screen having been told: the event is only
-sent when it is newer than the newest row already stored for that lock. The
-message shapes, and the rest of what an unlock message sets off, are in
-[Kafka events](kafka-events.md).
+app's cue to go and read it. Both share one write path, so a row can exist
+without the screen being told: the event is only sent when it is newer than the
+newest row already stored for that lock. The message shapes, and the rest of
+what an unlock message triggers, are in [Kafka events](kafka-events.md).
 
 Because iOS refetches the page it is on rather than starting over, an event
 arriving while the user has scrolled past page 1 adds that page a second time.

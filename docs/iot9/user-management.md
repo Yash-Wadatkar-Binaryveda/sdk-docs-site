@@ -11,8 +11,8 @@ second lock is a second invite.
 !!! warning "Key point"
 
     Inviting someone, accepting an invite, and taking access away are all
-    requests to **Binaryveda's backend**. The backend is what talks to Spintly,
-    and the diagrams below show which of its calls each request turns into.
+    requests to **Binaryveda's backend**. The backend talks to Spintly, and the
+    diagrams below show which of its calls each request turns into.
 
     Only one step on this page reaches the lock itself: the **Config SDK**
     writes the new user's passcode over BLE.
@@ -27,9 +27,9 @@ Each one is defined, with the colour it keeps across the site, in
 
 ## The kinds of user
 
-The Users screen has three tabs, and the Privileged tab covers two roles. Which
-one is being created is decided by two fields on the same mutation: `userType`
-and `isOneTimeUser`.
+The Users screen has three tabs, and the Privileged tab covers two roles. Two
+fields on the same mutation decide which one is being created: `userType` and
+`isOneTimeUser`.
 
 | Kind | Sent as | What the invited person receives | What they have to do | Do they need the app |
 |---|---|---|---|---|
@@ -127,11 +127,11 @@ lookup and is used instead of the typed one.
 <div class="screens">
 <figure>
 <a href="images/user-management/24-privileged-empty.png"><img src="images/user-management/24-privileged-empty.png" alt="The Users screen on the Privileged tab with no users, and an Add Privileged User button"></a>
-<figcaption><strong>The tab, empty</strong>Primary and secondary users share one tab. Which of the two someone becomes is decided by a single tick on the next screen.</figcaption>
+<figcaption><strong>The tab, empty</strong>Primary and secondary users share one tab. A single tick on the next screen decides which of the two someone becomes.</figcaption>
 </figure>
 <figure>
 <a href="images/user-management/25-privileged-form.png"><img src="images/user-management/25-privileged-form.png" alt="The Privileged User form with a name and number, and a Make them Primary User tick box reading 0 of 2"></a>
-<figcaption><strong>The tick that decides the role</strong>Left unticked, this is a secondary user and Next leads to the access methods. The <strong>0/2</strong> beside the heading is <code>getPrimaryUserCount(lockId:)</code>, which is why that query only runs on this tab.</figcaption>
+<figcaption><strong>The tick that decides the role</strong>Left unticked, this is a secondary user and Next leads to the access methods. The <strong>0/2</strong> beside the heading is <code>getPrimaryUserCount(lockId:)</code>, so that query only runs on this tab.</figcaption>
 </figure>
 <figure>
 <a href="images/user-management/26-primary-ticked.png"><img src="images/user-management/26-primary-ticked.png" alt="The same form with Make them Primary User ticked, the counter reading 1 of 2, and the button now reading Send Invite"></a>
@@ -143,7 +143,7 @@ lookup and is used instead of the typed one.
 </figure>
 <figure>
 <a href="images/user-management/28-privileged-access-methods.png"><img src="images/user-management/28-privileged-access-methods.png" alt="An access methods step listing Mobile Access greyed and ticked, then Passcode, Fingerprint, RFID Card and Mobile NFC"></a>
-<figcaption><strong>Five rows, four flags</strong>Mobile Access sits at the top ticked and greyed out, because opening the lock from the app comes with the invite and cannot be withdrawn here. The four below it are what <code>grantAccessMethod</code> actually carries.</figcaption>
+<figcaption><strong>Five rows, four flags</strong>Mobile Access sits at the top ticked and greyed out, because opening the lock from the app comes with the invite and cannot be withdrawn here. The four below it are the flags <code>grantAccessMethod</code> actually carries.</figcaption>
 </figure>
 <figure>
 <a href="images/user-management/29-card-secondary.png"><img src="images/user-management/29-card-secondary.png" alt="A User Invitation Sent card reading Secondary User, listing passcode, fingerprint and RFID card"></a>
@@ -195,7 +195,7 @@ comes with the invite itself and cannot be turned off here.
 </figure>
 <figure>
 <a href="images/user-management/13-scheduled-access-methods.png"><img src="images/user-management/13-scheduled-access-methods.png" alt="An access methods step offering Passcode, Fingerprint and RFID Card, with Passcode and Fingerprint ticked"></a>
-<figcaption><strong>Three, not four</strong>NFC tap is not offered to a scheduled user. The note is the app's own rule that at least one method has to be picked before Send Invite will go, which is why these flags are never all false at creation.</figcaption>
+<figcaption><strong>Three, not four</strong>NFC tap is not offered to a scheduled user. The note states the app's own rule that at least one method has to be picked before Send Invite will go, so these flags are never all false at creation.</figcaption>
 </figure>
 <figure>
 <a href="images/user-management/14-scheduled-card-passcode.png"><img src="images/user-management/14-scheduled-card-passcode.png" alt="A User Invitation Sent card listing the date slot, days and time slot, with a passcode below"></a>
@@ -228,7 +228,7 @@ sequenceDiagram
 
 `scheduledUserInput` carries `startDate`, `endDate`, `daysOfWeek`, `fromTime`
 and `toTime`, plus a `passcode`, `fingerprint` and `rfid` flag. The two
-platforms fill those three flags differently, which is covered in
+platforms fill those three flags differently. See
 [Differences](#differences-between-the-two).
 
 ### One time
@@ -240,7 +240,7 @@ platforms fill those three flags differently, which is covered in
 </figure>
 <figure>
 <a href="images/user-management/02-one-time-form.png"><img src="images/user-management/02-one-time-form.png" alt="The One Time User form with a country code box, a mobile number in an error state, and a name field"></a>
-<figcaption><strong>Everything the invite needs</strong>A country code, a mobile number and a name, the same identity step all four kinds of user share. The number is checked as it is typed, and the note under the fields is what the inviter is told about how long the code lasts.</figcaption>
+<figcaption><strong>Everything the invite needs</strong>A country code, a mobile number and a name, the same identity step all four kinds of user share. The number is checked as it is typed, and the note under the fields tells the inviter how long the code lasts.</figcaption>
 </figure>
 <figure>
 <a href="images/user-management/03-invitation-sent.png"><img src="images/user-management/03-invitation-sent.png" alt="The User Invite screen showing the passcode 834 819 and a Share Invite link"></a>
@@ -307,8 +307,8 @@ The invited user opens the invite, the app fetches it, and they accept or
 decline.
 
 Until they accept, the invite is only a record on Binaryveda's backend and the
-lock knows nothing about them. Accepting is what creates them at Spintly as an
-accessor and grants them access at that lock.
+lock knows nothing about them. Accepting creates them at Spintly as an accessor
+and grants them access at that lock.
 
 ```mermaid
 sequenceDiagram
@@ -335,8 +335,8 @@ An invite is only actionable while it is **active**. The status comes back on
 `getInvite`, and a revoked, accepted, rejected or expired invite is shown as a
 message instead of the Accept and Decline buttons.
 
-The three ids that come back are Spintly's, and they are what the Config SDK
-needs in the next step.
+The three ids that come back are Spintly's, and the Config SDK needs them in the
+next step.
 
 ### What accepting does at Spintly
 
@@ -385,7 +385,7 @@ screen comes first depends on their role.
 - A **secondary** user goes straight to the list of granted methods, with the
   passcode sitting in that list when it was granted.
 - A **scheduled** user is treated as a secondary user on iOS. On Android the
-  flow stops here and the app returns Home, which is covered in
+  flow stops here and the app returns Home. See
   [Differences](#differences-between-the-two).
 
 Before showing that list, both platforms ask the backend which methods were
@@ -487,7 +487,7 @@ returns, so people who have not accepted yet are kept apart from active ones.
 </figure>
 <figure>
 <a href="images/user-management/09-user-actions.png"><img src="images/user-management/09-user-actions.png" alt="An action sheet over the user list offering Invite Again, Delete User and Cancel"></a>
-<figcaption><strong>The two things left to do</strong>Behind the row's menu. Invite Again runs <code>inviteUser</code> a second time with the same name and number, which is what produces a fresh code.</figcaption>
+<figcaption><strong>The two things left to do</strong>Behind the row's menu. Invite Again runs <code>inviteUser</code> a second time with the same name and number, which produces a fresh code.</figcaption>
 </figure>
 <figure class="crop">
 <a href="images/user-management/10-delete-user.png"><img src="images/user-management/10-delete-user.png" alt="A Delete User dialog warning that access will be immediately revoked, with Cancel and Delete"></a>
@@ -509,7 +509,7 @@ returns, so people who have not accepted yet are kept apart from active ones.
 
 **Dual authentication lives here**, on the user's own detail screen, and it goes
 out on `updateUserAccessMethod`. It applies to a single user rather than to the
-lock, and it is what makes that user's unlock Bluetooth only, as described in
+lock, and it makes that user's unlock Bluetooth only, as described in
 [Unlocking a lock](home.md#3-unlocking-a-lock).
 
 <div class="screens">
@@ -519,7 +519,7 @@ lock, and it is what makes that user's unlock Bluetooth only, as described in
 </figure>
 <figure>
 <a href="images/user-management/32-privileged-detail.png"><img src="images/user-management/32-privileged-detail.png" alt="A secondary user's detail screen with a Dual Authentication toggle, a masked passcode, an RFID card row and an NFC device row"></a>
-<figcaption><strong>Where dual auth lives</strong>The toggle at the top is the <code>dualAuth</code> flag that goes out on <code>updateUserAccessMethod</code>. The note under it is the app's own rule that one method alone cannot satisfy a two method check.</figcaption>
+<figcaption><strong>Where dual auth lives</strong>The toggle at the top is the <code>dualAuth</code> flag sent on <code>updateUserAccessMethod</code>. The note under it states the app's own rule that one method alone cannot satisfy a two method check.</figcaption>
 </figure>
 <figure>
 <a href="images/user-management/33-privileged-actions.png"><img src="images/user-management/33-privileged-actions.png" alt="An action sheet over a secondary user's screen offering Access Methods, Delete User and Cancel"></a>
@@ -535,17 +535,17 @@ lock, and it is what makes that user's unlock Bluetooth only, as described in
 </figure>
 <figure>
 <a href="images/user-management/36-privileged-access-edit.png"><img src="images/user-management/36-privileged-access-edit.png" alt="An Access Methods screen listing Passcode, Fingerprint, RFID Card and Mobile NFC, with a Save button"></a>
-<figcaption><strong>Changing what they may use</strong>The same four flags as the invite, this time on <code>updateUserAccessMethod</code>. Mobile Access is not on this list at all, so app access cannot be taken away here either.</figcaption>
+<figcaption><strong>Changing what they may use</strong>The same four flags as the invite, this time on <code>updateUserAccessMethod</code>. Mobile Access is not on this list at all, so app access cannot be revoked here either.</figcaption>
 </figure>
 <figure class="crop">
 <a href="images/user-management/37-update-access-methods.png"><img src="images/user-management/37-update-access-methods.png" alt="An Update Access Methods dialog with Cancel and Confirm buttons"></a>
-<figcaption><strong>Asked before the write</strong>Confirm is what sends the mutation. The whole new set of flags goes out together, not just the one that changed.</figcaption>
+<figcaption><strong>Asked before the write</strong>Confirm sends the mutation. The whole new set of flags goes out together, not just the one that changed.</figcaption>
 </figure>
 </div>
 
 **Updating a scheduled user's methods can return a passcode.**
-`updateUserAccessMethod` returns a `passcodeValue`, which is how a newly granted
-passcode reaches the inviter for re-sharing.
+`updateUserAccessMethod` returns a `passcodeValue`, so a newly granted passcode
+reaches the inviter for re-sharing.
 
 <div class="screens">
 <figure>
@@ -558,7 +558,7 @@ passcode reaches the inviter for re-sharing.
 </figure>
 <figure>
 <a href="images/user-management/18-user-two-schedules.png"><img src="images/user-management/18-user-two-schedules.png" alt="The same screen with two schedule blocks, each with its own dates, days and times"></a>
-<figcaption><strong>Two schedules, one user</strong>Each block is a separate schedule object at Spintly with its own <code>scheduleId</code>, which is why editing and deleting are per block and not per user.</figcaption>
+<figcaption><strong>Two schedules, one user</strong>Each block is a separate schedule object at Spintly with its own <code>scheduleId</code>, so editing and deleting are per block rather than per user.</figcaption>
 </figure>
 <figure>
 <a href="images/user-management/19-scheduled-user-actions.png"><img src="images/user-management/19-scheduled-user-actions.png" alt="An action sheet offering Access Methods, Add New Schedule, Delete User and Cancel"></a>
@@ -566,7 +566,7 @@ passcode reaches the inviter for re-sharing.
 </figure>
 <figure>
 <a href="images/user-management/20-edit-access-methods.png"><img src="images/user-management/20-edit-access-methods.png" alt="An Access Methods screen with tick boxes for Passcode, Fingerprint and RFID Card, and a Save button"></a>
-<figcaption><strong>Changing what they may use</strong>Save is <code>updateUserAccessMethod(updateUserAccessMethodInput:)</code>, and the note is the reason it can hand a <code>passcodeValue</code> back: ticking Passcode has one made and returned, while the other two are only permission to enrol later.</figcaption>
+<figcaption><strong>Changing what they may use</strong>Save is <code>updateUserAccessMethod(updateUserAccessMethodInput:)</code>, and the note explains why it can hand a <code>passcodeValue</code> back: ticking Passcode has one made and returned, while the other two are only permission to enrol later.</figcaption>
 </figure>
 <figure>
 <a href="images/user-management/21-edit-schedule.png"><img src="images/user-management/21-edit-schedule.png" alt="A User Schedule screen with a date slot, day toggles and a time slot, and a Save button"></a>

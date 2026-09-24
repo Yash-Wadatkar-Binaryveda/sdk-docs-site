@@ -97,7 +97,7 @@ AM and 6:00 PM when they are missing.
     ```
 
     When the phone has NFC turned off, Android shows a banner about it at the
-    foot of the screen. Dismissing it is remembered.
+    foot of the screen. The app remembers when it has been dismissed.
 
 ## 2. What is on the screen
 
@@ -157,7 +157,7 @@ the staff app.
 <div class="screens">
 <figure class="crop">
 <a href="images/control-panel/04-clean-room-sheet.png"><img src="images/control-panel/04-clean-room-sheet.png" alt="The room cleaning sheet with At the earliest and Schedule for later, and Confirm disabled"></a>
-<figcaption><strong>The two choices</strong>Confirm stays disabled until one is picked. The line at the top is the reminder that the site's policy sets the hours.</figcaption>
+<figcaption><strong>The two choices</strong>Confirm stays disabled until one is picked. The line at the top notes that the site's policy sets the hours.</figcaption>
 </figure>
 <figure class="crop">
 <a href="images/control-panel/05-at-the-earliest.png"><img src="images/control-panel/05-at-the-earliest.png" alt="The sheet with At the earliest selected and Confirm enabled"></a>
@@ -173,7 +173,7 @@ the staff app.
 </figure>
 <figure class="crop">
 <a href="images/control-panel/08-schedule-slot.png"><img src="images/control-panel/08-schedule-slot.png" alt="The Schedule room cleaning sheet, offering a window between 08:00 AM and 06:00 PM, with From 12:00 PM and To 01:00 PM"></a>
-<figcaption><strong>Picking the slot</strong>The 08:00 AM to 06:00 PM here is the policy's <code>roomCleaningStartTime</code> and <code>roomCleaningEndTime</code>, which the pickers are held inside by the table below.</figcaption>
+<figcaption><strong>Picking the slot</strong>The 08:00 AM to 06:00 PM here is the policy's <code>roomCleaningStartTime</code> and <code>roomCleaningEndTime</code>. The table below shows how the pickers are kept inside it.</figcaption>
 </figure>
 <figure class="crop">
 <a href="images/control-panel/09-scheduled.png"><img src="images/control-panel/09-scheduled.png" alt="A dialog reading Room cleaning has been scheduled successfully, your room will be cleaned between 12:00PM and 01:00PM"></a>
@@ -212,8 +212,8 @@ The time pickers keep the slot inside the policy's window:
 Once it is later than 30 minutes before the window ends, Android marks Schedule
 for later as unavailable, and iOS shows the window in the sheet's text instead.
 
-What happens to the request afterwards is on
-[Assistance](assistance.md#5-after-a-request).
+[Assistance](assistance.md#5-after-a-request) covers what happens to the request
+afterwards.
 
 ## 5. Answering a reminder with Later
 

@@ -11,8 +11,8 @@ Front Desk sees RFID only.
 !!! warning "Key point"
 
     Devices are not commissioned from this app. A lock, repeater or gateway
-    arrives in the inventory already registered at Spintly, and what this app
-    adds is a room to attach it to and a way to report it when it stops working.
+    arrives in the inventory already registered at Spintly, and this app adds a
+    room to attach it to and a way to report it when it stops working.
 
 ## Participants
 
@@ -29,7 +29,7 @@ lock belongs to a room.
 <div class="screens wide">
 <figure>
 <a href="images/inventory/01-locks.png"><img src="images/inventory/01-locks.png" alt="The Locks table with serial, room, floor, block, battery and status columns above block, floor and status filters"></a>
-<figcaption><strong>Locks</strong>Battery and status are the two columns this app did not write. A blank room number is a lock in the inventory with no room yet, which is what <code>getAvailableLocks</code> returns.</figcaption>
+<figcaption><strong>Locks</strong>Battery and status are the two columns this app did not write. A blank room number is a lock in the inventory with no room yet, and <code>getAvailableLocks</code> returns exactly that set.</figcaption>
 </figure>
 </div>
 
@@ -62,8 +62,8 @@ the sort already applied, so clicking a weak battery count lands on the locks
 worth looking at.
 
 Attaching a lock to a room is done from
-[Rooms](rooms-and-master-data.md#5-rooms), not here. `getAvailableLocks` is what
-that screen offers, and it returns only locks with no room.
+[Rooms](rooms-and-master-data.md#5-rooms), not here. That screen offers
+`getAvailableLocks`, which returns only locks with no room.
 
 ## 2. Repeaters and gateways
 
@@ -201,12 +201,12 @@ so a card has to be returned through check out or by changing the shift before
 its status can be changed.
 
 A blocked card is left out of `listAvailableCards`, which also leaves out cards
-already allocated to a guest or a staff member. So a blocked card cannot be
-picked during check in or when attaching a card to a shift, and unblocking
+already allocated to a guest or a staff member. A blocked card therefore cannot
+be picked during check in or when attaching a card to a shift, and unblocking
 returns it to the pool.
 
-The card search matches the **end** of the RFID, which is why searching by the
-last four digits works wherever a card is picked.
+The card search matches the **end** of the RFID, so searching by the last four
+digits works wherever a card is picked.
 
 ## What the backend does
 

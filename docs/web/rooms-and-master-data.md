@@ -26,7 +26,7 @@ This page uses Hotel staff, Web app, Binaryveda's backend and File store.
 Each one is defined, with the colour it keeps across the site, in
 [Reading these pages](conventions.md).
 
-## 1. The order things are created in
+## 1. The order records are created in
 
 Each record depends on the ones above it.
 
@@ -53,7 +53,7 @@ The largest division of a site. A block holds floors.
 <div class="screens wide">
 <figure>
 <a href="images/rooms-and-master-data/01-blocks-list.png"><img src="images/rooms-and-master-data/01-blocks-list.png" alt="The Blocks table, with floor and room counts against each block"></a>
-<figcaption><strong>Blocks</strong>Each row carries the number of floors and rooms under it, which is what makes a delete a cascade rather than a single record.</figcaption>
+<figcaption><strong>Blocks</strong>Each row carries the number of floors and rooms under it, so a delete is a cascade rather than a single record.</figcaption>
 </figure>
 <figure>
 <a href="images/rooms-and-master-data/02-add-block.png"><img src="images/rooms-and-master-data/02-add-block.png" alt="The Add Block dialog, with a block name and a comments field"></a>
@@ -114,14 +114,14 @@ sequenceDiagram
 ```
 
 The floor list can be filtered by block. `listFloors` takes an optional block,
-and most screens that offer a floor dropdown pass one, which is why a floor
-dropdown stays empty until a block is chosen.
+and most screens that offer a floor dropdown pass one, so that dropdown stays
+empty until a block is chosen.
 
 Both the block and the floor name are required.
 
 ## 4. Room types
 
-A category of room rather than a room. This is what a booking reserves.
+A category of room rather than a room. A booking reserves one of these.
 
 <div class="screens wide">
 <figure>
@@ -134,7 +134,7 @@ A category of room rather than a room. This is what a booking reserves.
 </figure>
 <figure>
 <a href="images/rooms-and-master-data/08-edit-room-type.png"><img src="images/rooms-and-master-data/08-edit-room-type.png" alt="The Edit Room Type dialog with one image already uploaded and named"></a>
-<figcaption><strong>Edit Room Type</strong>An uploaded image keeps its stored key as its name, which is what was sent to the backend rather than the file itself.</figcaption>
+<figcaption><strong>Edit Room Type</strong>An uploaded image keeps its stored key as its name, since the key is what was sent to the backend rather than the file itself.</figcaption>
 </figure>
 <figure>
 <a href="images/rooms-and-master-data/09-delete-room-type-blocked.png"><img src="images/rooms-and-master-data/09-delete-room-type-blocked.png" alt="The Delete Room Type dialog warning that rooms are assigned to this type"></a>
@@ -165,11 +165,9 @@ images. The type, the occupancy and the description are all required, and images
 are optional.
 
 Images are uploaded straight to S3 from the browser, the same way a photo ID is
-in [Check In](check-in.md#the-photo-id). What reaches the backend is the stored
-key.
+in [Check In](check-in.md#the-photo-id). The backend receives the stored key.
 
-Occupancy is what the booking screen uses to cap the adults and children on a
-room.
+The booking screen uses occupancy to cap the adults and children on a room.
 
 ## 5. Rooms
 
@@ -178,7 +176,7 @@ A real room, with a number and a lock on the door.
 <div class="screens wide">
 <figure>
 <a href="images/rooms-and-master-data/10-rooms-list.png"><img src="images/rooms-and-master-data/10-rooms-list.png" alt="The Rooms table with block, floor, type, lock serial and status columns above a filter bar"></a>
-<figcaption><strong>Rooms</strong>The lock serial sits on the row, so the room and the door it opens are read together. The status chip is what decides the row menu.</figcaption>
+<figcaption><strong>Rooms</strong>The lock serial sits on the row, so the room and the door it opens are read together. The status chip decides the row menu.</figcaption>
 </figure>
 <figure>
 <a href="images/rooms-and-master-data/11-add-room.png"><img src="images/rooms-and-master-data/11-add-room.png" alt="The Add Room dialog, asking for block, floor, room number, room type and a lock serial number"></a>
@@ -254,7 +252,7 @@ pool.
 <div class="screens wide">
 <figure>
 <a href="images/rooms-and-master-data/13-delete-room.png"><img src="images/rooms-and-master-data/13-delete-room.png" alt="The Delete Room dialog with a reason field, a ticked confirmation box and an enabled Delete button"></a>
-<figcaption><strong>Delete Room</strong>The tick is what enables the button. The reason above it is optional, and the same shape is used for deleting a block, a floor and a room type.</figcaption>
+<figcaption><strong>Delete Room</strong>The tick enables the button. The reason above it is optional, and the same shape is used for deleting a block, a floor and a room type.</figcaption>
 </figure>
 </div>
 
@@ -271,8 +269,9 @@ on it.
 | `BOOKED` | Edit, Delete |
 
 Under Maintenance and Vacant are the same call, `changeRoomStatus`, with
-different targets. Checkout is not a call at all. It looks up the room's current
-booking and opens it, so the checkout itself happens on the booking screen. It
+different targets. Checkout makes no call of its own. It looks up the room's
+current booking and opens it, so the checkout itself happens on the booking
+screen. It
 needs `manage` on bookings, so a role without that gets an error rather than a
 booking.
 
@@ -284,7 +283,7 @@ status.
 
 One record per site, holding the rules the booking and access flows read. It is
 stored as a single document rather than as columns, and the screen edits the
-whole thing at once.
+whole document at once.
 
 <div class="screens wide">
 <figure>
@@ -297,7 +296,7 @@ whole thing at once.
 </figure>
 <figure>
 <a href="images/rooms-and-master-data/18-geofence-address.png"><img src="images/rooms-and-master-data/18-geofence-address.png" alt="The Add New Address dialog, a map with the site pinned, an address search and a radius list"></a>
-<figcaption><strong>The site address</strong>Set on a map rather than typed. The address search pins the site and the radius beside it is what the circle on the map draws.</figcaption>
+<figcaption><strong>The site address</strong>Set on a map rather than typed. The address search pins the site, and the radius beside it sets the circle drawn on the map.</figcaption>
 </figure>
 </div>
 
@@ -327,7 +326,7 @@ sequenceDiagram
 | Late check out allowed | Whether a guest can leave after the check out time |
 | Housekeeping trigger, housekeeping time | When room cleaning work is raised |
 | One card per room | Enforced during [check in](check-in.md#two-checks-before-anything-is-sent) |
-| Revoke access after checkout | Whether access is taken away automatically at all |
+| Revoke access after checkout | Whether access is revoked automatically at all |
 | Grace period | How long after check out before access goes, as hours and minutes |
 
 Turning off **revoke access after checkout** sets the grace period to zero
@@ -337,7 +336,7 @@ The screen opens read only. Edit puts it into a form, and the buttons are Save
 and Cancel until it is left.
 
 Reset does not clear the policy. It puts the site back onto the hotel wide
-policy set by the hotel admin, which is
+policy set by the hotel admin. See
 [Administration, step 5](administration.md#5-policies-at-two-levels).
 
 ## 7. Channels
@@ -348,7 +347,7 @@ channels under it.
 <div class="screens wide">
 <figure>
 <a href="images/rooms-and-master-data/19-channels.png"><img src="images/rooms-and-master-data/19-channels.png" alt="The Channels table, each row a channel, its code and its sub channels"></a>
-<figcaption><strong>Channels</strong>The code beside each name is what prefixes a booking ID, so a booking can be read back to the channel that brought it.</figcaption>
+<figcaption><strong>Channels</strong>The code beside each name prefixes a booking ID, so a booking can be read back to the channel that brought it.</figcaption>
 </figure>
 <figure>
 <a href="images/rooms-and-master-data/20-add-channel.png"><img src="images/rooms-and-master-data/20-add-channel.png" alt="The Add Channel dialog, with a channel name, a channel code and a sub channels field"></a>
@@ -356,7 +355,7 @@ channels under it.
 </figure>
 <figure>
 <a href="images/rooms-and-master-data/21-edit-channel.png"><img src="images/rooms-and-master-data/21-edit-channel.png" alt="The Edit Channel dialog with four sub channels shown as removable chips"></a>
-<figcaption><strong>Sub channels</strong>Held as chips below the field, each removable on its own. The booking form reads this list into its second dropdown.</figcaption>
+<figcaption><strong>Sub channels</strong>Held as chips below the field, each one removable separately. The booking form reads this list into its second dropdown.</figcaption>
 </figure>
 </div>
 
@@ -399,6 +398,6 @@ Everything on this page belongs to `inventory-service`.
 | `listChannels`, `getChannel`, `createChannel`, `updateChannel`, `deleteChannel` | Channels and their sub channels |
 
 Attaching a lock to a room writes the relationship in the database. It does not
-call Spintly, because the lock is already an access point there. What the
-Spintly permission is written against is the guest, during
+call Spintly, because the lock is already an access point there. The Spintly
+permission is written against the guest, during
 [check in](check-in.md#4-issuing-room-access).

@@ -1,8 +1,7 @@
 # 7. Staff
 
 **What it is.** The people who work at the site. Adding someone here creates
-their account, and giving them a shift is what decides which doors they can
-open.
+their account, and giving them a shift decides which doors they can open.
 
 **How to get there.** Staff in the sidebar. Site Admin, Site Manager and
 Housekeeping Manager can change it. Engineering Maintenance can read it.
@@ -12,7 +11,7 @@ Housekeeping Manager can change it. Engineering Maintenance can read it.
     For housekeeping staff, door access comes from the **shift** rather than
     from the staff record. The shift names a block and floors, and the backend
     turns those floors into the doors their accessor may open. Changing the
-    floors changes the doors, which is why there is no separate access screen.
+    floors changes the doors, so there is no separate access screen.
 
 ## Participants
 
@@ -59,7 +58,7 @@ A paged table with filters that are all sent to the server.
 <div class="screens wide">
 <figure>
 <a href="images/staff/01-staff-list.png"><img src="images/staff/01-staff-list.png" alt="The Staff table with role, assigned blocks, assigned floors and a duty status per row"></a>
-<figcaption><strong>Staff</strong>Assigned Blocks and Assigned Floors are read off the shift rather than the staff record, which is why a row with no shift reads <strong>Not Assigned</strong>.</figcaption>
+<figcaption><strong>Staff</strong>Assigned Blocks and Assigned Floors are read off the shift rather than the staff record, so a row with no shift reads <strong>Not Assigned</strong>.</figcaption>
 </figure>
 <figure>
 <a href="images/staff/07-staff-details.png"><img src="images/staff/07-staff-details.png" alt="The Staff Details dialog, with contact details, role, employee ID, joining date, RFID card and a photo ID link"></a>
@@ -98,11 +97,11 @@ Opening the row menu gives details, edit, shift and delete.
 <div class="screens wide">
 <figure>
 <a href="images/staff/02-add-staff.png"><img src="images/staff/02-add-staff.png" alt="The Add Staff member dialog, personal details above job details, with a shift option ticked"></a>
-<figcaption><strong>Add Staff member</strong>Personal details, then job details. <strong>Create Shift details for the staff</strong> at the bottom is what carries straight on into <a href="#3-shifts">step 3</a>.</figcaption>
+<figcaption><strong>Add Staff member</strong>Personal details, then job details. <strong>Create Shift details for the staff</strong> at the bottom carries straight on into <a href="#3-shifts">step 3</a>.</figcaption>
 </figure>
 <figure>
 <a href="images/staff/03-add-staff-filled.png"><img src="images/staff/03-add-staff-filled.png" alt="The same dialog filled in with a name, mobile, email, employee ID and a Front Desk role"></a>
-<figcaption><strong>Filled in</strong>The role picked here is what decides the Cognito group, and so which of the two apps this person can sign in to.</figcaption>
+<figcaption><strong>Filled in</strong>The role picked here decides the Cognito group, and so which of the two apps this person can sign in to.</figcaption>
 </figure>
 <figure>
 <a href="images/staff/08-edit-staff.png"><img src="images/staff/08-edit-staff.png" alt="The Edit Staff member dialog with the same fields filled from the existing record"></a>
@@ -138,7 +137,7 @@ sequenceDiagram
 | Salutation | Optional |
 | First name, last name | Required |
 | Country code, mobile number | Required |
-| Email | Required, and it is what the account is created against |
+| Email | Required, and the account is created against it |
 | Employee ID | Optional |
 | Role | Required |
 | Photo ID | Optional, uploaded to S3 before the mutation is sent |
@@ -159,20 +158,20 @@ have screens of their own in
 | Front Desk, House-Keeping Manager, Restaurant Manager, Site Manager, Engineering Maintenance | This app, and the staff app |
 
 So this one screen creates both the people who use the web app and the people
-who use the staff app. What decides which is the Cognito group the role maps to,
-which is the same mechanism as
+who use the staff app. The Cognito group the role maps to decides which, by the
+same mechanism as
 [Sign In and Roles, step 1](sign-in-and-roles.md#1-where-the-account-comes-from).
 
 ## 3. Shifts
 
 A shift says where someone works and on which days. Every role uses it for the
 duty status on the list and for which work reaches them. For housekeeping it
-does one thing more, and sets their door access.
+also sets their door access.
 
 <div class="screens wide">
 <figure>
 <a href="images/staff/04-shift-details.png"><img src="images/staff/04-shift-details.png" alt="The housekeeping shift dialog, with an RFID field, assigned block and floor dropdowns and seven day buttons"></a>
-<figcaption><strong>A housekeeping shift</strong>Block and floors are asked for, because for this role they are what the doors are resolved from. The person's details sit read only at the top.</figcaption>
+<figcaption><strong>A housekeeping shift</strong>Block and floors are asked for, because for this role the doors are resolved from them. The person's details sit read only at the top.</figcaption>
 </figure>
 <figure>
 <a href="images/staff/05-shift-details-filled.png"><img src="images/staff/05-shift-details-filled.png" alt="The same dialog with a card being searched and one saved shift row below the form"></a>
@@ -223,8 +222,8 @@ sequenceDiagram
 | Comments | Optional |
 | RFID card | Optional, searched the same way as a guest card |
 
-More than one shift row can be added at once, which is how somebody covers
-different floors on different days. They are sent together as a list.
+More than one shift row can be added at once, so somebody can cover different
+floors on different days. They are sent together as a list.
 
 ### What the floors become
 
@@ -233,9 +232,8 @@ resolves the floors on the shift to every room on them, takes each room's lock,
 and writes those access points onto the accessor. Changing the floors on the
 shift therefore changes the doors.
 
-The accessor is created with both mobile access and card access enabled, which
-is why the staff app can open a door with a phone and a card works for the same
-person.
+The accessor is created with both mobile access and card access enabled, so the
+same person can open a door with the staff app or with a card.
 
 Saving a shift for somebody who already has an accessor rewrites their
 permissions instead of creating a second one.
@@ -249,7 +247,7 @@ each floor their shift covers today, so floor updates reach the people working
 that floor.
 
 For the other roles, the shift is a record of when and where somebody works, and
-it is what the duty status on the list is read from.
+the duty status on the list is read from it.
 
 ## 4. Changing and removing
 

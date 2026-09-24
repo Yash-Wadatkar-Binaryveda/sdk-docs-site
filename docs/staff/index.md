@@ -1,8 +1,8 @@
 # Connected Lock Staff App
 
 Hotel staff use this app to see the work assigned to them, reach the rooms they
-are allowed into, and open a door. It covers hospitality work. It does not
-manage locks.
+are allowed into, and open a door. It covers hospitality work and has no lock
+management.
 
 Which task categories appear depends on the signed in role: housekeeping, front
 desk, restaurant, engineering or site manager. That split is on
@@ -58,9 +58,9 @@ Staff never provision a lock, set a passcode, enrol a fingerprint, update
 firmware or factory reset anything, so the app has no lock settings screen and
 this site has no page for one.
 
-What staff do get is read only. When a lock, gateway or repeater goes offline or
-its battery runs low, the backend raises a task in the **System** category, and
-staff work it like any other task. See
+Their view of lock hardware is read only. When a lock, gateway or repeater goes
+offline or its battery runs low, the backend raises a task in the **System**
+category, and staff work it like any other task. See
 [Tasks](tasks.md#5-device-faults-arrive-as-tasks).
 
 ### Versions shipped
@@ -74,5 +74,5 @@ staff work it like any other task. See
 
     Spintly's word for a person who can open a door is an **accessor**. A staff
     member's accessor is created by the backend when an admin creates them, not
-    by this app. Their `accessPointId` is what the unlock call takes, and the
-    app knows it as `spintlyId`.
+    by this app. The unlock call takes their `accessPointId`, which the app
+    knows as `spintlyId`.

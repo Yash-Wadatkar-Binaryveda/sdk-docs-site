@@ -117,8 +117,7 @@ three.
 | **`CHECKOUT_USER`** | The front desk checks the guest out | Signs the app out |
 | **`GEOFENCE_UPDATED`** | The site's geofence or policy is edited | Reloads the geofence |
 
-These carry the category and nothing else. The last three are
-[step 6](#6-silent-pushes).
+These carry only the category. [Step 6](#6-silent-pushes) covers the last three.
 
 **Which service sends which.** `notification-service` sends Room Unlocked, both
 reminders, the Remove that follows an automatic acceptance, and
@@ -223,7 +222,7 @@ them as notification actions, and Android sends them to
 [Control Panel](control-panel.md#5-answering-a-reminder-with-later). The same
 three buttons appear on the reminder in the notification centre.
 
-**Nobody answers.** At the policy's housekeeping time the backend moves every
+**When nobody answers.** At the policy's housekeeping time the backend moves every
 reminder still waiting to `TODO`, so the room is cleaned, and sends the remove
 push.
 

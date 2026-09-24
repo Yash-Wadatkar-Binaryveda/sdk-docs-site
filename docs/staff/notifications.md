@@ -10,10 +10,10 @@ Tapping a push banner opens the same screen.
 
 !!! warning "Key point"
 
-    One push category, `LOCK_PERMISSION_UPDATED`, is how a change to a staff
-    member's door permissions reaches the Access SDK on **Android**. iOS does not
-    handle the category at all, and picks the change up whenever something else
-    calls `pollData`. See [step 2](#2-a-push-arrives).
+    One push category, `LOCK_PERMISSION_UPDATED`, carries a change to a staff
+    member's door permissions through to the Access SDK on **Android**. iOS
+    does not handle the category at all, and picks the change up whenever
+    something else calls `pollData`. See [step 2](#2-a-push-arrives).
 
 ## Participants
 
@@ -69,11 +69,11 @@ sequenceDiagram
     B-->>A: message and success
 ```
 
-`deviceId` is what lets the backend tell two phones apart for the same staff
-member. Android mints a UUID on first sign in and keeps it in secure
-preferences, and iOS uses the identifier its own data store already holds.
+`deviceId` lets the backend tell two phones apart for the same staff member.
+Android mints a UUID on first sign in and keeps it in secure preferences, and
+iOS uses the identifier its own data store already holds.
 
-**The token can change on its own.** Firebase rotates it, and both platforms
+**The token can change at any time.** Firebase rotates it, and both platforms
 re-register when it does.
 
 === "iOS"
@@ -85,7 +85,7 @@ re-register when it does.
 
     `GodrejMessagingService.onNewToken` fires, reads the stored user ID and
     UUID, mints a UUID if there is not one, and calls `addDeviceToken` again.
-    If no user ID is stored, which means nobody is signed in, it does nothing.
+    If no user ID is stored, nobody is signed in and it does nothing.
 
 On sign out the token is deleted, so a signed-out phone stops receiving anything
 for that staff member. See
@@ -127,8 +127,8 @@ they sign in again.
 
 **`LOCK_PERMISSION_UPDATED`** means their door permissions changed, usually
 because a shift or a floor assignment moved. The Access SDK holds a cached copy
-of those permissions, and on **Android** this push is what tells it to refresh.
-iOS does not act on the category, which the note at the foot of this page covers.
+of those permissions, and on **Android** this push tells it to refresh. The note
+at the foot of this page covers how iOS picks the change up.
 
 ```mermaid
 sequenceDiagram
@@ -150,7 +150,7 @@ sequenceDiagram
 
 Without it the SDK keeps the old permission set until something else calls
 `pollData`, and an unlock fails with `UnauthorisedError` 7 on a door the staff
-member is now permitted to open. That is the position iOS is in. See
+member is now permitted to open. iOS is in exactly that position. See
 [Control Panel](control-panel.md#what-an-unlock-error-means).
 
 On Android this is handled in `GodrejMessagingService`, which will initialise

@@ -11,8 +11,8 @@ room is `ARRIVED` and every guest booked into it has been checked in.
 
     Checking out does not wait for the lock. The accessor deletion is queued and
     retried by `notification-service`, and the guest is marked departed straight
-    away. The RFID card stays allocated until the deletion is confirmed, which
-    is why a card cannot be reissued the instant a guest leaves. See
+    away. The RFID card stays allocated until the deletion is confirmed, so a
+    card cannot be reissued the instant a guest leaves. See
     [step 3](#3-what-happens-to-access).
 
 ## Participants
@@ -89,8 +89,8 @@ sequenceDiagram
     end
 ```
 
-`getNextBookingDate` is what stops a stay being extended over the top of the
-next booking for that room. It is asked per room, because two rooms on the same
+`getNextBookingDate` stops a stay being extended over the top of the next
+booking for that room. It is asked per room, because two rooms on the same
 booking can have different rooms waiting behind them.
 
 Extending also extends access. The guest keeps the same accessor and the same
@@ -102,8 +102,8 @@ booking is refetched.
 
 ## 2. Checking out
 
-Check out opens on the same kind of greeting screen as check in, on its own
-five open count, then moves to the selection.
+Check out opens on the same kind of greeting screen as check in, counted
+separately and shown on every fifth open, then moves to the selection.
 
 <div class="screens wide">
 <figure>
@@ -112,7 +112,7 @@ five open count, then moves to the selection.
 </figure>
 <figure>
 <a href="images/stay-over-and-check-out/04-check-out-select.png"><img src="images/stay-over-and-check-out/04-check-out-select.png" alt="The check out selection, two rooms with their guests, each row tagged RFID or App"></a>
-<figcaption><strong>Who is leaving</strong>The tags on the right are what each guest holds. The count beside <strong>RFID</strong> is the number of cards to collect for that room.</figcaption>
+<figcaption><strong>Who is leaving</strong>The tags on the right show what each guest holds. The count beside <strong>RFID</strong> is the number of cards to collect for that room.</figcaption>
 </figure>
 <figure>
 <a href="images/stay-over-and-check-out/05-check-out-confirm.png"><img src="images/stay-over-and-check-out/05-check-out-confirm.png" alt="The check out summary, each guest listed with their booking ID and the access they hold"></a>
@@ -150,14 +150,14 @@ collected before the button is pressed.
 
 ### The extra confirmation
 
-A room booked for two adults with only one checked in is a room where somebody
-never turned up. Checking that room out closes it for the guest who is missing
-as well, so the app asks first.
+A room booked for two adults with only one checked in means somebody never
+turned up. Checking that room out closes it for the guest who is missing as
+well, so the app asks first.
 
 The check compares the guests recorded against the adults the room was booked
 for. When they match, check out proceeds with no extra screen. When they do not,
-the confirmation appears and names the consequence, which is that the guests who
-never arrived are cancelled.
+the confirmation appears and says what will happen: the guests who never
+arrived are cancelled.
 
 ## 3. What happens to access
 
@@ -209,13 +209,13 @@ confirmed.
 ## 4. When nobody checks out
 
 A stay that runs past its checkout time is closed by the backend rather than by
-this screen. The mechanism is a schedule, one per room booking, set when the
-stay is created and moved whenever the checkout date changes.
+this screen. A schedule does it, one per room booking, set when the stay is
+created and moved whenever the checkout date changes.
 
 <div class="screens wide">
 <figure>
 <a href="images/stay-over-and-check-out/08-grace-expired.png"><img src="images/stay-over-and-check-out/08-grace-expired.png" alt="A booking marked Grace Expired, with one guest row marked Revoked"></a>
-<figcaption><strong>Grace Expired</strong>Set by the schedule rather than by anything on the screen. The guest row reads <strong>Revoked</strong>, which is the accessor having been deleted, and Check Out is still offered.</figcaption>
+<figcaption><strong>Grace Expired</strong>Set by the schedule rather than by anything on the screen. The guest row reads <strong>Revoked</strong>, which means the accessor has been deleted, and Check Out is still offered.</figcaption>
 </figure>
 </div>
 
@@ -259,5 +259,5 @@ back, along with any shared amenity access the guest still held.
 | `checkOutGuests` | `booking-service` | Departs the guests, cancels those who never arrived, queues `deleteAccessor` |
 | `getBooking` | `booking-service` | Redraws the booking after either action |
 
-The Spintly calls on this page are `deleteAccessor` only, and it is never called
-from a request the browser is waiting on.
+`deleteAccessor` is the only Spintly call on this page, and it never runs inside
+a request the browser is waiting on.

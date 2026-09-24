@@ -13,9 +13,9 @@ set a master passcode → optionally add a fingerprint or an RFID card.
 !!! info "Two of the eight steps below wait on Kafka, not on a REST response"
 
     **Step 1, Choose a property** and **step 4, Customise the lock** both end
-    with the app waiting. What it is waiting for is not a slow Spintly call. It
-    is a **Kafka message** coming back from Spintly, which is what creates the
-    owner's accessor and sets the flags the app is polling for.
+    with the app waiting. It is waiting on a **Kafka message** coming back from
+    Spintly rather than on a slow Spintly call. That message creates the owner's
+    accessor and sets the flags the app is polling for.
 
     | | What the app is waiting for | The message that provides it |
     |---|---|---|
@@ -23,7 +23,7 @@ set a master passcode → optionally add a fingerprint or an RFID card.
     | Step 4, Customise the lock | `accessorId` on iOS, the status `ACCESS_POINT_CREATED` on Android | `access_point_create` |
 
     Those messages are named on the arrows in both diagrams. Their full shape,
-    and everything else each one sets off, is in [Kafka events](kafka-events.md).
+    and everything else each one triggers, is in [Kafka events](kafka-events.md).
 
     The other six steps are the app talking to the Config SDK and the lock over
     BLE, and no Kafka message is involved in any of them.
@@ -119,7 +119,7 @@ to. A new user has none yet and creates one here.
 </figure>
 <figure class="crop">
 <a href="images/lock-onboarding/03-create-property.png"><img src="images/lock-onboarding/03-create-property.png" alt="Create New Property sheet with a name typed in"></a>
-<figcaption><strong>Naming it</strong>Create sends <code>createSite</code>. Everything on the lower half of the diagram below is set off by this one tap.</figcaption>
+<figcaption><strong>Naming it</strong>Create sends <code>createSite</code>. Everything on the lower half of the diagram below is triggered by this one tap.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-onboarding/04-select-property-none.png"><img src="images/lock-onboarding/04-select-property-none.png" alt="Property list with one property, nothing selected, Continue greyed out"></a>
@@ -127,7 +127,7 @@ to. A new user has none yet and creates one here.
 </figure>
 <figure>
 <a href="images/lock-onboarding/05-select-property-chosen.png"><img src="images/lock-onboarding/05-select-property-chosen.png" alt="Property list with the property selected and Continue enabled"></a>
-<figcaption><strong>Chosen</strong>The <code>siteId</code> behind this row is what <code>addLock</code> is handed in step 4, and what has to be <code>synced</code> before it will be accepted.</figcaption>
+<figcaption><strong>Chosen</strong><code>addLock</code> is handed the <code>siteId</code> behind this row in step 4, and it has to be <code>synced</code> before the lock is accepted.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-onboarding/06-select-property-many.png"><img src="images/lock-onboarding/06-select-property-many.png" alt="Property list with three properties to choose from"></a>
@@ -178,8 +178,8 @@ sequenceDiagram
 ```
 
 The app sends the same `createSite` whichever branch runs, and gets the same
-answer back either way, so it never finds out which one it was. Choosing between
-them is Binaryveda's backend's job.
+answer back either way, so it never finds out which one it was. Binaryveda's
+backend chooses between them.
 
 !!! warning "The accessor is created in a different place on each branch"
 
@@ -205,8 +205,8 @@ until someone puts it into configuration mode by hand: remove the back panel,
 hold the button marked **R** for 3 seconds, and wait for the sound cue. Only
 then will it answer a scan.
 
-So this step is instructions and a **Scan** button. No SDK, no Binaryveda's
-backend, no Spintly. Four cards, swiped through in order.
+So this step is four instruction cards and a **Scan** button, swiped through in
+order, with no SDK, no Binaryveda's backend and no Spintly behind any of them.
 
 <div class="screens">
 <figure>
@@ -223,7 +223,7 @@ backend, no Spintly. Four cards, swiped through in order.
 </figure>
 <figure>
 <a href="images/lock-onboarding/10-scan-prompt.png"><img src="images/lock-onboarding/10-scan-prompt.png" alt="Step 4 of 4, Scan for Lock, with a Scan button"></a>
-<figcaption><strong>4 of 4 &mdash; wait for the sound cue, then scan</strong>The cue is how the user knows the lock is listening. This Scan button is the first thing on the page to reach the Config SDK, and it starts step 3.</figcaption>
+<figcaption><strong>4 of 4 &mdash; wait for the sound cue, then scan</strong>The cue tells the user the lock is listening. This Scan button is the first thing on the page to reach the Config SDK, and it starts step 3.</figcaption>
 </figure>
 </div>
 
@@ -249,7 +249,7 @@ Binaryveda's backend to find out which model it is.
 </div>
 
 Gateways advertise on the same channel, so both platforms have to keep them out
-of the list. They go about it differently.
+of the list. Each platform does it differently.
 
 === "iOS"
 
@@ -404,7 +404,7 @@ app polls until it has.
         par Spintly tells Binaryveda the access point is there
             S-->>K: msgType access_point_create<br/>data { accessPointId }
             K-->>B: Delivered to notification-service
-            Note over B: This message is what writes<br/>ACCESS_POINT_CREATED
+            Note over B: This message writes<br/>ACCESS_POINT_CREATED
             alt If the owner has no accessor yet
                 B->>S: POST /credentialManagementV3/v1/accessors<br/>Create the accessor, which is the owner
                 Note right of S: Carries the owner Keycloak sub, the provider id,<br/>and this access point
@@ -439,22 +439,22 @@ provisioning onwards needs them.
     Neither is made by the service that handled `addLock`. Both are made by
     `notification-service`, off the Kafka message.
 
-**What the app is polling for is written by the Kafka consumer.** Android's
+**The Kafka consumer writes what the app is polling for.** Android's
 `ACCESS_POINT_CREATED` and the `accessorId` iOS waits for are both set when the
 `access_point_create` message is handled, not when the access point REST call
 returns. If the message never arrives, the poll never finishes, and neither
-platform will show an error: they will simply keep asking.
+platform shows an error: they keep asking.
 
 **Screens reached later look the three ids up again** with
 `spintlyDetails(lockSerialNumber:)`, which returns exactly those and nothing
-else. It is how [My Access](lock-settings.md#2-my-access), a user's detail
-screen in [User Management](user-management.md), and an invited user setting up
-their own access all get what a Config SDK call needs, without carrying the ids
+else. [My Access](lock-settings.md#2-my-access), a user's detail screen in
+[User Management](user-management.md), and an invited user setting up their own
+access all get what a Config SDK call needs that way, without carrying the ids
 across from here.
 
 Whichever of the two runs, it has to run after the access point exists, because
-it names the access point. That ordering is what the Kafka message provides:
-Spintly does not publish `access_point_create` until the access point is there.
+it names the access point. The Kafka message provides that ordering: Spintly
+does not publish `access_point_create` until the access point is there.
 
 !!! note "Resuming an interrupted onboarding"
 
@@ -469,8 +469,7 @@ Spintly does not publish `access_point_create` until the access point is there.
     the flag the previous step waits on has arrived: the property is only
     created once the organisation is synced, the access point only once the
     property is synced, and the accessor or permission only once the access
-    point is synced. Repeating the query is how it walks forward as each message
-    lands.
+    point is synced. Repeating the query walks it forward as each message lands.
 
     The diagrams above are the normal path, for a lock being added for the first
     time.
@@ -480,7 +479,7 @@ A lock in that state is visible on Home, drawn differently from a working one.
 <div class="screens">
 <figure>
 <a href="images/lock-onboarding/39-onboarding-pending.png"><img src="images/lock-onboarding/39-onboarding-pending.png" alt="A Home card reading Onboarding Pending, with a Resume Onboarding button"></a>
-<figcaption><strong>Onboarding pending</strong>No tiles and no Unlock button, because none of it works yet. Resume Onboarding is what runs the query in the note above rather than starting the flow again from the top, which is how the half finished lock is picked up where it stopped.</figcaption>
+<figcaption><strong>Onboarding pending</strong>No tiles and no Unlock button, because none of it works yet. Resume Onboarding runs the query in the note above rather than restarting the flow from the beginning, so the half finished lock is picked up where it stopped.</figcaption>
 </figure>
 </div>
 
@@ -492,7 +491,7 @@ writes that same setup onto the lock itself, over BLE.
 <div class="screens">
 <figure>
 <a href="images/lock-onboarding/15-provisioning.png"><img src="images/lock-onboarding/15-provisioning.png" alt="Lock Onboarding, a wait screen with a warning not to close the app"></a>
-<figcaption><strong>The wait while the lock is written to</strong>Nothing to do here but stay put. The keypad lighting up is the lock's own signal that the write landed. The warning in red is the point of the screen: this is a BLE write with no resume, so closing the app or walking out of range part way through leaves the lock half configured.</figcaption>
+<figcaption><strong>The wait while the lock is written to</strong>There is nothing to do here but wait. The keypad lighting up is the lock's own signal that the write landed. The warning in red matters: this is a BLE write with no resume, so closing the app or walking out of range part way through leaves the lock half configured.</figcaption>
 </figure>
 </div>
 
@@ -558,7 +557,7 @@ button, so cancelling there leaves the lock unfinished on Home.
 </figure>
 <figure>
 <a href="images/lock-onboarding/17-firmware-updated.png"><img src="images/lock-onboarding/17-firmware-updated.png" alt="Firmware Updated Successfully, with a Continue Lock Onboarding button"></a>
-<figcaption><strong>Pushed</strong>Continue does not simply move on. Both platforms re-enter the check and read the two versions again, so a push that did not take is caught rather than assumed.</figcaption>
+<figcaption><strong>Pushed</strong>Continue does more than move on. Both platforms re-enter the check and read the two versions again, so a push that did not take is caught rather than assumed.</figcaption>
 </figure>
 </div>
 
@@ -656,7 +655,7 @@ writes the new one onto the lock, and Binaryveda's backend saves it afterwards.
 </figure>
 <figure class="crop">
 <a href="images/lock-onboarding/19-default-passcode-help.png"><img src="images/lock-onboarding/19-default-passcode-help.png" alt="Default Passcode help sheet, saying the passcode is printed in the lock manual"></a>
-<figcaption><strong>Behind &ldquo;Where to find the passcode?&rdquo;</strong>The factory passcode is printed in the manual, not held anywhere in the app or on the backend, which is why the user has to type it rather than the app filling it in.</figcaption>
+<figcaption><strong>Behind &ldquo;Where to find the passcode?&rdquo;</strong>The factory passcode is printed in the manual, not held anywhere in the app or on the backend, so the user has to type it rather than the app filling it in.</figcaption>
 </figure>
 </div>
 
@@ -722,7 +721,7 @@ returns here afterwards, so the two can be done in either order, or not at all.
 </figure>
 <figure>
 <a href="images/lock-onboarding/25-access-methods-both.png"><img src="images/lock-onboarding/25-access-methods-both.png" alt="Access Methods, with both fingerprint and card added"></a>
-<figcaption><strong>Both done</strong>Finish ends onboarding whether either row was used or not, which is what makes them optional. The tick is drawn from what the lock reports, not from anything held on Binaryveda's backend.</figcaption>
+<figcaption><strong>Both done</strong>Finish ends onboarding whether either row was used or not, so they are optional. The tick is drawn from what the lock reports, not from anything held on Binaryveda's backend.</figcaption>
 </figure>
 </div>
 
@@ -769,7 +768,7 @@ back from the SDK, so the loop in the diagram below runs once per screen here.
 </figure>
 <figure>
 <a href="images/lock-onboarding/35-almost-done.png"><img src="images/lock-onboarding/35-almost-done.png" alt="Place your finger on the sensor, you are almost done"></a>
-<figcaption><strong>Almost done</strong>The one prompt in the cycle that says how far along it is, and the signal to the user not to walk off now.</figcaption>
+<figcaption><strong>Almost done</strong>The one prompt in the cycle that says how far along it is, and the signal to the user not to leave the lock now.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-onboarding/36-ring-complete.png"><img src="images/lock-onboarding/36-ring-complete.png" alt="Lift your finger away from the sensor, ring fully closed"></a>
@@ -777,7 +776,7 @@ back from the SDK, so the loop in the diagram below runs once per screen here.
 </figure>
 <figure>
 <a href="images/lock-onboarding/37-fingerprint-added.png"><img src="images/lock-onboarding/37-fingerprint-added.png" alt="Fingerprint Successfully Added, with Done and Add another fingerprint"></a>
-<figcaption><strong>Enrolled</strong>The template is on the lock and the session is closed. Add another fingerprint runs the whole cycle again, which is how one lock ends up holding several fingers.</figcaption>
+<figcaption><strong>Enrolled</strong>The template is on the lock and the session is closed. Add another fingerprint runs the whole cycle again, so one lock can hold several fingers.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-onboarding/38-access-methods-fingerprint.png"><img src="images/lock-onboarding/38-access-methods-fingerprint.png" alt="Access Methods, fingerprint added, card and NFC still open"></a>
@@ -836,14 +835,14 @@ back from the SDK, so the loop in the diagram below runs once per screen here.
 
 ### RFID
 
-Four screens, and the middle two are not decoration: each one is the app
-redrawing on an `NFCProcessState` the SDK has just reported. The user is being
-shown where the enrolment has got to, one callback at a time.
+Four screens. The middle two are the app redrawing on an `NFCProcessState` the
+SDK has just reported, showing the user where the enrolment has got to, one
+callback at a time.
 
 <div class="screens">
 <figure>
 <a href="images/lock-onboarding/21-add-rfid-intro.png"><img src="images/lock-onboarding/21-add-rfid-intro.png" alt="Add RFID Card, warning to stay in range of the lock"></a>
-<figcaption><strong>Before anything connects</strong>The whole enrolment runs over BLE to the lock, so the phone has to stay near it throughout. Next is what calls <code>scanAndConnectCardDevice</code>.</figcaption>
+<figcaption><strong>Before anything connects</strong>The whole enrolment runs over BLE to the lock, so the phone has to stay near it throughout. Next calls <code>scanAndConnectCardDevice</code>.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-onboarding/22-tap-card.png"><img src="images/lock-onboarding/22-tap-card.png" alt="Tap the RFID card on the sensor, with Scan the card greyed out"></a>
@@ -855,7 +854,7 @@ shown where the enrolment has got to, one callback at a time.
 </figure>
 <figure>
 <a href="images/lock-onboarding/24-rfid-added.png"><img src="images/lock-onboarding/24-rfid-added.png" alt="RFID Card Successfully Added, with Done and Add another RFID Card"></a>
-<figcaption><strong>Enrolled</strong>The assign succeeded and the session is closed. Add another RFID Card runs the whole thing again, which is how a lock ends up with more than one card.</figcaption>
+<figcaption><strong>Enrolled</strong>The assign succeeded and the session is closed. Add another RFID Card runs the same flow again, so a lock can hold more than one card.</figcaption>
 </figure>
 </div>
 
@@ -929,7 +928,7 @@ built on it.
 <div class="screens">
 <figure>
 <a href="images/lock-onboarding/26-home-lock-ready.png"><img src="images/lock-onboarding/26-home-lock-ready.png" alt="Home, with the newly onboarded lock on a card and an Unlock button"></a>
-<figcaption><strong>The lock, onboarded</strong>The name, area and image from step 4 are what the card is drawn from, and the model came out of the catalogue lookup in step 3. Status BLE means the phone is reaching the lock directly rather than through a gateway. <a href="home.md">Home</a> covers what keeps this card live.</figcaption>
+<figcaption><strong>The lock, onboarded</strong>The card is drawn from the name, area and image set in step 4, and the model came out of the catalogue lookup in step 3. Status BLE means the phone is reaching the lock directly rather than through a gateway. <a href="home.md">Home</a> covers what keeps this card live.</figcaption>
 </figure>
 </div>
 

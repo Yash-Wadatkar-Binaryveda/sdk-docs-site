@@ -9,8 +9,8 @@ use. Each flow page lists the ones it needs at the top and links back here.
 Twelve participants appear across the site, and no page uses all of them.
 
 **Each one keeps its colour in every diagram it appears in**, and every arrow is
-drawn in the colour of the participant it leaves from, so an arrow can be traced
-back to whatever sent it.
+drawn in the colour of the participant it leaves from, so you can trace any
+arrow back to whatever sent it.
 
 | Participant | What it is |
 |---|---|
@@ -40,8 +40,8 @@ A->>B: getAccessibleRoomsByStaff(staffId)
        Every door this person may open
 ```
 
-The top line is what to search the codebase for, and the bottom line explains it
-for anyone who does not know the API. Arrows that are already plain English,
+Search the codebase for the top line. The bottom line explains it for anyone who
+does not know the API. Arrows that are already plain English,
 such as "Tap Unlock" or "The login screen", are left as one line.
 
 !!! note "What an arrow into the backend carries"
@@ -70,5 +70,5 @@ same thing a **task** and shows it as a card. This site uses "task" on the flow
 pages and "service request" where the call name or the database does.
 
 **Access point** is Spintly's name for a door. The backend stores its Spintly ID
-on the lock record and passes it to the app as `spintlyId`, which is what the
-unlock call takes.
+on the lock record and passes it to the app as `spintlyId`, the value the unlock
+call takes.

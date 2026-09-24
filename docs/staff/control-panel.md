@@ -44,7 +44,7 @@ Each one is defined, with the colour it keeps across the site, in
 </figure>
 <figure>
 <a href="images/control-panel/03-passage-mode.png"><img src="images/control-panel/03-passage-mode.png" alt="The Control Panel with passage mode on and the door held open"></a>
-<figcaption><strong>Passage mode</strong>The door is held open for everyone. The badge shows it, and Unlock has nothing to do.</figcaption>
+<figcaption><strong>Passage mode</strong>The door is held open for everyone. The badge shows it, and Unlock has no effect.</figcaption>
 </figure>
 </div>
 
@@ -122,7 +122,7 @@ access points the SDK is holding.
         A->>S: Observe accessManager.scannedDevicesLiveData<br/>Which of them are in Bluetooth range
     ```
 
-    **This is where a non-housekeeping role first gets a Spintly session.** The
+    **A non-housekeeping role first gets a Spintly session here.** The
     Dashboard only sets one up for housekeeping, so for every other role the
     handshake happens here, the first time a Control Panel is opened. The full
     handshake is
@@ -181,16 +181,16 @@ sequenceDiagram
     A-->>U: After six seconds, the button returns to Unlock
 ```
 
-Nothing is sent to Binaryveda's backend after an unlock. The backend hears about
-it indirectly, from Spintly through Kafka, and no screen in this app waits for
-that.
+The app sends nothing to Binaryveda's backend after an unlock. The backend hears
+about it indirectly, from Spintly through Kafka, and no screen in this app waits
+for that.
 
 ### The six second window
 
 Both platforms hold the unlocked state for **six seconds** and then put the
 button back, whether or not the door was actually opened. It is a display timer
-only: nothing is called when it fires, and the lock relocks itself on its own
-schedule.
+only: the app calls nothing when it fires, and the lock relocks itself on its
+own schedule.
 
 ### The permission check
 
@@ -212,8 +212,8 @@ schedule.
 
 ### Remote unlock exists but is never used
 
-The consumer app falls back to the gateway when Bluetooth fails. This app does
-not.
+The consumer app falls back to the gateway when Bluetooth fails. This app keeps
+the code for it but never runs it.
 
 | | What is there |
 |---|---|
@@ -233,7 +233,7 @@ Spintly's `setDoorMode` endpoint to apply it.
 | Mode | What it means here |
 |---|---|
 | **Privacy mode** | The guest has locked the room from inside. Spintly refuses the unlock, and the app shows "The lock is in privacy mode. You do not have access to unlock the room" |
-| **Passage mode** | The door is held open for everyone. The badge shows it, and the Unlock button has nothing to do |
+| **Passage mode** | The door is held open for everyone. The badge shows it, and the Unlock button has no effect |
 
 Privacy mode is not enforced by the app. The button can still be tapped, the
 call still goes to the SDK, and the refusal comes back as an
@@ -287,8 +287,8 @@ plain sentences, and Android shows the SDK's own `displayMessage`.
 | `UnauthorisedError` 9 | Click to access denied |
 
 `UnauthorisedError` 7 is the one most often misread. It usually means `pollData`
-has not run since the staff member's permissions changed, rather than that the
-door does not exist.
+has not run since the staff member's permissions changed, not that the door is
+missing.
 
 ## Differences between the two
 

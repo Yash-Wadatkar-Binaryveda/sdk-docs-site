@@ -196,7 +196,7 @@ sequenceDiagram
 ```
 
 The hours are checked on the phone, against its own clock. The request carries
-no items. It tells staff the guest wants room service, and nothing more.
+no items, so it tells staff only that the guest wants room service.
 
 ## 5. After a request
 
@@ -220,8 +220,9 @@ sequenceDiagram
 ```
 
 A request with several items produces one notification per item. The `OTHERS`
-item never produces one. What the guest sees is on
-[Notifications](notifications.md#2-what-the-backend-sends).
+item is the exception and sends none.
+[Notifications](notifications.md#2-what-the-backend-sends) covers what the guest
+sees.
 
 ## Differences between the two
 

@@ -2,8 +2,8 @@
 
 **What it is.** One screen with two modes, reached from either Dashboard tab.
 From Rooms it finds doors by room number. From Tasks it finds the tasks on a
-room, grouped by status. Which mode it opens in is decided by the tab it was
-opened from.
+room, grouped by status. The tab it was opened from decides which mode it runs
+in.
 
 **How to get there.** The search field on the Rooms tab, or the magnifying glass
 in the header of an open task category.
@@ -131,5 +131,5 @@ cannot be completed from here either.
 
 ## Every SDK member this flow uses
 
-None. Opening a result leads to the [Control Panel](control-panel.md), which is
-where the Access SDK comes in.
+None. Opening a result leads to the [Control Panel](control-panel.md), where the
+Access SDK comes in.

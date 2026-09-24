@@ -30,8 +30,8 @@ it belongs to.
 ### OAuth SDK: the session token
 
 Exchanges the Keycloak token from the app's own login for a Spintly **session
-token**. Nothing else in the app can talk to Spintly until this succeeds, so it runs
-first and everything downstream depends on it.
+token**. Nothing else in the app can talk to Spintly until this succeeds, so it
+runs first.
 
 The exchange runs over callbacks rather than a single call. The app asks for a
 session, the SDK asks the app how to authenticate, the app hands back a
@@ -87,7 +87,7 @@ flowchart TD
 !!! note "Before any of that can happen"
 
     All three have to be created and pointed at an environment first. When that
-    happens differs by platform, and is covered in
+    happens differs by platform. See
     [App launch, in User Onboarding](user-onboarding.md#1-app-launch).
 
 ## How to read these pages

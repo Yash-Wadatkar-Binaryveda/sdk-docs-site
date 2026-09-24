@@ -2,14 +2,14 @@
 
 **What it is.** Turning a booking into a stay. Check in assigns a room number,
 records who is actually staying, and issues the credentials that open the door.
-It is where a guest first gets one.
+A guest gets their first credential here.
 
 **How to get there.** Check In, on a room card of a booking detail screen. The
 booking is reached from [Bookings](bookings.md#1-finding-a-booking).
 
 !!! warning "Key point"
 
-    The room access step is where a guest becomes real to the lock system.
+    The room access step is the one that registers a guest with the lock system.
     Before it, the guest exists in the database and can sign in to the guest
     app, but has no accessor and no permission on any door. See
     [step 4](#4-issuing-room-access).
@@ -59,7 +59,7 @@ call and can be moved past with one button.
 
 It is not shown every time. The app counts how many times check in has been
 opened and shows the greeting on every fifth open, so it appears on the first
-check in of a run and then stays out of the way. The count is held in the
+check in of a run and stays out of the way after that. The count is held in the
 browser and is separate from the one used by
 [check out](stay-over-and-check-out.md#2-checking-out).
 
@@ -86,13 +86,13 @@ Check in then works through the selected rooms one at a time, repeating
 <div class="screens wide">
 <figure>
 <a href="images/check-in/02-select-rooms.png"><img src="images/check-in/02-select-rooms.png" alt="The room selection step, two rooms each listing their expected guests, one room ticked"></a>
-<figcaption><strong>Choosing the rooms</strong>One tick per room and one per guest under it. Here the first room is left for later, which is what produces a partly arrived booking.</figcaption>
+<figcaption><strong>Choosing the rooms</strong>One tick per room and one per guest under it. Here the first room is left for later, which produces a partly arrived booking.</figcaption>
 </figure>
 </div>
 
 ## 3. Guest details
 
-The room number is chosen here, and the people staying in it are recorded.
+This step fixes the room number and records the people staying in it.
 
 <div class="screens wide">
 <figure>
@@ -152,26 +152,27 @@ the first time.
 ### The photo ID
 
 Files are uploaded straight from the browser to S3 before the mutation is sent,
-each under a generated name. What goes to the backend is the stored key, not the
-file, so a failed upload leaves the check in unsent rather than half written.
+each under a generated name. The backend receives the stored key, not the file.
+If an upload fails, the check in is never sent, so nothing is half written.
 
 Reading one back later is a separate call. `getIdentityProofUrl` exchanges the
-stored key for a temporary link, which is how the photo ID opens from a guest
-row on the booking screen.
+stored key for a temporary link, and that link is what opens the photo ID from a
+guest row on the booking screen.
 
 ### What the backend does with it
 
 `checkInGuests` does more than write a row. For each guest it also creates a
-Cognito account against their mobile number, which is what later lets them sign
-in to the guest app with a phone number and an OTP.
+Cognito account against their mobile number, which later lets them sign in to
+the guest app with a phone number and an OTP.
 
-The response carries the new guest IDs, and the dialog keeps them. They are what
-[step 4](#4-issuing-room-access) grants access to.
+The response carries the new guest IDs, and the dialog keeps them. Those are the
+IDs [step 4](#4-issuing-room-access) grants access to.
 
 ## 4. Issuing room access
 
-The last step, and the one that reaches Spintly. It lists the
-guests just checked in and decides, per guest, how they get into the room.
+This is the final step and the only one that reaches Spintly. It lists the
+guests who just checked in and sets, per guest, how each of them gets into the
+room.
 
 <div class="screens wide">
 <figure>
@@ -248,16 +249,16 @@ they were issued.
 | `deleteRfid` | Card control was turned off for a guest who had a card | Detaches the card and releases the allocation |
 | `updateAccessorPermissions` | Every time | Writes which doors this accessor may open |
 
-The order matters on a second visit to this screen. Which credential types an
-accessor may use is a setting on the accessor rather than on each door, so it is
-written first and the permission call inherits it. Writing the permission alone
-would leave a card tick with no effect.
+The order matters on a second visit to this screen. The credential types an
+accessor may use sit on the accessor rather than on each door, so that call goes
+first and the permission call inherits the setting. A permission written on its
+own would leave a card tick with no effect.
 
 ### The result is per guest
 
 `grantAccessPermissionGuest` answers with one entry per guest rather than a
 single outcome, so a room can succeed for one guest and fail for another. The
-app reports the three cases differently.
+app reports the three cases separately.
 
 | Outcome | What the screen says |
 |---|---|
@@ -311,8 +312,8 @@ new room numbers and statuses.
 
 ## 6. Changing access after check in
 
-Once a guest has arrived, two icons appear on their row on the booking screen.
-Neither reopens check in.
+Once a guest has arrived, two icons appear on their row on the booking screen,
+and neither of them reopens check in.
 
 <div class="screens wide">
 <figure>
@@ -341,8 +342,8 @@ sequenceDiagram
     end
 ```
 
-Both icons are inactive while the guest is `BOOKED`, `CANCELLED` or `DEPARTED`.
-There is nothing to issue before arrival and nothing to change afterwards.
+Both icons are inactive while the guest is `BOOKED`, `CANCELLED` or `DEPARTED`,
+since there is nothing to issue before arrival and nothing to change afterwards.
 
 Editing a guest changes the record only. It writes no permission and makes no
 Spintly call, so changing a name does not reissue a card.

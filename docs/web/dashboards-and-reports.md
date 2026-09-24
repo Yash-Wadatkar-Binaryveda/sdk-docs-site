@@ -11,8 +11,8 @@ and Super Admin.
 
     A dashboard widget and its download are two different calls against two
     different paths. The widget reads a dashboard endpoint and the download
-    reads a reports endpoint, which is why a download can be asked for a wider
-    range than the widget is drawing.
+    reads a reports endpoint, so a download can be asked for a wider range than
+    the widget is drawing.
 
 ## Participants
 
@@ -108,8 +108,8 @@ sequenceDiagram
     end
 ```
 
-The file is built when it is asked for. Nothing is generated in advance, so a
-report always reflects the moment it was requested.
+The file is built when it is asked for, so a report always reflects the moment
+it was requested.
 
 The link expires after fifteen minutes. It is used immediately by the browser,
 so the expiry only matters to a link that has been copied elsewhere.
@@ -137,8 +137,8 @@ sequenceDiagram
 ```
 
 Clicking **Download** either starts the file at once or opens a dialog asking
-you to narrow the report first. Which of the two, and what the dialog asks for,
-is fixed per card.
+you to narrow the report first. Both the behaviour and the fields in the dialog
+are fixed per card.
 
 ### Site reports
 
@@ -188,9 +188,8 @@ The Lock Access report is the clearest example. It reads the unlock events
 room number and to the guest or staff member who was there at the time, and
 writes a row per event.
 
-The Web Access report reads what `addLoginAccessDetails` recorded at sign in,
-which is why it can separate a web sign in from a staff app sign in by the same
-person. See
+The Web Access report reads what `addLoginAccessDetails` recorded at sign in, so
+it can separate a web sign in from a staff app sign in by the same person. See
 [Sign In and Roles, step 5](sign-in-and-roles.md#5-what-the-app-loads-next).
 
 ## What the backend does

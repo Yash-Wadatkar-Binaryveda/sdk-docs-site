@@ -11,8 +11,8 @@ Each page names the participants it uses at the top and links back here.
 Twelve participants appear across the site. No page uses all of them.
 
 **Each one keeps its colour in every diagram it appears in**, and every arrow is
-drawn in the colour of the participant it leaves from, so an arrow can be traced
-back to whatever sent it.
+drawn in the colour of the participant it leaves from, so you can trace any
+arrow back to whatever sent it.
 
 | Participant | What it is |
 |---|---|

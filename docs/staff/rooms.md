@@ -9,8 +9,8 @@ opens the [Control Panel](control-panel.md).
 
 !!! warning "Key point"
 
-    This list is not filtered by the app. What arrives is exactly what this
-    staff member may open, decided by the backend from their shift. See
+    The app does not filter this list. The backend decides from the staff
+    member's shift exactly which doors arrive. See
     [step 2](#2-who-sees-which-rooms).
 
 ## Participants
@@ -114,10 +114,10 @@ Two consequences follow:
   the app on a Tuesday and a Wednesday can see different floors, because the
   shift is looked up per weekday.
 - **An empty list usually means no shift.** A housekeeper who is not rostered
-  today gets nothing back, which is the backend working as designed.
+  today gets nothing back. The backend is working as designed.
 
-The permissions the **Access SDK** holds are a separate copy of the same idea,
-kept in step by `pollData`. If an admin changes a shift, the backend updates the
+The **Access SDK** holds its own copy of the same permissions, kept in step by
+`pollData`. If an admin changes a shift, the backend updates the
 staff member's accessor permissions at Spintly and sends a push, which on Android
 triggers a fresh `pollData`. See
 [Notifications](notifications.md#2-a-push-arrives).
@@ -150,8 +150,8 @@ exactly `ENABLED`. Anything else, including the intermediate `ENABLING` and
 `DISABLING` states the backend writes while it is talking to the lock, reads as
 off.
 
-What these two modes mean for the Unlock button is on the
-[Control Panel](control-panel.md#4-privacy-mode-and-passage-mode).
+The [Control Panel](control-panel.md#4-privacy-mode-and-passage-mode) covers
+what these two modes mean for the Unlock button.
 
 ## Differences between the two
 

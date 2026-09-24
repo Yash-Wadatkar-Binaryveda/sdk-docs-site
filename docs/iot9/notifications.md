@@ -52,8 +52,8 @@ sequenceDiagram
 ## 1. Registering the device
 
 Firebase issues the device a token. The app hands it to Binaryveda's backend,
-which is what lets the backend address a push at this phone. Firebase reissues
-the token from time to time, and the app sends the new one each time.
+which can then address a push at this phone. Firebase reissues the token from
+time to time, and the app sends the new one each time.
 
 ```mermaid
 sequenceDiagram
@@ -86,10 +86,10 @@ does. The list of topics is the same on both platforms.
 
 ### Topics the backend sends that the phone apps do not route on
 
-The table above is what the app has a branch for. The backend sends more than
-that, and most of the extra topics come straight off a Kafka message from
-Spintly. They are listed here so a topic seen in a log is not mistaken for a
-missing handler.
+The table above lists the topics the app has a branch for. The backend sends
+more than that, and most of the extra topics come straight off a Kafka message
+from Spintly. They are listed here so a topic seen in a log is not mistaken for
+a missing handler.
 
 | Topic | Sent when | Who receives it |
 |---|---|---|
@@ -218,7 +218,8 @@ The two platforms do not recognise the same set of codes.
 | `LOCK_ONLINE` | Yes | **No** |
 | `LOCK_INVITE_DECLINED` | Yes | **No** |
 
-There is no way to mark everything read. `markViewed` takes one id at a time.
+`markViewed` takes one id at a time, so notifications are marked read
+individually.
 
 ## Differences between the two
 

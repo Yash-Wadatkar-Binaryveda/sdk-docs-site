@@ -1,7 +1,7 @@
 # 1. Sign In and Roles
 
-**What it is.** How an account comes into existence, how it is signed in, and
-what the signed in role is then allowed to reach. Everything else in this app
+**What it is.** How an account comes into existence, how someone signs in with
+it, and what their role is then allowed to reach. Everything else in this app
 assumes this page.
 
 **How to get there.** The sign in screen is the app's entry point. Any address
@@ -79,7 +79,7 @@ Two things about that Cognito user decide what happens later.
 
 - **The delivery medium is email.** Cognito generates the temporary password and
   sends it. The administrator never sees it and cannot set it.
-- **The group is the role.** `AdminAddUserToGroup` is what puts `SITE-ADMIN` or
+- **The group is the role.** `AdminAddUserToGroup` puts `SITE-ADMIN` or
   `FRONTDESK` into the token, and the app reads the role from nowhere else.
 
 The email itself is formatted by a Cognito Lambda trigger rather than by any
@@ -118,8 +118,8 @@ sequenceDiagram
     end
 ```
 
-The error message is deliberately the same whichever of the email or the
-password was wrong.
+The error message is deliberately the same whether the email or the password was
+wrong.
 
 Once Cognito returns tokens, the app holds both and uses them for different
 things. The GraphQL API is called with the **access token**, and the Socket.IO
@@ -201,8 +201,8 @@ then sends both with the new password from the next screen.
 
 ## 5. What the app loads next
 
-A successful sign in is followed by three calls before the first screen is
-drawn. The site they resolve is what scopes the rest of the session.
+Three calls follow a successful sign in, before the first screen is drawn. The
+site they resolve scopes the rest of the session.
 
 ```mermaid
 sequenceDiagram
@@ -219,14 +219,14 @@ sequenceDiagram
     W-->>U: The home screen for this role
 ```
 
-`addLoginAccessDetails` is what the Web Access report in
+The Web Access report in
 [Dashboards and Reports](dashboards-and-reports.md#4-the-reports-screen) reads
-back. It records the platform and the application type, which is how web sign
-ins are told apart from staff app sign ins by the same person.
+`addLoginAccessDetails` back. It records the platform and the application type,
+so a web sign in can be told apart from a staff app sign in by the same person.
 
 The hotel and site are held for the browser tab and cleared when it closes. The
-user record is held for the browser and survives a reload, which is what lets a
-refreshed page redraw without signing in again.
+user record is held for the browser and survives a reload, so a refreshed page
+redraws without signing in again.
 
 A hotel admin or super admin has no site on their staff record. They work
 without one until they open a site, which is
@@ -243,9 +243,9 @@ without one until they open a site, which is
 
 ## 6. What each role can reach
 
-This is the permission matrix for the whole app. It answers one question for
-every role: which areas can this person open, and can they change anything once
-they are in.
+This is the permission matrix for the whole app. For every role it answers which
+areas that person can open, and whether they can change anything once they are
+in.
 
 The app splits itself into thirteen **subjects**, mostly one per area, and gives
 each role one of two **actions** against each of them.
@@ -280,8 +280,8 @@ being able to change them. Both are `read` rather than `manage`.
 The matrix is not the same thing as the sidebar. The menu a role is given and
 the permission check on the page are set separately, so a role can hold a
 permission for a subject that has no menu entry in its sidebar. Reaching that
-screen by a link works, because what decides is the check on the page rather
-than the menu.
+screen by a link works, because the check on the page decides rather than the
+menu.
 
 ### The three guards
 

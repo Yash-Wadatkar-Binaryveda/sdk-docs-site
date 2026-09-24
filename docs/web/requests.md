@@ -9,9 +9,9 @@ the Restaurant Manager lands on it after sign in.
 
 !!! warning "Key point"
 
-    This screen shows work, it does not assign it. Starting a request, claiming
-    it and doing it happen in the staff app. What this screen adds is a view
-    across the whole site, and a way to close a request without the staff app.
+    This screen shows work rather than assigning it. Starting a request,
+    claiming it and doing it all happen in the staff app. It adds a view across
+    the whole site, and a way to close a request without the staff app.
 
 ## Participants
 
@@ -107,8 +107,8 @@ the rest by age with the oldest first.
 ### Others
 
 Housekeeping and check out, for every role that sees the tab. Requests that are
-completed, awaiting the guest, or rejected are left out, so what remains is work
-that is live. Sorted newest first.
+completed, awaiting the guest, or rejected are left out, so only live work
+remains. Sorted newest first.
 
 ### Completed
 
@@ -132,16 +132,15 @@ fault.
 | `deviceType` | `LOCK`, `GATEWAY`, `REPEATER` |
 | `deviceStatus` | `OFFLINE`, `CRITICAL` for critical battery, `WEAK` for weak battery |
 
-Where these come from is [step 5](#5-live-alerts). The other thing that lands
-here is a room whose access was revoked when a stay ran past its grace period,
-which is
+[Step 5](#5-live-alerts) covers where these come from. A room whose access was
+revoked when a stay ran past its grace period also lands here. See
 [Stay Over and Check Out, step 4](stay-over-and-check-out.md#4-when-nobody-checks-out).
 
 ### Searching and paging
 
 The search box matches a room number, a guest's first name or a guest's last
-name, is debounced by 300 milliseconds, and is sent to the server. Page sizes
-are 5, 10, 15 and 20, and both the page and the size are server side.
+name. It is debounced by 300 milliseconds and sent to the server. Page sizes are
+5, 10, 15 and 20, and both the page and the size are server side.
 
 ## 3. Closing a request
 
@@ -173,8 +172,7 @@ What each tab offers is fixed.
 | System | None |
 
 `completeRequest` takes only the request ID. It does not claim the request
-first, which is why this screen can close work that nobody started in the staff
-app.
+first, so this screen can close work that nobody started in the staff app.
 
 ## 4. The activity trail
 
@@ -244,7 +242,7 @@ site.
 
 ### Who gets which alert
 
-The room the event is sent to is chosen by what the request is.
+The request decides which room the event is sent to.
 
 | What happened | Roles alerted |
 |---|---|

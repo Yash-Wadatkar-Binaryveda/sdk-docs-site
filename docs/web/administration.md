@@ -10,7 +10,7 @@ other role's. Neither sees Bookings, Requests or Inventory.
 
     Neither tier belongs to a site, so neither has one to work in until they
     pick one. Opening a site card puts that site in the address and scopes the
-    rest of the app to it, which is how a Hotel Admin reads a site dashboard.
+    rest of the app to it, so a Hotel Admin can read a site dashboard.
     See [step 4](#4-opening-a-site).
 
 ## Participants
@@ -37,7 +37,7 @@ default. A Super Admin works across hotels that do not share one.
 <div class="screens wide">
 <figure>
 <a href="images/administration/01-hotel-sites-super-admin.png"><img src="images/administration/01-hotel-sites-super-admin.png" alt="The Super Admin Hotel Sites screen, several hotels each with their sites, and an A to Z strip"></a>
-<figcaption><strong>Super Admin</strong>The sidebar is Master Dashboard, Hotel Sites and Hotel Admins. The dark treatment is what marks these two tiers apart from a site role's screens.</figcaption>
+<figcaption><strong>Super Admin</strong>The sidebar is Master Dashboard, Hotel Sites and Hotel Admins. The dark treatment marks these two tiers apart from a site role's screens.</figcaption>
 </figure>
 <figure>
 <a href="images/administration/05-hotel-admin-view.png"><img src="images/administration/05-hotel-admin-view.png" alt="The Hotel Admin Hotel Sites screen, one hotel's sites, with Site Admins and Global Policies in the sidebar"></a>
@@ -128,8 +128,8 @@ The forms ask for the same fields. Salutation, first and last name, country code
 and mobile, email, employee ID, and the one thing that differs: a Hotel Admin is
 attached to a **hotel**, a Site Admin to a **site**.
 
-Email is required on both, because it is what the Cognito account is created
-against. The rest of that path is
+Email is required on both, because the Cognito account is created against it.
+The rest of that path is
 [Sign In and Roles, step 1](sign-in-and-roles.md#1-where-the-account-comes-from).
 
 Editing uses `getHotelAdmin` or `getSiteAdmin` to fill the form, then
@@ -152,7 +152,7 @@ Neither screen creates staff. Everybody below Site Admin is added from
 
 ## 4. Opening a site
 
-This is what gives an administrator a site to work in.
+An administrator with no site of their own picks one here.
 
 ```mermaid
 sequenceDiagram
@@ -178,7 +178,7 @@ else needing to know how the site was chosen.
 A Super Admin reaches a site in two hops: a hotel card narrows the list to that
 hotel, then a site card opens the site.
 
-This is also why the two tiers do not open the Socket.IO connection described in
+The two tiers also never open the Socket.IO connection described in
 [Requests](requests.md#the-connection). Their own staff record has no site, so
 there is no site room to join.
 
@@ -244,9 +244,9 @@ period. Those four are per site, so they are set on
 
 ### Saving, resetting, and notifying
 
-The confirmation appears before every save and states what the change is
-expected to do, that sites carrying their own policy stay as they are. It also
-carries the notify tick.
+The confirmation appears before every save and says what the change leaves
+alone: sites carrying their own policy stay as they are. It also carries the
+notify tick.
 
 Notifying is done by the backend rather than by the browser. It gathers every
 Site Admin in the hotel, with their name, email and site, and sends them the new
@@ -267,7 +267,7 @@ of its own.
 <div class="screens wide">
 <figure>
 <a href="images/administration/03-add-hotel-logo.png"><img src="images/administration/03-add-hotel-logo.png" alt="The Add Hotel logo dialog, one image slot with a size limit noted"></a>
-<figcaption><strong>Add Hotel logo</strong>One image, up to 1mb, uploaded before <code>addHotelLogo</code> is sent. What reaches the backend is the stored key.</figcaption>
+<figcaption><strong>Add Hotel logo</strong>One image, up to 1mb, uploaded before <code>addHotelLogo</code> is sent. The backend receives the stored key.</figcaption>
 </figure>
 </div>
 

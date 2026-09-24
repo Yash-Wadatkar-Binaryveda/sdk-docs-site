@@ -63,9 +63,8 @@ Copied**.
 
 === "iOS"
 
-    `getGuestDetails` is called each time the menu opens. A copy fetched
-    recently is reused instead, and the last cached copy is shown if the call
-    fails.
+    `getGuestDetails` is called each time the menu opens. The app reuses a copy
+    fetched recently, and falls back to the last cached copy if the call fails.
 
 === "Android"
 
@@ -123,12 +122,12 @@ Log out is behind a confirmation dialog.
         A-->>G: The number screen
     ```
 
-Nothing is sent to Binaryveda's backend. The device token row stays where it
-is, and deleting the FCM token is what stops pushes reaching the phone.
+The app sends nothing to Binaryveda's backend. The device token row stays where
+it is, and pushes stop reaching the phone because the FCM token was deleted.
 
 ## 3. The ways a session ends
 
-Only the first is something the guest chooses.
+The guest chooses only the first of these.
 
 | | What triggers it | Platforms | Cognito signed out |
 |---|---|---|---|

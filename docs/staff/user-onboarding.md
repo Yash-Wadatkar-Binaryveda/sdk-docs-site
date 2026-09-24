@@ -21,9 +21,8 @@ Each one is defined, with the colour it keeps across the site, in
 
 ## The whole flow
 
-Six steps. Each one has its own section below. Ending a session is the other
-direction, and it is on
-[Profile and Logout](profile-and-logout.md#3-logging-out).
+Six steps. Each one has its own section below. Ending a session runs the other
+way, on [Profile and Logout](profile-and-logout.md#3-logging-out).
 
 ```mermaid
 sequenceDiagram
@@ -166,8 +165,8 @@ answers it with the six digits.
 
 Staff cannot sign themselves up. If Cognito has no user for that number the
 challenge trigger throws **"User does not exist"**, which the app surfaces
-directly. A staff member has to be created by an admin first, and that is also
-what creates their Spintly accessor.
+directly. An admin has to create the staff member first, which also creates
+their Spintly accessor.
 
 <div class="screens">
 <figure>
@@ -314,8 +313,8 @@ calls in a different order.
     Only `addDeviceToken` gates the navigation. If it fails the app stays on the
     OTP screen even though Cognito has already signed the user in.
 
-What `addDeviceToken` sends, and why the device UUID goes with it, is in
-[Notifications](notifications.md#1-registering-the-device).
+[Notifications](notifications.md#1-registering-the-device) covers what
+`addDeviceToken` sends and why the device UUID goes with it.
 
 ## 5. Trading the Cognito token for a Spintly session
 
@@ -393,7 +392,7 @@ around that token.
     `clearSession()`, so any existing Spintly session is discarded and rebuilt.
     iOS keeps an existing session and skips the work.
 
-`pollData` is what fills the door list. Until it returns, the Access SDK holds
+`pollData` fills the door list. Until it returns, the Access SDK holds
 no permissions and `bleUnlockAccessPoint` has nothing to match a `spintlyId`
 against.
 

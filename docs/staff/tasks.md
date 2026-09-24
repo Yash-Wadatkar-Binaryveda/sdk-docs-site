@@ -5,16 +5,16 @@ work happens. It shows the categories of work this staff member is responsible
 for with a count on each, and opening one gives a set of status tabs to work
 through.
 
-**How to get there.** It is the screen the app lands on after sign in, and the
-left button on the Dashboard's bottom bar. Tapping a category card opens its
-tabs, and the back arrow returns here.
+**How to get there.** The app lands here after sign in, and it is the left
+button on the Dashboard's bottom bar. Tapping a category card opens its tabs,
+and the back arrow returns here.
 
 !!! warning "Key point"
 
     Almost nothing on this screen touches an SDK. The exceptions are the Spintly
     session, set up from here on first load, and on Android the BLE scan, which
     this tab starts whenever Bluetooth or location becomes available. Which roles
-    get a session here differs by platform, and that is
+    get a session here differs by platform. See
     [User Onboarding, step 5](user-onboarding.md#5-trading-the-cognito-token-for-a-spintly-session).
 
 ## Participants
@@ -79,8 +79,8 @@ sequenceDiagram
 | Engineering Maintenance | System |
 | Site Manager, Site Admin | All of them |
 
-Where the room list is filtered by the backend from the shift, this list is
-filtered in the app. The call returns every category and the app drops the ones
+The room list is filtered by the backend from the shift. This list is filtered
+in the app instead. The call returns every category and the app drops the ones
 this role is not responsible for. A category the backend did not return gets no
 card either, so a role can end up seeing fewer cards than the table above lists.
 
@@ -412,8 +412,9 @@ drop. These cards have no clearance flow. Expand the card and mark it complete.
 
 ### Reception
 
-Two tabs. Guest asks the desk for help (taxi, wake-up call, extend stay,
-emergency). Staff mark it complete. There is no Start step.
+Two tabs. The guest asks the desk for help with a taxi, a wake up call, an
+extended stay or an emergency, and staff mark it complete. There is no Start
+step.
 
 <div class="screens">
 <figure>
@@ -465,9 +466,9 @@ Restaurant manager. Same two tabs as Reception.
 ### System: access revoked
 
 System holds two unrelated kinds of work, and both sit on the same two tabs. The
-first is a guest room whose access was taken away rather than a broken device.
-Device faults are covered in [step 5](#5-device-faults-arrive-as-tasks), because
-where they come from needs explaining first.
+first is a guest room whose access was revoked rather than a broken device.
+Device faults are covered in [step 5](#5-device-faults-arrive-as-tasks), which
+first explains where they come from.
 
 <div class="screens">
 <figure>
@@ -509,14 +510,14 @@ What each card carries, whichever tab it is on:
 | `roomNumber`, `guestName` | Which room, and who is in it |
 | `requestDetails` | One or more items, each with a type and free-text instructions |
 | `taskStatus`, `isPriority` | Which tab it belongs on |
-| `spintlyId` | The door, which is what makes the Unlock button work |
+| `spintlyId` | The door the Unlock button acts on |
 | `privacyMode`, `passageModeStatus` | The lock's current mode |
 | `scheduledFrom`, `scheduledTo` | Set when a room cleaning is booked for later |
 | `deviceType`, `deviceStatus` | Set on System tasks only. See [step 5](#5-device-faults-arrive-as-tasks) |
 | `statusLogs` | Timestamps for every transition, and who serviced it |
 
 A task whose only item is `ROOM_CLEANING` is handled differently by the app. It
-is the one kind that can be scheduled, and the only one offering **Request
+is the only kind that can be scheduled or sent back to the guest with **Request
 again**.
 
 ## 4. Acting on a task
@@ -570,8 +571,8 @@ and booked for later.
 
 ## 5. Device faults arrive as tasks
 
-The **System** category is not raised by a guest. It is raised by the hardware,
-through Kafka, and it is the only place lock hardware appears in this app.
+The **System** category comes from the hardware through Kafka rather than from a
+guest, and it is the only place lock hardware appears in this app.
 
 ```mermaid
 sequenceDiagram
@@ -600,8 +601,8 @@ repeater shows **Gateway** or **Repeater**, with the serial underneath. The
 backend updates the same task when a device flaps, rather than opening a new
 one each time.
 
-There is nothing to repair in the app. Staff look at the hardware, then mark
-the task complete.
+The app itself repairs nothing. Staff look at the hardware, then mark the task
+complete.
 
 <div class="screens">
 <figure>
@@ -685,7 +686,7 @@ app clears it.
 
 ## Every SDK member this flow uses
 
-The Spintly session set up on first load, which is
+The Spintly session set up on first load, described in
 [User Onboarding, step 5](user-onboarding.md#5-trading-the-cognito-token-for-a-spintly-session),
 and on Android one Access SDK call of its own.
 

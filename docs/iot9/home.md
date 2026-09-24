@@ -37,7 +37,7 @@ sequenceDiagram
     S-->>A: The user's lock permissions
 
     Note over U,B: 2. Live updates
-    B-->>A: Socket events, pushed as things change
+    B-->>A: Socket events, pushed as state changes
     A-->>U: Cards update on their own
 
     Note over U,B: 3. Unlocking a lock
@@ -123,9 +123,9 @@ the user's lock permissions, which an unlock needs.
         A-->>U: The lock cards
     ```
 
-    **`hasInvites` opens a screen on its own.** When it comes back true, Android
-    sends the user to the notification screen without being asked, once per
-    session. The invite itself is
+    **`hasInvites` opens a screen automatically.** When it comes back true,
+    Android sends the user to the notification screen without being asked, once
+    per session. The invite itself is
     [User Management](user-management.md#3-accepting-the-invite).
 
 ## 2. Live updates
@@ -157,9 +157,9 @@ that event belongs to.
         A-->>U: The card redraws itself
     ```
 
-    iOS Home ignores the activityTrail event. On iOS that event feeds the
-    activity trail screen instead, so the card's last-action line does not move
-    until the list is fetched again.
+    iOS Home ignores the activityTrail event, feeding it to the activity trail
+    screen instead, so the card's last-action line does not move until the list
+    is fetched again.
 
 === "Android"
 
@@ -218,7 +218,7 @@ Which message becomes which event:
 | `door_mode_changed` | `doorModes` |
 | `device_status`, `gateway_status`, `device_battery_status` | `inventoryStatus` |
 
-The messages themselves, and everything else each one sets off, are in
+The messages themselves, and everything else each one triggers, are in
 [Kafka events](kafka-events.md).
 
 !!! note "Why an event sometimes does not arrive"
@@ -237,8 +237,8 @@ through the gateway. The same sequence runs from the
 
 Whether the tap does anything at all depends on the lock's mode, and that rule
 is the same on both platforms and on both screens: passage mode blocks everyone,
-privacy mode blocks everyone except the owner and primary users. It is set out
-in [Who can unlock, and when](lock-control-panel.md#who-can-unlock-and-when).
+privacy mode blocks everyone except the owner and primary users. See
+[Who can unlock, and when](lock-control-panel.md#who-can-unlock-and-when).
 
 <div class="screens">
 <figure class="crop">
@@ -342,8 +342,8 @@ holds the older state until the next socket event or the next fetch of the lock
 list corrects it.
 
 Each then redraws the lock as locked on a timer, 5.5 seconds on iOS and 7 on
-Android. Nothing is sent when it fires. It exists so the card does not sit on
-unlocked after the lock has already relocked itself. Android skips that repaint
+Android. The app sends nothing when it fires. It exists so the card does not sit
+on unlocked after the lock has already relocked itself. Android skips that repaint
 when the lock is **Online**, since a gateway backed lock reports its real state
 over the socket.
 

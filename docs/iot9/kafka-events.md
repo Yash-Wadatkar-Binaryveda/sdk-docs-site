@@ -40,9 +40,9 @@ flowchart LR
     class K bus
 ```
 
-The dotted line back into Spintly is the part that surprises people, and it is
-covered in [Messages that call back into Spintly](#messages-that-call-back-into-spintly)
-below. Some messages are not just news. They are the trigger for Binaryveda's
+The dotted line back into Spintly is covered in
+[Messages that call back into Spintly](#messages-that-call-back-into-spintly)
+below. Some messages do more than report a change. They trigger Binaryveda's
 next REST call.
 
 ### Which service does this
@@ -75,7 +75,7 @@ comma separated list, and the connection is SSL with SASL `scram-sha-512` using
 `KAFKA_CONSUMER_USERNAME` and `KAFKA_CONSUMER_PASSWORD`. All six values are
 pulled from SSM by `ssm.sh` at container start.
 
-Two things about how the consumers subscribe are worth holding on to:
+Two things about how the consumers subscribe are worth noting:
 
 - They subscribe with `fromBeginning: false`, then immediately `seek` to the
   stored offset.
@@ -86,7 +86,8 @@ Two things about how the consumers subscribe are worth holding on to:
 ### Three topics, three different envelopes
 
 The three topics do not agree on a message shape, and the field that says what
-kind of message it is has a different name on each. This catches people out:
+kind of message it is has a different name on each. The difference is easy to
+miss:
 
 | Topic | Kind field | Where the body is | Versioning |
 |---|---|---|---|
@@ -105,7 +106,7 @@ for rather than something the code already absorbs.
 
 ## 1. Resource CRUD
 
-The wrapper carries a `requestId`, which is how repeats are recognised.
+The wrapper carries a `requestId` that identifies repeats.
 
 ```json
 {
@@ -160,7 +161,7 @@ resource is the first word of `msgType` and the action is the last.
     calls `DELETE /infrastructureManagement/internal/v1/accessPoints/{accessPointId}`
     or `DELETE /infrastructureManagement/internal/v1/gateways/{serialNumber}`
     directly when a lock or gateway is removed, and the `access_point_delete`
-    or `gateway_delete` message that comes back is what closes out the row.
+    or `gateway_delete` message that comes back closes out the row.
 
 ### `resource_alive`
 
@@ -187,7 +188,7 @@ written:
    organisation has not been processed before.** Calls
    `POST /credentialManagementV3/v1/organisations/{orgId}/accessors/{accessorId}`
    once, with no access points added.
-3. **Neither.** Nothing, which is what a repeat of the same message hits.
+3. **Neither.** Nothing happens. A repeat of the same message lands here.
 
 !!! info "Why `resource_alive` and not `organisation_create`"
 
@@ -323,12 +324,12 @@ Wrapped in `data`, and keyed on `msgType` rather than `eventType`.
 
 | `msgType` | What `data` carries |
 |---|---|
-| `device_status` | `serialNumber`, `status`, `activeGatewaySerialNumber`, `statusTime`, `gatewayTime`, `cloudTime`. The gateway serial is what builds the lock to gateway mapping, and only while the lock is online |
+| `device_status` | `serialNumber`, `status`, `activeGatewaySerialNumber`, `statusTime`, `gatewayTime`, `cloudTime`. The gateway serial builds the lock to gateway mapping, and only while the lock is online |
 | `gateway_status` | `serialNumber`, `status`, `gatewayTime`, `cloudTime`. No `statusTime`, and no `dataVersion` |
 | `device_battery_status` | `serialNumber`, `deviceBatteryVoltage`, `deviceBatteryPercentage`, `eventTime`, `gatewayTime`, `cloudTime` |
 | `beacon_attached`, `beacon_detached` | `deviceSerialNumber`, `beaconId`, `beaconMacId`, `cloudTime`. A BLE remote being paired to or cleared from a lock |
 
-!!! warning "Three field names that catch people out"
+!!! warning "Three field names that are easy to misread"
 
     - The serial on the beacon messages is `deviceSerialNumber`, not
       `serialNumber` as it is on every other message on this topic. The handler
@@ -337,8 +338,8 @@ Wrapped in `data`, and keyed on `msgType` rather than `eventType`.
       out. The lock is not resolved from the message at all: the remote is found
       by MAC address alone.
     - `beaconId` is a small integer, `2` in Spintly's sample, and is not read.
-      It is not the same thing as `beaconMacId`, which is what the handler
-      matches the stored BLE remote row on.
+      It is not the same thing as `beaconMacId`, which the handler matches the
+      stored BLE remote row on.
     - `statusTime` belongs to `device_status` only. `gateway_status` has
       `gatewayTime` and `cloudTime` and nothing else time related. The handler
       reads `statusTime` in one place, to stamp the `DEVICE_STATUS` webhook, and
@@ -354,7 +355,7 @@ Wrapped in `data`, and keyed on `msgType` rather than `eventType`.
     A `beacon_attached` or `beacon_detached` message updates a BLE remote that
     already has a row with that MAC address.
 
-## What each message sets off
+## What each message triggers
 
 Read this as: a message arrives, and the handler does some combination of
 writing to a database, calling Spintly, emitting a socket event, sending a push,
@@ -362,8 +363,8 @@ and queuing a webhook.
 
 ### Messages that call back into Spintly
 
-Two messages are not news at all. They are the trigger for the next REST call,
-and nothing else in the estate makes that call.
+Two messages do more than report a change. They trigger the next REST call, and
+nothing else in the estate makes that call.
 
 | Message | What Binaryveda does with it |
 |---|---|
@@ -400,8 +401,7 @@ sequenceDiagram
 ```
 
 `addLock` refuses a property whose `synced` is still false, answering *"The site
-has not synced yet"*. The Kafka round trip is not a background detail here. It
-is the gate on the next step of onboarding.
+has not synced yet"*. The Kafka round trip gates the next step of onboarding.
 
 ### What an unlock message turns into
 
@@ -432,9 +432,9 @@ sequenceDiagram
 ```
 
 That freshness check is the usual explanation for a trail row that exists while
-nobody's phone lit up. An event that arrives after a newer one is kept in the
-trail, but nothing goes out over the socket or as a push. The same check gates
-`deadbolt_event`.
+no push reached anyone's phone. An event that arrives after a newer one is kept
+in the trail, but nothing goes out over the socket or as a push. The same check
+gates `deadbolt_event`.
 
 ### The full table
 
@@ -457,7 +457,7 @@ trail, but nothing goes out over the socket or as a push. The same check gates
 | `device_battery_status` | Row in QuestDB, battery level and status | `inventoryStatus` | `LOCK_BATTERY` when critical or dead | `CRITICAL_BATTERY_ALERT`, on the change into critical only |
 | `beacon_attached`, `beacon_detached` | BLE remote state | | | |
 
-Three of these only go out on a change. `device_status`, `gateway_status` and
+Three of these are only sent on a change. `device_status`, `gateway_status` and
 `device_battery_status` compare the incoming value against the stored one, and
 send the socket event and the watch push only when it differs. The database
 write happens either way.
@@ -509,7 +509,7 @@ behaviours are Binaryveda's rather than Kafka's.
 | Offsets | Committed by hand. `autoCommit` is off, and each handler writes `message.offset + 1` to the `kafka_offsets` table once it finishes. On startup the consumer seeks to the stored offset |
 | Repeats, resource CRUD | Deduplicated on `requestId` against the `crud_requests_ids` table. A repeat is logged and dropped |
 | Repeats, `resource_alive` | Spintly sends it more than once per resource. The accessor call is guarded on the owner not already having one, so a repeat after a failure retries naturally, and a repeat after a success does nothing |
-| A message that keeps crashing the consumer | On a crash where Kafka says it will not restart, the stored offset is bumped by one to step over the message |
+| A message that keeps crashing the consumer | On a crash where Kafka says it will not restart, the stored offset is bumped by one to skip the message |
 | Ordering | The QuestDB freshness check, described above, and the FIFO group id on the webhook queue, which preserves order per integrator and lock |
 
 ## Where these messages surface

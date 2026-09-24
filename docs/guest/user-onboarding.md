@@ -22,9 +22,8 @@ Each one is defined, with the colour it keeps across the site, in
 
 ## The whole flow
 
-Seven steps. Each one has its own section below. Ending a session is the other
-direction, and it is on
-[Profile and Logout](profile-and-logout.md#2-logging-out).
+Seven steps. Each one has its own section below. Ending a session runs the other
+way, on [Profile and Logout](profile-and-logout.md#2-logging-out).
 
 ```mermaid
 sequenceDiagram
@@ -81,8 +80,8 @@ a session appears.
     ```
 
     The SDK work is in `SmartAccessHelper.initialise()`. The service provider
-    is only built when it is still nil. The notification permission is not asked
-    for here. It is a card on the permissions screen in
+    is only built when it is still nil. The notification permission is asked for
+    later, as a card on the permissions screen in
     [step 5](#5-permissions).
 
 === "Android"
@@ -294,13 +293,14 @@ platforms make the same three calls in a different order.
     ```
 
     Android opens the Dashboard whether `addDeviceToken` succeeds or fails. A
-    failure only shows a snackbar. The auto logout signal is what
-    [Profile and Logout](profile-and-logout.md#3-the-ways-a-session-ends)
-    describes as a forced logout.
+    failure only shows a snackbar. The auto logout signal is the forced logout
+    described on
+    [Profile and Logout](profile-and-logout.md#3-the-ways-a-session-ends).
 
-Everything `getGuestDetails` returns, and what each field is used for, is on
-[Home and Unlock](home.md#1-loading-the-stay). What `addDeviceToken` is for is on
-[Notifications](notifications.md#1-registering-the-device).
+[Home and Unlock](home.md#1-loading-the-stay) lists everything `getGuestDetails`
+returns and what each field is used for, and
+[Notifications](notifications.md#1-registering-the-device) covers what
+`addDeviceToken` is for.
 
 ## 5. Permissions
 
@@ -341,14 +341,14 @@ it leaves out the notification card.
     | Push notifications | Android 13 and newer, and not opened from Unlock | Requests `POST_NOTIFICATIONS` |
 
     A card disappears once its permission is in place. **Continue** is enabled
-    when every card that applies is satisfied. A permission denied for good
+    when every card that applies is satisfied. A permission denied permanently
     shows a dialog that opens the app's settings.
 
     **When it appears.** Home counts its own launches. After the first
     successful `pollData` on a launch whose count is a multiple of ten, which
     includes the very first, the screen opens if anything is missing. When
-    Unlock opened it, **Continue** goes back and Home retries the unlock on its
-    own.
+    Unlock opened it, **Continue** goes back and Home retries the unlock
+    automatically.
 
 ## 6. Trading the Cognito token for a Spintly session
 
@@ -429,7 +429,7 @@ around that token.
     finished runs the missing step instead of unlocking, which is covered on
     [Home and Unlock](home.md#3-unlocking).
 
-`pollData` is what fills the door list. Until it has run, the Access SDK holds no
+`pollData` fills the door list. Until it has run, the Access SDK holds no
 permissions and `bleUnlockAccessPoint` has nothing to match a `spintlyId`
 against.
 

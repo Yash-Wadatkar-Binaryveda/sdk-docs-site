@@ -9,8 +9,8 @@ use. Each flow page lists the ones it needs at the top and links back here.
 Nine participants appear across the web app pages, and no page uses all of them.
 
 **Each one keeps its colour in every diagram it appears in**, and every arrow is
-drawn in the colour of the participant it leaves from, so an arrow can be traced
-back to whatever sent it.
+drawn in the colour of the participant it leaves from, so you can trace any
+arrow back to whatever sent it.
 
 | Participant | What it is |
 |---|---|
@@ -24,8 +24,8 @@ back to whatever sent it.
 | <span class="p-key p-guest"></span> **Guest** | The hotel guest. They are checked in from this app and then use the guest app |
 | <span class="p-key p-filestore"></span> **File store** | Amazon S3, which holds photo IDs, room images, restaurant menus and generated reports |
 
-Why there is no OAuth, Access or Config SDK participant is on the
-[Overview](index.md#there-is-no-spintly-sdk-in-the-browser).
+The [Overview](index.md#there-is-no-spintly-sdk-in-the-browser) explains why
+there is no OAuth, Access or Config SDK participant.
 
 ## What an arrow label says
 
@@ -37,8 +37,8 @@ A->>B: grantAccessPermissionGuest(roomBookingId, permissionList)
        Issue the card and the mobile key for this room
 ```
 
-The top line is what to search the codebase for, and the bottom line explains it
-for anyone who does not know the API. Arrows that are already plain English,
+Search the codebase for the top line. The bottom line explains it for anyone who
+does not know the API. Arrows that are already plain English,
 such as "Tap Check In" or "The sign in screen", are left as one line.
 
 !!! note "What an arrow into the backend carries"
@@ -62,13 +62,13 @@ between the two** table that closes a mobile page.
 ## Site scope
 
 Almost every call carries a **site**. When someone signs in, the app reads their
-staff record and stores their hotel and site for the session, and that site is
-sent with each query from then on.
+staff record and stores their hotel and site for the session, then sends that
+site with every query from then on.
 
 A hotel admin or super admin has no site of their own. They pick one by opening
 a site card, which puts the site in the address and scopes the rest of the app
-to it. This is what makes a super admin able to read a site dashboard without
-belonging to that site. See
+to it. A super admin can therefore read a site dashboard without belonging to
+that site. See
 [Administration, step 4](administration.md#4-opening-a-site).
 
 ## Four words with specific meanings
@@ -83,7 +83,7 @@ with its own status, its own guests and its own room number. Most actions during
 a stay act on a room booking rather than on the booking.
 
 **Access point** is Spintly's name for a door. A lock record carries its Spintly
-ID, and that is what the backend sends when it writes a permission.
+ID, and the backend sends that when it writes a permission.
 
 **Accessor** is Spintly's name for someone who can open a door. Guests and staff
 each get one, created by the backend.

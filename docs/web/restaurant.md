@@ -9,8 +9,8 @@ menu entry for it.
 
 !!! warning "Key point"
 
-    What is set here is read by the guest app. The hours decide when a guest can
-    order room service, and the menus are what they browse.
+    The guest app reads what is set here. The hours decide when a guest can
+    order room service, and the menus are the ones they browse.
 
 ## Participants
 
@@ -106,8 +106,8 @@ The page count is worked out in the browser by reading the PDF and counting its
 page objects, then stored with the menu. Nothing reads the PDF again to find
 out how long it is.
 
-Both files go straight to S3 under generated names, and what reaches the backend
-is the stored key for each.
+Both files go straight to S3 under generated names, and the backend receives the
+stored key for each.
 
 ### Deleting
 

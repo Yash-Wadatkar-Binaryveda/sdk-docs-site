@@ -1,8 +1,8 @@
 # 2. Home and Unlock
 
 **What it is.** The first tab. One card for the guest's room and one for each
-shared door, each with an **Unlock** button. This is where the app loads the
-stay, keeps it current over the socket, and opens doors.
+shared door, each with an **Unlock** button. The app loads the stay here, keeps
+it current over the socket, and opens doors.
 
 **How to get there.** The Dashboard opens on it. Tapping a card opens the
 [Control Panel](control-panel.md) for that door.
@@ -65,7 +65,7 @@ the backend.
 </figure>
 <figure>
 <a href="images/home/02-shared-door-card.png"><img src="images/home/02-shared-door-card.png" alt="A shared door card for the Gym in the Tulip Wing, with an Unlock Door button"></a>
-<figcaption><strong>A shared door</strong>One card per entry in <code>sharedAccess</code>, named by the door and its floor or block. The dots above it are how the guest moves between cards.</figcaption>
+<figcaption><strong>A shared door</strong>One card per entry in <code>sharedAccess</code>, named by the door and its floor or block. The dots above it let the guest move between cards.</figcaption>
 </figure>
 </div>
 
@@ -241,8 +241,8 @@ sequenceDiagram
         end
     ```
 
-    In the two branches that stop, nothing is opened and the guest taps Unlock
-    again once the login or poll has finished. When the permissions screen
+    In the two branches that stop, no door opens. The guest taps Unlock again
+    once the login or poll has finished. When the permissions screen
     opened, its **Continue** brings the guest back and Home retries the unlock
     by itself.
 
@@ -250,9 +250,9 @@ sequenceDiagram
     `accessManager.startBleScan()` whenever Bluetooth, or on older Android
     versions location, becomes available.
 
-Nothing is sent to Binaryveda's backend after an unlock. The backend learns of
-it from Spintly through Kafka, and that is how the Activity Trail and other
-guests on the same booking are updated.
+The app sends nothing to Binaryveda's backend after an unlock. The backend
+learns of it from Spintly through Kafka, and that update feeds the Activity
+Trail and the other guests on the same booking.
 
 ## 4. When Bluetooth fails
 
@@ -330,7 +330,7 @@ Internet.
 
 After a successful unlock the card shows **Unlocked** for a few seconds and then
 goes back to Locked: 5.5 seconds on iOS and 6 seconds on Android. It is a display
-timer only. Nothing is called when it fires, and the lock relocks on its own
+timer only. The app calls nothing when it fires, and the lock relocks on its own
 schedule.
 
 <div class="screens">
@@ -366,7 +366,7 @@ returns, in the app's error snackbar.
 | Anything else | Oops, something went wrong. There seems to be some error. |
 
 `UnauthorisedError` 7 means the access point is not in the SDK's permissions.
-It usually means `pollData` has not run since the guest's access changed. See
+Usually `pollData` has not run since the guest's access changed. See
 [Notifications](notifications.md#6-silent-pushes).
 
 ## Differences between the two

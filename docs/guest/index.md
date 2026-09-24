@@ -2,9 +2,9 @@
 
 Hotel guests use this app during a stay. It opens their room door and any shared
 doors they were given, sends requests to hotel staff, and shows who has opened
-their room. It does not book, check in or check out. The front desk does all
-three from the admin console, and the app only works between check in and check
-out.
+their room. Booking, check in and check out all happen at the front desk in the
+admin console, so the app is only useful for the period between check in and
+check out.
 
 The app has three tabs: [Home](home.md), [Assistance](assistance.md) and
 [Activity Trail](activity-trail.md). The bell opens the
@@ -65,9 +65,9 @@ sequenceDiagram
     A->>A: Sign out
 ```
 
-A guest cannot sign themselves up. The Cognito user is created at check in, so a
-number the front desk has not checked in gets **"User does not exist"** at the
-OTP step.
+Guests are registered by the front desk, not by signing up themselves. The
+Cognito user is created at check in, so a number the front desk has not checked
+in gets **"User does not exist"** at the OTP step.
 
 ### The guest's status
 
@@ -80,8 +80,8 @@ OTP step.
 | `GRACE_EXPIRED` | The grace period ends | The backend deletes the accessor and sends `LOCK_PERMISSION_UPDATED`. Sign in is refused on both platforms, and Android also signs out an open session the next time Home loads |
 | `DEPARTED` | The front desk checks the guest out | `CHECKOUT_USER` signs the app out, and sign in is refused |
 
-On a site without a grace period, nothing happens at the checkout time. The
-accessor stays until the front desk checks the guest out.
+On a site without a grace period, the checkout time passes with no effect. The
+accessor stays in place until the front desk checks the guest out.
 
 ## The two SDKs
 
@@ -104,10 +104,10 @@ opens one through the internet when Bluetooth fails.
 
 ### There is no Config SDK
 
-The third Spintly SDK, the one that writes to lock hardware, is **not shipped**.
-Guests cannot change anything about a lock. Privacy mode and passage mode are
-shown, but set elsewhere: privacy mode by the deadbolt inside the room, and
-passage mode from the admin console.
+The third Spintly SDK, the one that writes to lock hardware, is **not shipped**,
+so a guest can read a lock's state but never change it. Privacy mode and passage
+mode are shown in the app and set elsewhere: privacy mode by the deadbolt inside
+the room, and passage mode from the admin console.
 
 ### Versions shipped
 
@@ -121,5 +121,5 @@ passage mode from the admin console.
     Spintly's word for a person who can open a door is an **accessor**. A
     guest's accessor is created by the backend in `grantAccessPermissionGuest`,
     with the guest's Cognito `sub` as its identity. The doors on it are the room
-    and any shared access areas. Their `accessPointId` is what the unlock calls
-    take, and `getGuestDetails` returns it as `spintlyId`.
+    and any shared access areas. The unlock calls take their `accessPointId`,
+    which `getGuestDetails` returns as `spintlyId`.

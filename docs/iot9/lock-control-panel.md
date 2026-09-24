@@ -48,7 +48,7 @@ Inviting people and assigning these roles is covered in
 
 ### Who can unlock, and when
 
-The lock's mode decides this, and it decides it the same way on both platforms.
+The lock's mode decides this, the same way on both platforms.
 
 | Lock mode | Owner and primary | Everyone else |
 |---|---|---|
@@ -84,7 +84,7 @@ sequenceDiagram
     A-->>U: The panel, drawn from the lock Home passed in
 
     Note over U,B: 2. Live updates
-    B-->>A: Socket events, pushed as things change
+    B-->>A: Socket events, pushed as state changes
     A-->>U: The panel updates on its own
 
     Note over U,B: 3. Unlocking
@@ -103,7 +103,7 @@ sequenceDiagram
 ## 1. Opening the screen
 
 Home passes the lock in, so the panel has everything it needs to draw itself and
-asks the backend for nothing. What differs is when each platform gets the Access
+asks the backend for nothing. The platforms differ in when they get the Access
 SDK ready for the unlock that usually follows.
 
 === "iOS"
@@ -150,7 +150,7 @@ SDK ready for the unlock that usually follows.
 ## 2. Live updates
 
 The panel reads the same socket as Home, so nothing new is opened or subscribed
-to here. What changes is where each event lands, since this screen shows the
+to here. Each event lands somewhere different, since this screen shows the
 lock's mode and its last action in full.
 
 | Socket event | What it carries | On this screen, iOS | On this screen, Android |
@@ -161,7 +161,7 @@ lock's mode and its last action in full.
 | `doorStatus` | The door was opened or closed | The Door tile | The Door tile |
 | `deadbolt` | The deadbolt was thrown or withdrawn | The locked state and the time of it | Never acted on |
 
-**On iOS the last action line does not move on its own**, because
+**On iOS the last action line does not update live**, because
 `activityTrail` is routed to the activity trail screen instead. It changes on
 the user's own unlock, or the next time the lock list is fetched.
 
@@ -197,7 +197,7 @@ before any of it runs, as set out in
 </figure>
 <figure>
 <a href="images/lock-control-panel/04-dual-auth.png"><img src="images/lock-control-panel/04-dual-auth.png" alt="A Dual Authentication sheet listing passcode, fingerprint, RFID card and NFC"></a>
-<figcaption><strong>Dual authentication</strong>On a lock with it turned on, the tap is only half of what opens the door: one of these has to be presented at the lock as well. It is also what cancels the internet fallback, so a Bluetooth attempt that fails stops there rather than trying the gateway.</figcaption>
+<figcaption><strong>Dual authentication</strong>On a lock with it turned on, the tap is only half of what opens the door: one of these has to be presented at the lock as well. It also cancels the internet fallback, so a Bluetooth attempt that fails stops there rather than trying the gateway.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-control-panel/05-two-step-verification.png"><img src="images/lock-control-panel/05-two-step-verification.png" alt="A Two-step Verification screen listing the same four methods"></a>
@@ -221,7 +221,7 @@ the lock for the toggle to work.
 <div class="screens">
 <figure>
 <a href="images/lock-control-panel/03-panel-privacy.png"><img src="images/lock-control-panel/03-panel-privacy.png" alt="The Lock Control Panel in privacy mode, with a grey circle and the toggle on"></a>
-<figcaption><strong>Privacy mode on</strong>The toggle in the corner is the only mode the app can write, and flipping it is what sends <code>0x03</code> over Bluetooth. The circle greys out and the banner names the mode, so it is clear why the circle is inert rather than just unresponsive.</figcaption>
+<figcaption><strong>Privacy mode on</strong>The toggle in the corner controls the only mode the app can write, and flipping it sends <code>0x03</code> over Bluetooth. The circle greys out and the banner names the mode, so it is clear why the circle is inert rather than just unresponsive.</figcaption>
 </figure>
 </div>
 

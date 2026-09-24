@@ -83,9 +83,9 @@ sequenceDiagram
 
 Both platforms show **Not Assigned** when there are no shifts.
 
-This is the same shift data that decides which rooms come back from
-`getAccessibleRoomsByStaff`, so the assigned floors here are a preview of what
-the [Rooms](rooms.md#2-who-sees-which-rooms) tab will show.
+The same shift data decides which rooms come back from
+`getAccessibleRoomsByStaff`, so the assigned floors here preview what the
+[Rooms](rooms.md#2-who-sees-which-rooms) tab will show.
 
 !!! note "Floors come from the first shift, blocks from all of them"
 
@@ -95,7 +95,7 @@ the [Rooms](rooms.md#2-who-sees-which-rooms) tab will show.
 
 ## 3. Logging out
 
-Log out is behind a confirmation dialog, then four things happen in order.
+Log out is behind a confirmation dialog, then four steps happen in order.
 
 ```mermaid
 sequenceDiagram
@@ -116,8 +116,8 @@ sequenceDiagram
     A-->>U: The login screen
 ```
 
-Deleting the FCM token is what stops the phone receiving anything after sign
-out. The row on the backend is not removed, so the same device signing back in
+Deleting the FCM token stops the phone receiving anything after sign out. The
+row on the backend is not removed, so the same device signing back in
 registers a fresh token against the same `deviceId`.
 
 The socket is dropped with the Dashboard, not here. On Android
@@ -126,8 +126,8 @@ shared state is reset with it.
 
 ### The ways a session can end
 
-Only the first is something the staff member chooses. The other three are
-triggered elsewhere.
+The staff member chooses only the first of these. The other three are triggered
+elsewhere.
 
 | | What triggers it | What is skipped |
 |---|---|---|

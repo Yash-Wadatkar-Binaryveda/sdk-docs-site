@@ -84,9 +84,9 @@ sequenceDiagram
 
 ### The list
 
-Six columns: booking ID, guest name, room, check in, check out, and status. It
-is paged, sorted on the server, and sorts by check in descending until told
-otherwise.
+Six columns: booking ID, guest name, room, check in, check out, and status. The
+list is paged and sorted on the server, and it sorts by check in descending
+until told otherwise.
 
 Searching matches the booker and the booking reference. The room type and status
 dropdowns narrow it further, and both are sent to the server rather than applied
@@ -108,7 +108,7 @@ than a filter over what is already loaded.
 ## 2. Creating a booking
 
 One screen, two cards. The upper card is the booking, the lower card is the
-rooms on it. Nothing is written until the whole thing is submitted.
+rooms on it. Nothing is written until the form is submitted.
 
 <div class="screens wide">
 <figure>
@@ -166,8 +166,8 @@ Each room added takes a room type, an adults and children count from a stepper,
 and an optional special request. Rooms appear as cards under the form and can be
 removed before submitting.
 
-The booking cannot be created with no rooms on it. Submitting an empty booking
-is refused in the browser.
+A booking cannot be created with no rooms on it, and the browser refuses an
+empty one before it is sent.
 
 ## 3. Changing a booking
 
@@ -181,7 +181,7 @@ everything filled in, and the address carries the booking's ID.
 </figure>
 <figure>
 <a href="images/bookings/09-edit-room.png"><img src="images/bookings/09-edit-room.png" alt="The Edit Room dialog for a room on a booking, with room type, guest count and special requests"></a>
-<figcaption><strong>Edit Room</strong>Per room rather than per booking, which is what is offered once part of the booking has arrived. The counts along the top are the same availability figures as on the create screen.</figcaption>
+<figcaption><strong>Edit Room</strong>Per room rather than per booking, which the app switches to once part of the booking has arrived. The counts along the top are the same availability figures as on the create screen.</figcaption>
 </figure>
 </div>
 
@@ -213,8 +213,8 @@ screen. That is
 
 ## 4. Cancelling
 
-Cancelling comes in two sizes, and which one is offered depends on what has
-already happened to the booking.
+Cancelling works at two levels, and what has already happened to the booking
+decides which one is offered.
 
 <div class="screens wide">
 <figure>
@@ -285,7 +285,7 @@ A room booking has a shorter set, because it is either in or out.
 | `CANCELLED` | Called off, at either level |
 
 `GRACE_PERIOD` and `GRACE_EXPIRED` sit between the check out time on the policy
-and the point where access is taken away. Both are set by the backend on a
+and the point where access is revoked. Both are set by the backend on a
 schedule rather than by anything on this screen. What happens at the end of the
 grace period is in
 [Stay Over and Check Out](stay-over-and-check-out.md#4-when-nobody-checks-out).
@@ -300,8 +300,8 @@ Which buttons a room card offers follows directly from these two statuses.
 | `ARRIVED`, `PARTIAL_DEPART` | `ARRIVED`, all guests added | Check Out, Stay Over |
 
 A room card offers Check In while it still has fewer guests recorded than the
-adults it was booked for, which is how a room booked for two can have its second
-guest added after the first has already arrived.
+adults it was booked for, so a room booked for two can have its second guest
+added after the first has already arrived.
 
 ## What the backend does
 
@@ -319,5 +319,5 @@ lookups, which belong to `inventory-service`.
 | `listChannels`, `getChannel` | `inventory-service` | The channels and sub channels the site sells through |
 
 No call on this page reaches Spintly. A booking creates no accessor and writes
-no door permission, because there is no guest and no room to attach either to
-yet. That begins at [check in](check-in.md).
+no door permission, because no guest and no room exist to attach them to yet.
+That begins at [check in](check-in.md).

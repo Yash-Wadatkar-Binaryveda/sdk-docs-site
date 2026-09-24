@@ -4,17 +4,17 @@
 [Lock Control Panel](lock-control-panel.md). One menu, whose entries cover the
 lock's name and photo, the hardware settings written into the lock itself, the
 accessories attached to it, firmware, third party access, and the two ways of
-getting rid of the lock.
+removing a lock.
 
 !!! warning "Key point"
 
-    This is the **Config SDK's** page. Hardware settings, accessories and
-    firmware are all written to the lock over BLE, so the phone has to be near
-    it. The menu itself, the lock's name and photo, and the records of what was
-    done are Binaryveda's backend.
+    Most of this page is **Config SDK** work. Hardware settings, accessories
+    and firmware are all written to the lock over BLE, so the phone has to be
+    near it. The menu itself, the lock's name and photo, and the records of what
+    was done are Binaryveda's backend.
 
-    Three actions reach Spintly's servers, and all three take something away:
-    a factory reset, removing a lock from your own account, and removing a
+    Three actions reach Spintly's servers, and each one removes a record: a
+    factory reset, removing a lock from your own account, and removing a
     gateway.
 
 ## Participants
@@ -52,7 +52,7 @@ their own account and leaves the lock alone.
 <div class="screens">
 <figure>
 <a href="images/lock-settings/01-menu-full.png"><img src="images/lock-settings/01-menu-full.png" alt="A Lock Settings menu listing Lock Details, My Access, Hardware Settings, Notifications, Accessories, Diagnosis, Backup, Firmware Update, Factory Reset, About Lock and Remove Device"></a>
-<figcaption><strong>The menu at its longest</strong>Every row a design carries, including Notifications, Diagnosis and Backup, which are not in the table above. The version under Firmware Update is the one thing here that costs a call, <code>getLockFirmwareUpdate</code>.</figcaption>
+<figcaption><strong>The menu at its longest</strong>Every row a design carries, including Notifications, Diagnosis and Backup, which are not in the table above. The version under Firmware Update is the only entry here that makes a call, <code>getLockFirmwareUpdate</code>.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/02-menu-owner.png"><img src="images/lock-settings/02-menu-owner.png" alt="A shorter Lock Settings menu with Voice Assistants and Get Help, ending at About Lock"></a>
@@ -68,7 +68,7 @@ their own account and leaves the lock alone.
 </figure>
 <figure>
 <a href="images/lock-settings/05-notification-users.png"><img src="images/lock-settings/05-notification-users.png" alt="A Select Users screen grouping one time, scheduled and privileged users with tick boxes"></a>
-<figcaption><strong>Picking who counts</strong>The same three groups as the Users screen, with the primary user marked. Ticking nobody is what leaves the alerts as they were.</figcaption>
+<figcaption><strong>Picking who counts</strong>The same three groups as the Users screen, with the primary user marked. Ticking nobody leaves the alerts as they were.</figcaption>
 </figure>
 </div>
 
@@ -86,7 +86,7 @@ other than fully meshed.
 
 ## The whole flow
 
-The menu itself costs one call. Everything below it is its own flow, and each
+Opening the menu makes one call. Everything below it is its own flow, and each
 has its own section.
 
 ```mermaid
@@ -118,8 +118,9 @@ serial number all arrive with the lock that
 
 ## 1. Lock Details
 
-Renaming the lock, changing which area of the house it sits in, and changing its
-photo. All three go out on one mutation, and a new photo is uploaded before it.
+Renaming the lock, changing its area of the house, and replacing its photo. All
+three are sent in a single mutation, and a new photo is uploaded to storage
+first.
 
 <div class="screens">
 <figure>
@@ -156,8 +157,8 @@ Your own access methods on this lock: your passcode, your enrolled fingerprints,
 and your RFID cards. Only the methods you were granted are listed, and
 **enrolling** a fingerprint or a card is the same work as at the end of lock
 onboarding, covered in
-[Fingerprint and RFID](lock-onboarding.md#8-fingerprint-and-rfid). What belongs
-to this screen is the passcode, seeing what you already have, and removing it.
+[Fingerprint and RFID](lock-onboarding.md#8-fingerprint-and-rfid). This screen
+covers the passcode, seeing what you already have, and removing it.
 
 ```mermaid
 sequenceDiagram
@@ -208,7 +209,7 @@ update members send the old value with the new.
 </figure>
 <figure>
 <a href="images/lock-settings/62-passcode-masked.png"><img src="images/lock-settings/62-passcode-masked.png" alt="A Passcode screen with the passcode masked behind an eye icon, above an Update Passcode row"></a>
-<figcaption><strong>Held, but hidden</strong>The value already came back on <code>getUserAccessDetails</code>. The eye is what reveals it, and biometric authentication guards that.</figcaption>
+<figcaption><strong>Held, but hidden</strong>The value already came back on <code>getUserAccessDetails</code>. The eye reveals it, and biometric authentication guards that.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/63-passcode-revealed.png"><img src="images/lock-settings/63-passcode-revealed.png" alt="The same screen with the six digit passcode shown"></a>
@@ -216,7 +217,7 @@ update members send the old value with the new.
 </figure>
 <figure>
 <a href="images/lock-settings/64-update-passcode-empty.png"><img src="images/lock-settings/64-update-passcode-empty.png" alt="An Update Passcode sheet with two empty fields and a greyed out button"></a>
-<figcaption><strong>Setting a new one</strong>Typed twice, and the button stays dead until both match.</figcaption>
+<figcaption><strong>Setting a new one</strong>Typed twice, and the button stays disabled until both match.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/65-update-passcode-filled.png"><img src="images/lock-settings/65-update-passcode-filled.png" alt="The same sheet filled in, showing a Strong label and a hint that a passcode can be 4 to 12 digits"></a>
@@ -232,7 +233,7 @@ update members send the old value with the new.
 </figure>
 <figure>
 <a href="images/lock-settings/68-fingerprints-full.png"><img src="images/lock-settings/68-fingerprints-full.png" alt="A Fingerprints screen with four enrolled and the Add New Fingerprint button greyed out"></a>
-<figcaption><strong>Full</strong>At four the button is dead, which matches the cap this page records. The note says one has to be removed before another can be enrolled.</figcaption>
+<figcaption><strong>Full</strong>At four the button is disabled, which matches the cap this page records. The note says one has to be removed before another can be enrolled.</figcaption>
 </figure>
 <figure class="crop">
 <a href="images/lock-settings/69-delete-fingerprint.png"><img src="images/lock-settings/69-delete-fingerprint.png" alt="A Delete Fingerprint dialog saying it will be permanently deleted from the lock"></a>
@@ -307,7 +308,7 @@ current values out of the lock, show them, write the new ones back.
 </figure>
 <figure>
 <a href="images/lock-settings/10-timeout-alerts.png"><img src="images/lock-settings/10-timeout-alerts.png" alt="A Timeout Alerts screen with tamper and prank alarm sliders, a Door Ajar Time toggle turned on, and a time limit slider"></a>
-<figcaption><strong>Timeout Alerts</strong>Read in one go, written in three. Tamper and prank are durations in minutes; the door ajar alarm is a toggle and a duration that go out together on <code>updateDOTLSettings</code>.</figcaption>
+<figcaption><strong>Timeout Alerts</strong>Read in a single call, written in three. Tamper and prank are durations in minutes; the door ajar alarm is a toggle and a duration that go out together on <code>updateDOTLSettings</code>.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/11-timeout-alerts-off.png"><img src="images/lock-settings/11-timeout-alerts-off.png" alt="The same screen with Door Ajar Time turned off and its slider hidden"></a>
@@ -337,7 +338,7 @@ sequenceDiagram
     C-->>A: Done, or an error
 ```
 
-What changes between them is only which members run. These are the same on both
+Only the members that run change between them, and those are the same on both
 platforms.
 
 | Group | What it holds | Read with | Written with |
@@ -362,7 +363,7 @@ the voice pack has to come from the backend before it can go to the lock.
 <div class="screens">
 <figure>
 <a href="images/lock-settings/13-audio-doorbell.png"><img src="images/lock-settings/13-audio-doorbell.png" alt="A Lock Audio & Door Bell screen with two rows, the language and the doorbell tone, each showing its current value"></a>
-<figcaption><strong>Two settings, one read</strong>Both values come off the lock together on <code>getCurrentLanguageAndDoorbellTone</code>, which is why they share a screen.</figcaption>
+<figcaption><strong>Two settings, one read</strong>Both values come off the lock together on <code>getCurrentLanguageAndDoorbellTone</code>, so they share a screen.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/14-language-list.png"><img src="images/lock-settings/14-language-list.png" alt="A Lock Audio Language list with English selected and an Update button beside it, above Hindi, Marathi, Tamil and others"></a>
@@ -421,7 +422,7 @@ in stages and reports progress back, because it moves a file rather than a
 handful of bytes.
 
 **The two platforms ask for the language list with different queries.** iOS
-sends `listAvailableLanguages`; Android's screen sends `listLanguages`.
+sends `listAvailableLanguages`, and Android's screen sends `listLanguages`.
 
 ## 4. Accessories
 
@@ -480,11 +481,11 @@ sequenceDiagram
 </figure>
 <figure>
 <a href="images/lock-settings/27-ble-none-found.png"><img src="images/lock-settings/27-ble-none-found.png" alt="The same screen reading No devices found, with a Scan Again button"></a>
-<figcaption><strong>Nothing in range</strong>Usually the advertising window having closed rather than the remote being absent, which is why the way out is to scan again.</figcaption>
+<figcaption><strong>Nothing in range</strong>Usually the advertising window having closed rather than the remote being absent, so the way out is to scan again.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/28-ble-found.png"><img src="images/lock-settings/28-ble-found.png" alt="Two Godrej BLE Remotes listed with their serial numbers and radio buttons, Continue greyed"></a>
-<figcaption><strong>What came back</strong>One row per device the SDK saw. The name and picture are the app's; only an identifier came off the air.</figcaption>
+<figcaption><strong>What came back</strong>One row per device the SDK saw. The name and picture are the app's, and only an identifier came off the air.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/29-ble-selected.png"><img src="images/lock-settings/29-ble-selected.png" alt="The same list with the first remote selected and Continue enabled"></a>
@@ -536,11 +537,11 @@ no name, only a MAC address, so its settings screen holds two entries:
 </figure>
 <figure>
 <a href="images/lock-settings/37-ble-reset-done.png"><img src="images/lock-settings/37-ble-reset-done.png" alt="A Factory Reset Completed screen saying the remote is ready to be onboarded again"></a>
-<figcaption><strong>Done</strong>The remote is now unattached rather than gone, so it can be added to this lock or another one.</figcaption>
+<figcaption><strong>Done</strong>The remote is detached rather than deleted, so it can be added to this lock or another one.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/38-vdp-empty.png"><img src="images/lock-settings/38-vdp-empty.png" alt="A VDP Module screen reading No VDP Module added yet, with an Add VDP Module button"></a>
-<figcaption><strong>The other accessory, from the top</strong>The VDP module's flow from here on is the remote's flow with different wording. It is shown in full below because the two are separate screens in the app.</figcaption>
+<figcaption><strong>The other accessory, from the beginning</strong>The VDP module's flow from here on is the remote's flow with different wording. It is shown in full below because the two are separate screens in the app.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/39-vdp-scan-intro.png"><img src="images/lock-settings/39-vdp-scan-intro.png" alt="A Scan for VDP Module screen with a picture of the module and a Scan button"></a>
@@ -604,7 +605,7 @@ lists what the lock will accept, and the transfer runs over BLE.
 <div class="screens">
 <figure>
 <a href="images/lock-settings/76-firmware-current.png"><img src="images/lock-settings/76-firmware-current.png" alt="A Firmware Update screen showing a version number and the message that the device firmware is up to date"></a>
-<figcaption><strong>Nothing to do</strong>What the screen shows when <code>getLockFirmwareUpdate</code> comes back with no newer version. The number is the same one the menu row carries.</figcaption>
+<figcaption><strong>Already up to date</strong>What the screen shows when <code>getLockFirmwareUpdate</code> comes back with no newer version. The number is the same one the menu row carries.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/77-firmware-available.png"><img src="images/lock-settings/77-firmware-available.png" alt="A Firmware Update screen with a card giving the version, a 3.4 MB size, release notes and a support link, above an Update button"></a>
@@ -674,7 +675,7 @@ other lock it was linked to.
 
 Alexa and Google Home, switched on or off for this lock. Linking the account
 itself happens under Profile rather than here, and this screen only decides
-whether an already linked assistant may act on this lock. It goes out on
+whether an already linked assistant may act on this lock. It is sent on
 `updateVoiceAssistancePreferences`.
 
 Voice commands can read whether a lock is locked or unlocked, read its mode, and
@@ -683,7 +684,7 @@ unlock it. There is no command to lock.
 <div class="screens">
 <figure>
 <a href="images/lock-settings/53-voice-none.png"><img src="images/lock-settings/53-voice-none.png" alt="A Voice Assistants screen with both assistants greyed out, a Link Voice Assistants button, and a voice command guide"></a>
-<figcaption><strong>Neither linked</strong>Both switches are dead until the account itself is linked under <a href="profile-and-account.md#5-voice-assistants">Profile</a>, which is what the button leads to. The guide below lists the commands each assistant understands.</figcaption>
+<figcaption><strong>Neither linked</strong>Both switches are dead until the account itself is linked under <a href="profile-and-account.md#5-voice-assistants">Profile</a>, which the button leads to. The guide below lists the commands each assistant understands.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/54-voice-alexa-available.png"><img src="images/lock-settings/54-voice-alexa-available.png" alt="The same screen with Alexa now active but switched off, Google Home still greyed"></a>
@@ -705,7 +706,7 @@ Two different actions that both end with the lock gone from the app.
 
 **Factory Reset is the owner's**, needs the phone near the lock, and needs
 biometric authentication. It wipes the lock over BLE and then tells the backend
-to take it apart, which is what removes it from every other user's app too.
+to take it apart, which also removes it from every other user's app.
 
 <div class="screens">
 <figure>
@@ -726,11 +727,11 @@ to take it apart, which is what removes it from every other user's app too.
 </figure>
 <figure>
 <a href="images/lock-settings/83-factory-reset-progress.png"><img src="images/lock-settings/83-factory-reset-progress.png" alt="A Factory Reset Lock screen with a progress bar reading Factory reset in progress"></a>
-<figcaption><strong>Wiping</strong><code>resetDevice</code> over BLE. The two backend calls that follow are what take the lock off everyone else's account.</figcaption>
+<figcaption><strong>Wiping</strong><code>resetDevice</code> over BLE. The two backend calls that follow take the lock off everyone else's account.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/84-factory-reset-done.png"><img src="images/lock-settings/84-factory-reset-done.png" alt="A Reset Successfully Completed screen saying the lock is ready to be onboarded again, with a Back to home button"></a>
-<figcaption><strong>Done</strong>The lock is blank rather than gone, so it can be onboarded again from scratch, by this account or another one.</figcaption>
+<figcaption><strong>Done</strong>The lock is wiped rather than deleted, so it can be onboarded again from scratch, by this account or another one.</figcaption>
 </figure>
 </div>
 
@@ -818,7 +819,7 @@ The four read only entries.
 <div class="screens">
 <figure>
 <a href="images/lock-settings/59-about-device.png"><img src="images/lock-settings/59-about-device.png" alt="An About Device screen with the device name, model name and number and serial number, above access method stats with counts out of a maximum"></a>
-<figcaption><strong>About Lock</strong>The four details at the top are already held by the app. The stats below are what the lock has room for, each as a count against its maximum, and the fingerprint figure is read off the lock with <code>getFingerprintPermissions</code>.</figcaption>
+<figcaption><strong>About Lock</strong>The four details at the top are already held by the app. The stats below show what the lock has room for, each as a count against its maximum, and the fingerprint figure is read off the lock with <code>getFingerprintPermissions</code>.</figcaption>
 </figure>
 </div>
 
@@ -829,9 +830,9 @@ during onboarding and managed from its own card on [Home](home.md). It is
 covered here because it is the third piece of hardware the Config SDK writes to,
 and because its firmware works differently from everything else on this page.
 
-The gateway bridges the lock to the internet. It is what makes a lock report
-Online or Offline, what carries push notifications while the user is away, and
-what the remote unlock falls back to when Bluetooth is out of range.
+The gateway bridges the lock to the internet. It makes a lock report Online or
+Offline, carries push notifications while the user is away, and gives the remote
+unlock something to fall back to when Bluetooth is out of range.
 
 <div class="screens">
 <figure>
@@ -861,7 +862,7 @@ sequenceDiagram
 ```
 
 **The gateway does the scanning, not the phone.** The network list is whatever
-the gateway can reach from where it is plugged in, which is the point.
+the gateway can reach from where it is plugged in.
 
 A hidden network is typed in by hand, with its security type picked from a list.
 Failures come back as the access point not being found, or the password being
@@ -880,14 +881,14 @@ Six entries, from the gateway's card on Home: **Edit Module Name**,
 **Connections**, **Wi-Fi Network**, **About**, **Firmware Update** and
 **Factory Reset**. The last two are owner only.
 
-Opening the settings reads the gateway itself with `getGateway`, which is what
-About is drawn from. Connections lists the locks this gateway serves, from
-`listConnections`. Renaming goes out on `updateGateway`.
+Opening the settings reads the gateway itself with `getGateway`, which About is
+drawn from. Connections lists the locks this gateway serves, from
+`listConnections`. Renaming is sent on `updateGateway`.
 
 <div class="screens">
 <figure>
 <a href="images/lock-settings/87-gateway-settings.png"><img src="images/lock-settings/87-gateway-settings.png" alt="A gateway settings menu with Edit Module Name, Connections, Wifi Network, About and Factory Reset, each showing its current value"></a>
-<figcaption><strong>The gateway's own menu</strong>Each row carries its current value underneath, all of it from the one <code>getGateway</code> read. Firmware Update is absent here, which is the owner only pair reduced to one for this user.</figcaption>
+<figcaption><strong>The gateway's own menu</strong>Each row carries its current value underneath, all of it from the one <code>getGateway</code> read. Firmware Update is absent here, so this user sees only one of the owner only pair.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/88-gateway-edit-name.png"><img src="images/lock-settings/88-gateway-edit-name.png" alt="An Edit Gateway Name sheet with a name field and an Update Name button"></a>
@@ -899,7 +900,7 @@ About is drawn from. Connections lists the locks this gateway serves, from
 </figure>
 <figure>
 <a href="images/lock-settings/90-gateway-connections-locks.png"><img src="images/lock-settings/90-gateway-connections-locks.png" alt="A Connections screen listing two locks by model and serial number"></a>
-<figcaption><strong>Connections</strong><code>listConnections</code>, the locks this gateway carries. One gateway can serve several, which is why this is a list rather than a line on the menu.</figcaption>
+<figcaption><strong>Connections</strong><code>listConnections</code>, the locks this gateway carries. One gateway can serve several, so this is a list rather than a line on the menu.</figcaption>
 </figure>
 <figure>
 <a href="images/lock-settings/91-connections-gateway.png"><img src="images/lock-settings/91-connections-gateway.png" alt="A Connections screen listing a single Godrej Wifi Gateway"></a>
@@ -919,7 +920,7 @@ About is drawn from. Connections lists the locks this gateway serves, from
 </figure>
 <figure>
 <a href="images/lock-settings/95-gateway-reset-done.png"><img src="images/lock-settings/95-gateway-reset-done.png" alt="A Reset Successfully Completed screen saying the gateway is ready to be onboarded again"></a>
-<figcaption><strong>Done</strong>Blank rather than gone, the same end the lock and the accessories reach. The <code>DELETE</code> at Spintly has taken its record away by this point.</figcaption>
+<figcaption><strong>Done</strong>Wiped rather than deleted, the same end state the lock and the accessories reach. The <code>DELETE</code> at Spintly has taken its record away by this point.</figcaption>
 </figure>
 </div>
 

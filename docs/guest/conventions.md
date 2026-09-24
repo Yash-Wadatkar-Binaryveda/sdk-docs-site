@@ -10,8 +10,8 @@ here.
 Twelve participants appear across the section, and no page uses all of them.
 
 **Each one keeps its colour in every diagram it appears in**, and every arrow is
-drawn in the colour of the participant it leaves from, so an arrow can be traced
-back to whatever sent it.
+drawn in the colour of the participant it leaves from, so you can trace any
+arrow back to whatever sent it.
 
 | Participant | What it is |
 |---|---|
@@ -41,8 +41,8 @@ A->>B: getGuestDetails(cognitoId)
        The room, the doors and the stay dates
 ```
 
-The top line is what to search the codebase for, and the bottom line explains it
-for anyone who does not know the API. Arrows that are already plain English,
+Search the codebase for the top line. The bottom line explains it for anyone who
+does not know the API. Arrows that are already plain English,
 such as "Tap Unlock" or "The login screen", are left as one line.
 
 !!! note "What an arrow into the backend carries"
@@ -66,8 +66,8 @@ do. The app calls it a **request**. This section uses "request" on the flow page
 and "service request" where the call name or the database does.
 
 **Access point** is Spintly's name for a door. The backend stores its Spintly ID
-on the lock record and passes it to the app as `spintlyId`, which is what the
-unlock calls take.
+on the lock record and passes it to the app as `spintlyId`, the value the unlock
+calls take.
 
 **Shared access** is a door the guest may open that is not their room, such as a
 floor or block entrance. It arrives in `getGuestDetails` as `sharedAccess`, and

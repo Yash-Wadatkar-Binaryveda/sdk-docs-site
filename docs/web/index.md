@@ -1,9 +1,9 @@
 # Connected Lock Hotel Web App
 
-This is the web app hotel employees use to run the property. Front desk staff
-take bookings, check guests in and hand out room access from here. Managers and
-administrators use the same app to set up the property, run the day, and pull
-reports.
+Hotel employees use this web app to run the property. Front desk
+staff take bookings, check guests in and hand out room access from here.
+Managers and administrators use the same app to set up the property, run the
+day, and pull reports.
 
 The two mobile apps in the Connected Lock family, the
 [Connected Lock Staff App](../staff/index.md) and the
@@ -14,7 +14,7 @@ them here.
 
 ## Who uses it
 
-Eight roles sign in to the same app and see different things. The **Scope**
+Eight roles sign in to the same app and see different screens. The **Scope**
 column is how far a role reaches. A **site** is one property, with its own
 rooms, locks and staff. A **hotel** is the group that owns one or more sites.
 Six of the roles work inside a single site. Super Admin and Hotel Admin sit
@@ -66,15 +66,15 @@ GraphQL mutation, and `booking-service` calls Spintly to create the accessor,
 assign the card and write the door permission. The browser never sees a Spintly
 token, a credential or an access point.
 
-That means a page in this site never has an SDK table. Where the staff and guest
-pages end with **Every SDK member this flow uses**, these pages end with **What
-the backend does**, which names the Spintly calls the mutation sets off.
+No page in this site carries an SDK table. The staff and guest pages end with
+**Every SDK member this flow uses**. These pages end with **What the backend
+does** instead, which names the Spintly calls the mutation triggers.
 
 ## The services behind the API
 
 Every call from the app goes to one AppSync GraphQL endpoint, which forwards it
 to one of four services over HTTP. Knowing which service owns an area explains
-why some things happen together and others do not.
+why some operations happen together and others do not.
 
 | Service | What it owns | Areas in this app |
 |---|---|---|
