@@ -98,7 +98,7 @@ without showing anything.
 |---|---|---|
 | **Room Unlocked** | Someone else opens the room door: a staff member, a mechanical key, or another guest on the booking | None |
 | **Room Cleaning Reminder** | Once a day, at the site's housekeeping trigger time, for each room booking | `ROOM_CLEANING`, with the `serviceRequestId` |
-| **Check Out Reminder** | 30 minutes before the booking's checkout time | `CHECK_OUT` |
+| **Check Out Reminder** | 30 minutes before the booking's checkout time. If that moment has already passed at check in or extend stay, it goes out about 2 minutes later instead. Skipped once the guest is no longer `ARRIVED` | `CHECK_OUT` |
 | **Request started or completed** | Staff start or complete a Housekeeping or Checkout request | None |
 
 Only the room cleaning reminder carries buttons, Yes, Later and No. The other
@@ -113,17 +113,18 @@ three.
 | Push | Sent when | What the app does with it |
 |---|---|---|
 | **Remove** | A reminder has been answered, or unanswered ones were accepted automatically | Clears that reminder's notification. Carries `remove: true` and the `serviceRequestId` |
-| **`LOCK_PERMISSION_UPDATED`** | The guest's door access changes, or the grace period ends | Refreshes the door permissions |
-| **`CHECKOUT_USER`** | The front desk checks the guest out | Signs the app out |
+| **`LOCK_PERMISSION_UPDATED`** | The guest's door access changes, or Spintly confirms the guest's accessor was deleted after a checkout or the end of the grace period. That second one often lands after the app has already signed out | Refreshes the door permissions |
+| **`CHECKOUT_USER`** | The front desk checks the guest out, or the grace period ends | Signs the app out |
 | **`GEOFENCE_UPDATED`** | The site's geofence or policy is edited | Reloads the geofence |
 
 These carry only the category. [Step 6](#6-silent-pushes) covers the last three.
 
 **Which service sends which.** `notification-service` sends Room Unlocked, both
-reminders, the Remove that follows an automatic acceptance, and
-`LOCK_PERMISSION_UPDATED` when the grace period ends. `assistance-service` sends
-the started and completed pushes, and the Remove that follows an answer.
-`booking-service` sends `CHECKOUT_USER`, and `LOCK_PERMISSION_UPDATED` when the
+reminders, the Remove that follows an automatic acceptance, `CHECKOUT_USER` when
+the grace period ends, and `LOCK_PERMISSION_UPDATED` once Spintly confirms an
+accessor deletion. `assistance-service` sends the started and completed pushes,
+and the Remove that follows an answer. `booking-service` sends `CHECKOUT_USER`
+when the front desk checks the guest out, and `LOCK_PERMISSION_UPDATED` when the
 guest's access changes. `inventory-service` sends `GEOFENCE_UPDATED`.
 
 ## 3. A push arrives
@@ -269,6 +270,9 @@ Each entry carries a `category`, a `type`, a `state`, `subCategory`,
 | `ASSISTANCE`, `GENERAL` | The item's assistance request started, or completed, by the staff member | None |
 | `CHECK_OUT`, `GENERAL` | Initiate checkout assistance request started, or completed | None |
 
+The checkout reminder's text and its `checkoutTime` use the booking's own
+checkout time, formatted in IST (+05:30) whatever the site's time zone.
+
 Answering a reminder removes it from the list straight away, and puts it back if
 the call fails.
 
@@ -314,6 +318,11 @@ sequenceDiagram
         B->>F: CHECKOUT_USER
         F-->>A: Delivered
         A->>A: Sign out
+    else The grace period ends
+        B->>B: Mark the guest GRACE_EXPIRED<br/>and delete the accessor
+        B->>F: CHECKOUT_USER
+        F-->>A: Delivered
+        A->>A: Sign out
     else The site's geofence or policy is edited
         FD->>B: Edit the geofence or the policy
         B->>F: GEOFENCE_UPDATED
@@ -344,7 +353,7 @@ refetches `getGuestDetails`, in case geofencing was switched on or off.
 | Which screen a tap opens | Activity Trail for a Room Unlocked title, the notification centre otherwise | The screen named by `page` |
 | Reminder buttons | Notification category actions | Buttons drawn into the notification |
 | A remove push | Clears delivered notifications with the same `serviceRequestId` | Cancels the room cleaning notification |
-| The checkout reminder's time | Always shown as 12:00 PM | The `checkoutTime` on the entry |
+| The checkout reminder's time | Always shown as 12:00 PM, so it's wrong for any checkout that isn't at noon | The `checkoutTime` on the entry |
 | A new entry over the socket | Inserted at the top | The list reloads |
 | `GEOFENCE_UPDATED` | Reloads the geofence | Reloads the geofence and `getGuestDetails` |
 

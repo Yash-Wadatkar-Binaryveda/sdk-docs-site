@@ -110,7 +110,7 @@ iOS matches the role on letters only, so `House Keeping`, `House-Keeping` and
 </figure>
 <figure>
 <a href="images/tasks/68-engineering-categories.png"><img src="images/tasks/68-engineering-categories.png" alt="Engineering maintenance Tasks with only System"></a>
-<figcaption><strong>Engineering</strong>System only. Device faults and access-revoked tasks both live here.</figcaption>
+<figcaption><strong>Engineering</strong>System only, which holds device faults.</figcaption>
 </figure>
 <figure>
 <a href="images/tasks/74-site-manager-categories.png"><img src="images/tasks/74-site-manager-categories.png" alt="Site manager Tasks with Housekeeping, Reception, Room Service, Checkout and System"></a>
@@ -463,17 +463,18 @@ Restaurant manager. Same two tabs as Reception.
 </figure>
 </div>
 
-### System: access revoked
+### Reception: access revoked
 
-System holds two unrelated kinds of work, and both sit on the same two tabs. The
-first is a guest room whose access was revoked rather than a broken device.
-Device faults are covered in [step 5](#5-device-faults-arrive-as-tasks), which
-first explains where they come from.
+When a guest's grace period ends, the backend revokes their access and raises
+an **Access revoked** task for the room. It's a Reception task, marked
+priority, and it goes to Site Admin, Site Manager and Front Desk. Engineering
+doesn't see it. These shots come from an older build, which filed it under
+System.
 
 <div class="screens">
 <figure>
 <a href="images/tasks/60-system-access-revoked.png"><img src="images/tasks/60-system-access-revoked.png" alt="System Priority with Access revoked cards"></a>
-<figcaption><strong>Access revoked</strong>A room and a guest, not a serial number.</figcaption>
+<figcaption><strong>Access revoked</strong>A room and a guest. The System header is from the older build.</figcaption>
 </figure>
 <figure>
 <a href="images/tasks/61-system-access-revoked-complete.png"><img src="images/tasks/61-system-access-revoked-complete.png" alt="Access revoked card expanded with Mark Complete"></a>

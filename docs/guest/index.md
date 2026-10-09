@@ -76,12 +76,14 @@ in gets **"User does not exist"** at the OTP step.
 | Status | Set when | What the app does |
 |---|---|---|
 | `ARRIVED` | Check in | Everything works |
-| `GRACE_PERIOD` | The checkout time passes, on a site whose policy has a grace period and `revokeAccessPostCheckout` turned on | Everything still works. The accessor is still in place |
-| `GRACE_EXPIRED` | The grace period ends | The backend deletes the accessor and sends `LOCK_PERMISSION_UPDATED`. Sign in is refused on both platforms, and Android also signs out an open session the next time Home loads |
-| `DEPARTED` | The front desk checks the guest out | `CHECKOUT_USER` signs the app out, and sign in is refused |
+| `GRACE_PERIOD` | The checkout time passes, on a site whose policy has `revokeAccessPostCheckout` turned on and a grace period longer than 00:00 | Everything still works. The accessor is still in place |
+| `GRACE_EXPIRED` | The grace period ends | The backend deletes the accessor and sends `CHECKOUT_USER`, which signs the app out straight away on both platforms. Sign in is then refused |
+| `DEPARTED` | The front desk checks the guest out | `CHECKOUT_USER` signs the app out. `getGuestDetails` never returns this status: the backend answers a checked-out guest with a 401, so sign in fails |
 
-On a site without a grace period, the checkout time passes with no effect. The
-accessor stays in place until the front desk checks the guest out.
+With `revokeAccessPostCheckout` off, the checkout time passes with no effect and
+the accessor stays in place until the front desk checks the guest out. With it
+on and a grace period of 00:00, the guest skips `GRACE_PERIOD`: access is revoked
+and the app signs out at the checkout time itself.
 
 ## The two SDKs
 

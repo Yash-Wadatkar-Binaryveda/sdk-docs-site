@@ -29,7 +29,7 @@ Each one is defined, with the colour it keeps across the site, in
 |---|---|
 | The room number, or the shared area's name | The card that opened this screen |
 | Who is in the room | `occupiedBy`, when it came from a room card |
-| Privacy mode, passage mode | The card, then kept current over the socket |
+| Privacy mode, passage mode | The card. For a housekeeper on today's floors, then kept current over the socket |
 | **Unlock** | The Access SDK, using the door's `spintlyId` |
 | **Complete**, and the instructions dialog | Only when a task opened this screen |
 
@@ -135,8 +135,10 @@ access points the SDK is holding.
 
 ## 2. Live updates
 
-The two door modes are kept current while the screen is open, so the Unlock
-button reflects the lock rather than a stale card.
+For a housekeeper, the two door modes are kept current while the screen is
+open, so the Unlock button reflects the lock rather than a stale card. The
+events only go to housekeepers on today's shift floors; every other role keeps
+whatever the card showed when the screen opened.
 
 ```mermaid
 sequenceDiagram
@@ -287,8 +289,8 @@ plain sentences, and Android shows the SDK's own `displayMessage`.
 | `UnauthorisedError` 9 | Click to access denied |
 
 `UnauthorisedError` 7 is the one most often misread. It usually means `pollData`
-has not run since the staff member's permissions changed, not that the door is
-missing.
+has not run since the staff member's permissions changed, or that Spintly hasn't
+finished applying the change yet. It rarely means the door is missing.
 
 ## Differences between the two
 

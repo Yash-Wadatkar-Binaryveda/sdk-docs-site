@@ -72,7 +72,9 @@ category, and staff work it like any other task. See
 
 !!! info "Accessor"
 
-    Spintly's word for a person who can open a door is an **accessor**. A staff
-    member's accessor is created by the backend when an admin creates them, not
-    by this app. The unlock call takes their `accessPointId`, which the app
-    knows as `spintlyId`.
+    Spintly's word for a person who can open a door is an **accessor**. The
+    backend creates one for housekeeping staff only, when their first shift is
+    saved, not when an admin creates them and never from this app. It deletes
+    the accessor when the last shift is removed or the role moves away from
+    housekeeping. Other roles hold no door permissions of their own. The unlock
+    call takes the door's `accessPointId`, which the app knows as `spintlyId`.

@@ -125,10 +125,13 @@ sequenceDiagram
 they can see and open has changed underneath them, so the session is ended and
 they sign in again.
 
-**`LOCK_PERMISSION_UPDATED`** means their door permissions changed, usually
-because a shift or a floor assignment moved. The Access SDK holds a cached copy
-of those permissions, and on **Android** this push tells it to refresh. The note
-at the foot of this page covers how iOS picks the change up.
+**`LOCK_PERMISSION_UPDATED`** means their door permissions changed, because a
+shift or a floor assignment moved, or because a room was created, deleted or
+moved to another floor. Only housekeepers get it, since they're the only role
+with an accessor. Saving a housekeeper's first shift creates the accessor
+instead, and sends no push. The Access SDK holds a cached copy of those
+permissions, and on **Android** this push tells it to refresh. The note at the
+foot of this page covers how iOS picks the change up.
 
 ```mermaid
 sequenceDiagram
@@ -138,15 +141,19 @@ sequenceDiagram
     participant A as App
     participant S as Access SDK
 
-    Ad->>B: Change a shift or a floor assignment
+    Ad->>B: Change a shift or a floor assignment,<br/>or create, delete or move a room
     B->>SP: PATCH .../accessors/{accessorId}/permissions<br/>Update the accessor at Spintly
     B->>A: Push, category LOCK_PERMISSION_UPDATED
     Note over A,S: Android only, from here down
     A->>S: cloudSyncManager.pollData<br/>Refresh the door permissions
     S->>SP: Fetch the permissions
-    SP-->>S: The new set
+    SP-->>S: The current set
     S-->>A: Done
 ```
+
+Spintly applies a permission change in the background and reports it as
+pending until it reaches the lock. A `pollData` that runs straight after the
+push can still bring back the old set.
 
 Without it the SDK keeps the old permission set until something else calls
 `pollData`, and an unlock fails with `UnauthorisedError` 7 on a door the staff

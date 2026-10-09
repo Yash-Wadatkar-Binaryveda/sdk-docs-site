@@ -9,8 +9,9 @@ Cognito token for a Spintly session so the Access SDK can open doors.
 
     Sign in only works for a guest the front desk has checked in, and only while
     the stay is active. `getGuestDetails` runs straight after the OTP and turns
-    away a guest whose status is `GRACE_EXPIRED` or `DEPARTED`. See
-    [step 4](#4-checking-the-stay).
+    away a guest whose status is `GRACE_EXPIRED`. A guest who has already been
+    checked out never gets as far as a status: the backend answers with a 401.
+    See [step 4](#4-checking-the-stay).
 
 ## Participants
 
@@ -246,11 +247,15 @@ platforms make the same three calls in a different order.
         A->>B: addLoginAccessDetails(cognitoId, ios, guest, accessedAt)<br/>Record this sign in
         B-->>A: success
         A->>B: getGuestDetails(cognitoId)<br/>The guest, the room, the doors and the stay
-        B-->>A: The stay, with guest.status
-        alt status is GRACE_EXPIRED or DEPARTED
+        alt The guest has been checked out
+            B-->>A: 401 Unauthorized access
+            A-->>G: A generic error
+        else status is GRACE_EXPIRED
+            B-->>A: The stay, with guest.status
             A-->>G: The user has checked out!
             A->>A: Sign out after two seconds
         else The stay is active
+            B-->>A: The stay, with guest.status
             A->>A: Store roomId, guestId, userId, siteId and the geofencing flag
             A->>A: Reset the permissions count to 0
             A->>A: Read the FCM token Firebase issued at launch
@@ -262,7 +267,8 @@ platforms make the same three calls in a different order.
 
     A failure in any of the three calls sets the logged in flag back to false.
     If `addLoginAccessDetails` fails with "User not found", the guest sees
-    **Checked Out!!** and is sent back to the number field.
+    **Checked Out!!** and is sent back to the number field. In practice that
+    branch no longer runs, because a checked-out guest gets a 401 instead.
 
 === "Android"
 
@@ -274,8 +280,11 @@ platforms make the same three calls in a different order.
         participant F as Firebase
 
         A->>B: getGuestDetails(cognitoId)<br/>The guest, the room, the doors and the stay
-        alt status is GRACE_EXPIRED or DEPARTED, or errorType 404
-            B-->>A: A stay that has ended, or no guest
+        alt The guest has been checked out
+            B-->>A: 401 Unauthorized access
+            A-->>G: A generic error
+        else status is GRACE_EXPIRED
+            B-->>A: A stay that has ended
             A-->>G: A checked out message
             A->>A: Raise the auto logout signal
         else The stay is active
@@ -291,6 +300,11 @@ platforms make the same three calls in a different order.
             A-->>G: The Dashboard
         end
     ```
+
+    The app also checks for `DEPARTED` and for `errorType` 404, but the backend
+    sends neither: `getGuestDetails` only returns `ARRIVED`, `GRACE_PERIOD` or
+    `GRACE_EXPIRED`, and a checked-out guest gets a 401, which raises no auto
+    logout.
 
     Android opens the Dashboard whether `addDeviceToken` succeeds or fails. A
     failure only shows a snackbar. The auto logout signal is the forced logout

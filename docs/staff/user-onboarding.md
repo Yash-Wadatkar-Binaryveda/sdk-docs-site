@@ -165,8 +165,8 @@ answers it with the six digits.
 
 Staff cannot sign themselves up. If Cognito has no user for that number the
 challenge trigger throws **"User does not exist"**, which the app surfaces
-directly. An admin has to create the staff member first, which also creates
-their Spintly accessor.
+directly. An admin has to create the staff member first. That doesn't create a
+Spintly accessor; a housekeeper gets one when their first shift is saved.
 
 <div class="screens">
 <figure>

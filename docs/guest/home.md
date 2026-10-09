@@ -104,8 +104,11 @@ the backend.
         Note over A,S: HomeScreen ON_RESUME
         A->>B: Open the socket
         A->>B: getGuestDetails(cognitoId)<br/>The room, the doors and the stay dates
-        alt status is GRACE_EXPIRED or DEPARTED, or errorType 404
-            B-->>A: A stay that has ended, or no guest
+        alt The guest has been checked out
+            B-->>A: 401 Unauthorized access
+            A->>A: A generic error, and no auto logout
+        else status is GRACE_EXPIRED
+            B-->>A: A stay that has ended
             A->>A: Raise the auto logout signal
         else The stay is active
             B-->>A: The stay

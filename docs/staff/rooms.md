@@ -116,17 +116,24 @@ Two consequences follow:
 - **An empty list usually means no shift.** A housekeeper who is not rostered
   today gets nothing back. The backend is working as designed.
 
-The **Access SDK** holds its own copy of the same permissions, kept in step by
-`pollData`. If an admin changes a shift, the backend updates the
-staff member's accessor permissions at Spintly and sends a push, which on Android
-triggers a fresh `pollData`. See
+The **Access SDK** holds a different set, kept in step by `pollData`. For a
+housekeeper it covers the floors on every one of their shifts, whatever the
+day, while this list shows only today's. When an admin changes a shift, or a
+room is created, deleted or moved to another floor, the backend updates the
+housekeeper's accessor permissions at Spintly and sends a push, which on Android
+triggers a fresh `pollData`. Other roles see the whole site here but hold no
+door permissions in the SDK. See
 [Notifications](notifications.md#2-a-push-arrives).
 
 ## 3. Live updates
 
 A room's door mode can change while the list is open, either because a guest
 turned privacy mode on from inside or because passage mode was switched at the
-lock. Two socket events carry it.
+lock. Two socket events carry it, and only housekeepers get them: the backend
+sends each event to a floor, and only a housekeeper's socket joins floors, the
+ones on today's shift. Every other role sees the door mode from the last time
+the list loaded. Shared areas at block level, which belong to no floor, get no
+`passageModeUpdate` at all.
 
 ```mermaid
 sequenceDiagram
@@ -146,9 +153,11 @@ both platforms stop at the first match. Guest rooms and shared areas are
 searched together, so either kind of card can update.
 
 `passageModeStatus` arrives as a string and is treated as on only when it is
-exactly `ENABLED`. Anything else, including the intermediate `ENABLING` and
-`DISABLING` states the backend writes while it is talking to the lock, reads as
-off.
+exactly `ENABLED`. Anything else reads as off, including the intermediate
+`ENABLING` and `DISABLING` states, which the backend writes before it contacts
+the lock and keeps through any retries. So during `DISABLING` the card shows off
+while the door may still be held open. If the change fails, the backend rolls the
+status back in the database without sending a socket event.
 
 The [Control Panel](control-panel.md#4-privacy-mode-and-passage-mode) covers
 what these two modes mean for the Unlock button.

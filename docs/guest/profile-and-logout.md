@@ -132,9 +132,9 @@ The guest chooses only the first of these.
 | | What triggers it | Platforms | Cognito signed out |
 |---|---|---|---|
 | **The guest logs out** | This screen | Both | Yes |
-| **The guest is checked out** | A `CHECKOUT_USER` silent push | Both | iOS yes, Android no |
-| **The stay has ended at sign in** | `guest.status` is `GRACE_EXPIRED` or `DEPARTED` straight after the OTP | Both | iOS yes, Android no |
-| **The stay has ended while signed in** | The same status, or no guest found, when Home loads | Android | No |
+| **The guest is checked out** | A `CHECKOUT_USER` silent push, after a front desk checkout or at the end of the grace period | Both | iOS yes, Android no |
+| **The stay has ended at sign in** | `guest.status` is `GRACE_EXPIRED` straight after the OTP | Both | iOS yes, Android no |
+| **The stay has ended while signed in** | The same status, or no guest found, when Home loads. Mostly a fallback now, since the end of the grace period already sends `CHECKOUT_USER` | Android | No |
 | **The SDK forced it** | The Access SDK reports `LOGGED_OUT` with an error, or `LOGGED_OUT_DELETED_USER` | Android | No |
 
 iOS runs its full sign out for every case it handles. Android runs a **forced
